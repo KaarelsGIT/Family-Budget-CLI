@@ -1,0 +1,23 @@
+<section class="home-page">
+  <div class="hero-card" *ngIf="!authService.isLoggedIn(); else loggedInView">
+    <p class="eyebrow">{{ i18n.translate('app.name') }}</p>
+    <h1>{{ i18n.translate('home.heroTitle') }}</h1>
+    <p class="lead">
+      {{ i18n.translate('home.heroLead') }}
+    </p>
+    <div class="quote-card">
+      <strong>{{ i18n.translate('home.quoteStrong') }}</strong>
+      <span>{{ i18n.translate('home.quoteText') }}</span>
+    </div>
+  </div>
+
+  <ng-template #loggedInView>
+    <div class="hero-card compact">
+      <p class="eyebrow">{{ i18n.translate('home.welcomeBack') }}</p>
+      <h1>{{ i18n.translate('home.readyTitle') }}</h1>
+      <p class="lead">
+        {{ i18n.translate('home.readyLead') }}
+      </p>
+    </div>
+  </ng-template>
+</section>

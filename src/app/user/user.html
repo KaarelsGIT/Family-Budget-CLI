@@ -1,0 +1,167 @@
+<section class="user-page">
+  <div class="user-content">
+    <div class="content-panel" *ngIf="activeSection === 'details'">
+      <div class="content-header">
+        <p class="eyebrow">{{ i18n.translate('user.settingsEyebrow') }}</p>
+        <h1>{{ i18n.translate('user.detailsTitle') }}</h1>
+        <p class="content-copy">{{ i18n.translate('user.detailsCopy') }}</p>
+      </div>
+
+      <form [formGroup]="userDetailsForm" class="settings-form" (ngSubmit)="saveUserDetails()">
+        <label class="field">
+          <span>{{ i18n.translate('login.username') }}</span>
+          <input type="text" formControlName="username" />
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('user.newPassword') }}</span>
+          <input type="password" formControlName="password" />
+        </label>
+
+        <p class="success-message" *ngIf="feedbackMessage">{{ feedbackMessage }}</p>
+        <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+        <div class="actions">
+          <button type="submit" class="primary-button" [disabled]="isSaving">
+            {{ isSaving ? i18n.translate('user.saving') : i18n.translate('user.saveChanges') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="content-panel" *ngIf="activeSection === 'family-member' && authService.isAdmin()">
+      <div class="content-header">
+        <p class="eyebrow">{{ i18n.translate('user.adminTools') }}</p>
+        <h1>{{ i18n.translate('user.addMemberTitle') }}</h1>
+        <p class="content-copy" [innerHTML]="i18n.translate('user.addMemberCopy')"></p>
+      </div>
+
+      <form [formGroup]="familyMemberForm" class="settings-form" (ngSubmit)="createFamilyMember()">
+        <label class="field">
+          <span>{{ i18n.translate('login.username') }}</span>
+          <input type="text" formControlName="username" />
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('login.password') }}</span>
+          <input type="password" formControlName="password" />
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('user.role') }}</span>
+          <select formControlName="role">
+            <option value="PARENT">{{ i18n.translate('user.roleParent') }}</option>
+            <option value="CHILD">{{ i18n.translate('user.roleChild') }}</option>
+          </select>
+        </label>
+
+        <p class="success-message" *ngIf="memberFeedbackMessage">{{ memberFeedbackMessage }}</p>
+        <p class="error-message" *ngIf="memberErrorMessage">{{ memberErrorMessage }}</p>
+
+        <div class="actions">
+          <button type="submit" class="primary-button" [disabled]="isCreatingMember">
+            {{ isCreatingMember ? i18n.translate('user.creating') : i18n.translate('user.createMember') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="content-panel" *ngIf="activeSection === 'all-users' && authService.isAdmin()">
+      <div class="content-header">
+        <p class="eyebrow">{{ i18n.translate('user.adminTools') }}</p>
+        <h1>{{ i18n.translate('user.allUsersTitle') }}</h1>
+        <p class="content-copy">{{ i18n.translate('user.allUsersCopy') }}</p>
+      </div>
+
+      <p class="content-copy" *ngIf="isLoadingUsers">{{ i18n.translate('user.loadingUsers') }}</p>
+      <p class="error-message" *ngIf="usersErrorMessage">{{ usersErrorMessage }}</p>
+
+      <div class="users-admin-layout" *ngIf="!isLoadingUsers && users.length > 0">
+        <div class="user-list" [attr.aria-label]="i18n.translate('user.allUsersAria')">
+          <button
+            *ngFor="let user of users"
+            type="button"
+            class="user-list-item"
+            [class.active]="selectedUserId === user.id"
+            (click)="selectUser(user)">
+            <span class="user-list-name">{{ user.username }}</span>
+            <span class="user-list-meta">{{ getRoleLabel(user.role) }} · {{ getStatusLabel(user.status) }}</span>
+          </button>
+        </div>
+
+        <form [formGroup]="selectedUserForm" class="settings-form" (ngSubmit)="saveSelectedUser()">
+          <label class="field">
+            <span>{{ i18n.translate('login.username') }}</span>
+            <input type="text" formControlName="username" />
+          </label>
+
+          <label class="field">
+            <span>{{ i18n.translate('user.newPassword') }}</span>
+            <input type="password" formControlName="password" />
+          </label>
+
+          <label class="field">
+            <span>{{ i18n.translate('user.role') }}</span>
+            <select formControlName="role">
+              <option value="ADMIN">{{ i18n.translate('user.roleAdmin') }}</option>
+              <option value="PARENT">{{ i18n.translate('user.roleParent') }}</option>
+              <option value="CHILD">{{ i18n.translate('user.roleChild') }}</option>
+            </select>
+          </label>
+
+          <p class="content-copy" *ngIf="selectedUserForm.controls.role.disabled">
+            {{ i18n.translate('user.adminRoleLocked') }}
+          </p>
+
+          <p class="success-message" *ngIf="usersFeedbackMessage">{{ usersFeedbackMessage }}</p>
+
+          <div class="actions">
+            <button type="submit" class="primary-button" [disabled]="isSavingSelectedUser">
+              {{ isSavingSelectedUser ? i18n.translate('user.saving') : i18n.translate('user.saveUser') }}
+            </button>
+            <button
+              type="button"
+              class="danger-button"
+              *ngIf="selectedUserId !== null && selectedUserForm.controls.role.value !== 'ADMIN'"
+              [disabled]="isDeletingSelectedUser"
+              (click)="deleteSelectedUser()">
+              {{ isDeletingSelectedUser ? i18n.translate('user.deleting') : i18n.translate('user.deleteUser') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <p class="content-copy" *ngIf="!isLoadingUsers && !usersErrorMessage && users.length === 0">
+        {{ i18n.translate('user.noUsers') }}
+      </p>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <button
+      type="button"
+      class="sidebar-link"
+      [class.active]="activeSection === 'details'"
+      (click)="selectSection('details')">
+      {{ i18n.translate('user.sidebarDetails') }}
+    </button>
+
+    <button
+      *ngIf="authService.isAdmin()"
+      type="button"
+      class="sidebar-link"
+      [class.active]="activeSection === 'family-member'"
+      (click)="selectSection('family-member')">
+      {{ i18n.translate('user.sidebarAddMember') }}
+    </button>
+
+    <button
+      *ngIf="authService.isAdmin()"
+      type="button"
+      class="sidebar-link"
+      [class.active]="activeSection === 'all-users'"
+      (click)="selectSection('all-users')">
+      {{ i18n.translate('user.sidebarAllUsers') }}
+    </button>
+  </aside>
+</section>

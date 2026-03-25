@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { TranslationService } from '../i18n/translation.service';
 
 @Component({
   selector: 'app-login-modal',
@@ -17,6 +18,7 @@ export class LoginModalComponent {
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  readonly i18n = inject(TranslationService);
 
   readonly form = this.formBuilder.nonNullable.group({
     username: ['', Validators.required],

@@ -1,0 +1,70 @@
+.home-page {
+  padding: 24px;
+}
+
+.hero-card {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at top right, rgba(96, 161, 96, 0.22), transparent 32%),
+    linear-gradient(180deg, #fbfffb 0%, #f0f8f0 100%);
+  border: 1px solid rgba(22, 95, 22, 0.12);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.08);
+}
+
+.hero-card.compact {
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #2f6b2f;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-card h1 {
+  margin: 0 0 16px;
+  color: #184d18;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.05;
+  max-width: 12ch;
+}
+
+.lead {
+  margin: 0;
+  max-width: 58ch;
+  color: #456245;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.quote-card {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 22px;
+  border-radius: 20px;
+  background: rgba(31, 122, 31, 0.08);
+  color: #1b5e20;
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    padding: 16px;
+  }
+
+  .hero-card {
+    padding: 28px 22px;
+    border-radius: 24px;
+  }
+
+  .lead {
+    font-size: 16px;
+  }
+}

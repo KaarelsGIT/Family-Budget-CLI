@@ -1,29 +1,33 @@
 <header>
   <nav class="navbar">
     <div class="logo">
-      <a routerLink="/">Family Budget Application</a>
+      <a routerLink="/">{{ i18n.translate('app.name') }}</a>
     </div>
 
     <ul class="nav-links">
       <ng-container *ngIf="authService.isLoggedIn()">
-        <li><a routerLink="/accounts">Accounts</a></li>
-        <li><a routerLink="/transactions">Transactions</a></li>
-        <li><a routerLink="/statistics">Statistics</a></li>
+        <li><a routerLink="/accounts">{{ i18n.translate('header.accounts') }}</a></li>
+        <li><a routerLink="/transactions">{{ i18n.translate('header.transactions') }}</a></li>
+        <li><a routerLink="/statistics">{{ i18n.translate('header.statistics') }}</a></li>
 
         <li class="tools-menu">
           <button type="button" class="tools-trigger" (click)="toggleToolsMenu()">
-            Tools
+            {{ i18n.translate('header.tools') }}
           </button>
 
           <div class="tools-dropdown" *ngIf="isToolsOpen">
             <button type="button" class="tools-dropdown-item" (click)="openCalculator()">
-              Calculator
+              {{ i18n.translate('header.calculator') }}
             </button>
           </div>
         </li>
 
         <li>
-          <a routerLink="/notifications" class="icon-link" aria-label="Notifications" title="Notifications">
+          <a
+            routerLink="/notifications"
+            class="icon-link"
+            [attr.aria-label]="i18n.translate('header.notifications')"
+            [attr.title]="i18n.translate('header.notifications')">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-4H5v-1.5l1.5-1.5V10a5.5 5.5 0 1 1 11 0v5l1.5 1.5V18Z"
@@ -32,25 +36,63 @@
           </a>
         </li>
 
+        <li class="language-menu">
+          <button type="button" class="language-trigger" (click)="toggleLanguageMenu()">
+            <span class="language-flag">{{ getSelectedLanguage().flag }}</span>
+            <span class="language-code">{{ getSelectedLanguage().code.toUpperCase() }}</span>
+          </button>
+
+          <div class="tools-dropdown language-dropdown" *ngIf="isLanguageMenuOpen">
+            <button
+              type="button"
+              class="tools-dropdown-item language-option"
+              *ngFor="let language of i18n.supportedLanguages"
+              (click)="setLanguage(language.code)">
+              <span class="language-flag">{{ language.flag }}</span>
+              <span class="language-code">{{ language.code.toUpperCase() }}</span>
+              <span>{{ i18n.translate(language.labelKey) }}</span>
+            </button>
+          </div>
+        </li>
+
         <li class="user-menu">
           <button type="button" class="user-trigger" (click)="toggleUserMenu()">
-            Welcome, {{ authService.getUsername() }}
+            {{ i18n.translate('header.welcome', { username: authService.getUsername() ?? '' }) }}
           </button>
 
           <div class="tools-dropdown user-dropdown" *ngIf="isUserMenuOpen">
             <a routerLink="/account-settings" class="tools-dropdown-link" (click)="closeUserMenu()">
-              Account settings
+              {{ i18n.translate('header.accountSettings') }}
             </a>
             <button type="button" class="tools-dropdown-item" (click)="logout()">
-              Log out
+              {{ i18n.translate('header.logOut') }}
             </button>
           </div>
         </li>
       </ng-container>
 
+      <li class="language-menu" *ngIf="!authService.isLoggedIn()">
+        <button type="button" class="language-trigger" (click)="toggleLanguageMenu()">
+          <span class="language-flag">{{ getSelectedLanguage().flag }}</span>
+          <span class="language-code">{{ getSelectedLanguage().code.toUpperCase() }}</span>
+        </button>
+
+        <div class="tools-dropdown language-dropdown" *ngIf="isLanguageMenuOpen">
+          <button
+            type="button"
+            class="tools-dropdown-item language-option"
+            *ngFor="let language of i18n.supportedLanguages"
+            (click)="setLanguage(language.code)">
+            <span class="language-flag">{{ language.flag }}</span>
+            <span class="language-code">{{ language.code.toUpperCase() }}</span>
+            <span>{{ i18n.translate(language.labelKey) }}</span>
+          </button>
+        </div>
+      </li>
+
       <li *ngIf="!authService.isLoggedIn()">
         <button type="button" class="action-button primary-action" (click)="openLoginModal()">
-          Log in
+          {{ i18n.translate('header.logIn') }}
         </button>
       </li>
     </ul>

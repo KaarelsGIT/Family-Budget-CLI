@@ -1,0 +1,234 @@
+.user-page {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px;
+}
+
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #f5fff5 0%, #eef8ee 100%);
+  border: 1px solid rgba(22, 95, 22, 0.12);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 110px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #1b5e20;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  background: rgba(31, 122, 31, 0.1);
+  color: #144914;
+}
+
+.user-content {
+  flex: 1 1 auto;
+}
+
+.content-panel {
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fcfffc 0%, #f4fbf4 100%);
+  border: 1px solid rgba(22, 95, 22, 0.1);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+}
+
+.content-header {
+  margin-bottom: 22px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #2f6b2f;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.content-header h1 {
+  margin: 0 0 8px;
+  color: #184d18;
+  font-size: 30px;
+}
+
+.content-copy {
+  margin: 0;
+  color: #456245;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.users-admin-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(22, 95, 22, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  color: #1b3f1b;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-list-item:hover,
+.user-list-item.active {
+  border-color: rgba(22, 95, 22, 0.32);
+  box-shadow: 0 12px 24px rgba(22, 95, 22, 0.12);
+  transform: translateY(-1px);
+}
+
+.user-list-name {
+  font-weight: 700;
+}
+
+.user-list-meta {
+  color: #456245;
+  font-size: 13px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #1b3f1b;
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(22, 95, 22, 0.18);
+  background: white;
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #2f7d32;
+  box-shadow: 0 0 0 4px rgba(47, 125, 50, 0.12);
+}
+
+.success-message {
+  margin: 0;
+  color: #1b5e20;
+  font-weight: 700;
+}
+
+.error-message {
+  margin: 0;
+  color: #b3261e;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.primary-button {
+  min-height: 46px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1f7a1f 0%, #165f16 100%);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(22, 95, 22, 0.24);
+}
+
+.danger-button {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid rgba(179, 38, 30, 0.2);
+  border-radius: 999px;
+  background: rgba(179, 38, 30, 0.08);
+  color: #8f211a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.danger-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+code {
+  font-size: 0.92em;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(31, 122, 31, 0.1);
+  color: #1b5e20;
+}
+
+@media (max-width: 900px) {
+  .user-page {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    position: static;
+  }
+
+  .users-admin-layout {
+    grid-template-columns: 1fr;
+  }
+}

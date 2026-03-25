@@ -4,8 +4,8 @@
   <section class="modal-card" role="dialog" aria-modal="true">
     <div class="modal-header">
       <div>
-        <p class="eyebrow">Family Budget Application</p>
-        <h2>Log in</h2>
+        <p class="eyebrow">{{ i18n.translate('app.name') }}</p>
+        <h2>{{ i18n.translate('login.title') }}</h2>
       </div>
 
       <button type="button" class="close-button" (click)="close()">x</button>
@@ -13,21 +13,21 @@
 
     <form [formGroup]="form" class="login-form" (ngSubmit)="submit()">
       <label class="field">
-        <span>Username</span>
+        <span>{{ i18n.translate('login.username') }}</span>
         <input type="text" formControlName="username" autocomplete="username" />
       </label>
 
       <label class="field">
-        <span>Password</span>
+        <span>{{ i18n.translate('login.password') }}</span>
         <input type="password" formControlName="password" autocomplete="current-password" />
       </label>
 
       <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
 
       <div class="modal-actions">
-        <button type="button" class="ghost-button" (click)="close()">Cancel</button>
+        <button type="button" class="ghost-button" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
         <button type="submit" class="submit-button" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Logging in...' : 'Log in' }}
+          {{ isSubmitting ? i18n.translate('login.submitting') : i18n.translate('header.logIn') }}
         </button>
       </div>
     </form>

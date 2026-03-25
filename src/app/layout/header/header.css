@@ -77,12 +77,14 @@ header {
   position: relative;
 }
 
-.user-menu {
+.user-menu,
+.language-menu {
   position: relative;
 }
 
 .tools-trigger,
-.user-trigger {
+.user-trigger,
+.language-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -99,10 +101,37 @@ header {
 }
 
 .tools-trigger:hover,
-.user-trigger:hover {
+.user-trigger:hover,
+.language-trigger:hover {
   background: rgba(255, 239, 213, 0.22);
   color: peachpuff;
   transform: translateY(-1px);
+}
+
+.language-trigger,
+.language-option {
+  gap: 10px;
+}
+
+.language-code {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.language-flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.language-dropdown {
+  right: 0;
+  left: auto;
+  min-width: 170px;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
 }
 
 .tools-dropdown {
@@ -218,6 +247,7 @@ header {
   .nav-links a,
   .tools-trigger,
   .user-trigger,
+  .language-trigger,
   .auth-action,
   .action-button {
     width: 100%;
@@ -226,6 +256,7 @@ header {
   .nav-links a,
   .tools-trigger,
   .user-trigger,
+  .language-trigger,
   .action-button,
   .tools-dropdown-item {
     justify-content: flex-start;
