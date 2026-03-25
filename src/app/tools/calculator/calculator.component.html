@@ -1,0 +1,39 @@
+<div class="calculator-modal" *ngIf="isVisible">
+  <div class="calculator-backdrop" (click)="close()"></div>
+  <div
+    class="calculator"
+    [ngStyle]="{'top.px': position.top, 'left.px': position.left}">
+    <div class="calculator-header" (mousedown)="onMouseDown($event)">
+      <button class="close-button" (click)="close()">×</button>
+    </div>
+    <div class="display">
+      <div class="expression">{{ expression }}</div>
+      <div class="result">{{ display }}</div>
+    </div>
+    <div class="keypad">
+      <button (click)="clear()">C</button>
+      <button (click)="delete()">&larr;</button>
+      <button (click)="handlePercent()">&#37;</button>
+      <button (click)="appendOperator('/')">/</button>
+
+      <button (click)="appendNumber('7')">7</button>
+      <button (click)="appendNumber('8')">8</button>
+      <button (click)="appendNumber('9')">9</button>
+      <button (click)="appendOperator('*')">×</button>
+
+      <button (click)="appendNumber('4')">4</button>
+      <button (click)="appendNumber('5')">5</button>
+      <button (click)="appendNumber('6')">6</button>
+      <button (click)="appendOperator('-')">-</button>
+
+      <button (click)="appendNumber('1')">1</button>
+      <button (click)="appendNumber('2')">2</button>
+      <button (click)="appendNumber('3')">3</button>
+      <button (click)="appendOperator('+')">+</button>
+
+      <button (click)="appendNumber('0')" class="zero">0</button>
+      <button (click)="appendNumber('.')">.</button>
+      <button (click)="calculate()" class="equals">=</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<header>
+  <nav class="navbar">
+    <div class="logo">
+      <a routerLink="/">Family Budget Application</a>
+    </div>
+
+    <ul class="nav-links">
+      <ng-container *ngIf="authService.isLoggedIn()">
+        <li><a routerLink="/accounts">Accounts</a></li>
+        <li><a routerLink="/transactions">Transactions</a></li>
+        <li><a routerLink="/statistics">Statistics</a></li>
+
+        <li class="tools-menu">
+          <button type="button" class="tools-trigger" (click)="toggleToolsMenu()">
+            Tools
+          </button>
+
+          <div class="tools-dropdown" *ngIf="isToolsOpen">
+            <button type="button" class="tools-dropdown-item" (click)="openCalculator()">
+              Calculator
+            </button>
+          </div>
+        </li>
+
+        <li>
+          <a routerLink="/notifications" class="icon-link" aria-label="Notifications" title="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-4H5v-1.5l1.5-1.5V10a5.5 5.5 0 1 1 11 0v5l1.5 1.5V18Z"
+                fill="currentColor" />
+            </svg>
+          </a>
+        </li>
+
+        <li class="user-menu">
+          <button type="button" class="user-trigger" (click)="toggleUserMenu()">
+            Welcome, {{ authService.getUsername() }}
+          </button>
+
+          <div class="tools-dropdown user-dropdown" *ngIf="isUserMenuOpen">
+            <a routerLink="/account-settings" class="tools-dropdown-link" (click)="closeUserMenu()">
+              Account settings
+            </a>
+            <button type="button" class="tools-dropdown-item" (click)="logout()">
+              Log out
+            </button>
+          </div>
+        </li>
+      </ng-container>
+
+      <li *ngIf="!authService.isLoggedIn()">
+        <button type="button" class="action-button primary-action" (click)="openLoginModal()">
+          Log in
+        </button>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<app-login-modal
+  [isOpen]="isLoginModalOpen"
+  (closed)="closeLoginModal()">
+</app-login-modal>
+
+<app-calculator
+  [isVisible]="isCalculatorVisible"
+  (closeCalculator)="closeCalculator()">
+</app-calculator>
