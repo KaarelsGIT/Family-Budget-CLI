@@ -1,0 +1,35 @@
+<div class="modal-overlay" *ngIf="isOpen">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <p class="eyebrow">Family Budget Application</p>
+        <h2>Log in</h2>
+      </div>
+
+      <button type="button" class="close-button" (click)="close()">x</button>
+    </div>
+
+    <form [formGroup]="form" class="login-form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>Username</span>
+        <input type="text" formControlName="username" autocomplete="username" />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input type="password" formControlName="password" autocomplete="current-password" />
+      </label>
+
+      <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="ghost-button" (click)="close()">Cancel</button>
+        <button type="submit" class="submit-button" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Logging in...' : 'Log in' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
