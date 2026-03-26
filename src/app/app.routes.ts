@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
-import { AccountsComponent } from './accounts/accounts';
+import { AccountsPageComponent } from './features/accounts/pages/accounts-page.component';
 import { Home } from './home/home';
 import { User } from './user/user';
 
@@ -16,7 +16,7 @@ export const routes: Routes = [
   },
   {
     path: 'accounts',
-    component: AccountsComponent,
+    component: AccountsPageComponent,
     canActivate: [authGuard]
   },
   {

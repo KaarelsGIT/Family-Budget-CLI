@@ -1,0 +1,56 @@
+<section class="accounts-container">
+  <header class="header">
+    <div>
+      <h1>{{ i18n.translate('accounts.myAccounts') }}</h1>
+      <div class="total-balance">{{ i18n.translate('accounts.totalBalance') }}: {{ formatBalance(totalBalance()) }}</div>
+    </div>
+
+    <button type="button" class="primary" (click)="openAddAccountModal()">{{ i18n.translate('accounts.addAccount') }}</button>
+  </header>
+
+  <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('accounts.loading') }}</p>
+  <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="account-sections" *ngIf="!isLoading() && accounts().length > 0">
+    <section class="account-section" [class.children-section]="section.key === 'children'" *ngFor="let section of sections(); trackBy: trackBySectionKey">
+      <div class="section-header">
+        <h2>{{ i18n.translate(section.titleKey) }}</h2>
+      </div>
+
+      <div class="account-grid children-grid" *ngIf="section.key === 'children' && section.groups.length > 0">
+        <ng-container *ngFor="let group of section.groups; trackBy: trackByOwnerId">
+          <app-account-card
+            *ngFor="let account of group.accounts; trackBy: trackByAccountId"
+            [account]="account"
+            (changed)="handleAccountsChanged()" />
+        </ng-container>
+      </div>
+
+      <div class="owner-group-grid" *ngIf="section.key !== 'children' && section.groups.length > 0; else emptySection">
+        <section class="owner-group" *ngFor="let group of section.groups; trackBy: trackByOwnerId">
+          <h3>{{ i18n.translate('accounts.ownerLabel', { username: group.ownerUsername }) }}</h3>
+
+          <div class="account-grid owner-accounts">
+            <app-account-card
+              *ngFor="let account of group.accounts; trackBy: trackByAccountId"
+              [account]="account"
+              (changed)="handleAccountsChanged()" />
+          </div>
+        </section>
+      </div>
+
+      <ng-template #emptySection>
+        <ng-container *ngIf="section.key !== 'children'">
+        <p class="section-empty">{{ i18n.translate('accounts.noSectionAccounts') }}</p>
+        </ng-container>
+      </ng-template>
+    </section>
+  </div>
+
+  <p class="state-message" *ngIf="!isLoading() && accounts().length === 0">{{ i18n.translate('accounts.noAccounts') }}</p>
+
+  <app-add-account-modal
+    *ngIf="isModalOpen()"
+    (closed)="closeAddAccountModal()"
+    (created)="handleAccountsChanged()" />
+</section>

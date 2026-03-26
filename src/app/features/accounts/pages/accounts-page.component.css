@@ -1,0 +1,117 @@
+.accounts-container {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  color: #112b18;
+}
+
+.total-balance {
+  font-size: 24px;
+  font-weight: 700;
+  color: #17361f;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.account-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+.account-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #17361f;
+}
+
+.owner-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.children-section .owner-group-grid {
+  gap: 0;
+}
+
+.children-grid {
+  margin-top: 0;
+}
+
+.owner-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.owner-group h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #375241;
+}
+
+.owner-accounts {
+  margin-top: 0;
+}
+
+.section-empty {
+  margin: 0;
+  color: #617266;
+}
+
+button.primary {
+  background: forestgreen;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.state-message,
+.error-message {
+  margin: 20px 0 0;
+}
+
+.error-message {
+  color: crimson;
+}
+
+@media (max-width: 720px) {
+  .accounts-container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button.primary {
+    width: 100%;
+  }
+}

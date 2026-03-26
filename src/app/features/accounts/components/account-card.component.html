@@ -1,0 +1,56 @@
+<article class="account-card">
+  <div class="card-header">
+    <div class="card-main">
+      <div class="card-title-row">
+      <app-edit-account-inline [account]="account()" [editable]="canEditAccount()" [showTrigger]="false" (updated)="onUpdated()" />
+      </div>
+
+      <div class="card-tools">
+        <button
+          type="button"
+          class="header-icon-button"
+          *ngIf="canEditAccount()"
+          (click)="startInlineEdit()"
+          [attr.aria-label]="i18n.translate('accounts.editName')"
+          [attr.title]="i18n.translate('accounts.editName')">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25Zm17.7-10.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.96 1.96 3.75 3.75 2.12-2.1Z" fill="currentColor"/>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="header-icon-button"
+          *ngIf="canTransfer()"
+          (click)="onTransfer()"
+          [attr.aria-label]="i18n.translate('accounts.transfer')"
+          [attr.title]="i18n.translate('accounts.transfer')">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 7h11l-2.8-2.8L16.4 3 22 8.6l-5.6 5.6-1.2-1.2L18 10H7V7Zm10 7H6l2.8 2.8L7.6 18 2 12.4l5.6-5.6 1.2 1.2L6 11h11v3Z" fill="currentColor"/>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="header-icon-button danger-icon"
+          *ngIf="canDeleteAccount()"
+          [disabled]="isDeleting()"
+          (click)="deleteAccount()"
+          [attr.aria-label]="i18n.translate('accounts.deleteAccount')"
+          [attr.title]="i18n.translate('accounts.deleteAccount')">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h2v9H7V9Zm4 0h2v9h-2V9Zm4 0h2v9h-2V9ZM6 7h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="card-meta">
+      <span class="badge">{{ account().type }}</span>
+    </div>
+  </div>
+
+  <div class="account-balance">{{ formatBalance(account().balance) }}</div>
+
+  <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+</article>

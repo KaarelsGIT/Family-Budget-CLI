@@ -1,0 +1,34 @@
+<div class="modal-overlay">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="add-account-title">
+    <div class="modal-header">
+      <h2 id="add-account-title">{{ i18n.translate('accounts.addAccountTitle') }}</h2>
+      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>{{ i18n.translate('accounts.accountName') }}</span>
+        <input type="text" formControlName="name" [placeholder]="i18n.translate('accounts.accountNamePlaceholder')" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('accounts.accountType') }}</span>
+        <select formControlName="type">
+          <option value="MAIN">MAIN</option>
+          <option value="SAVINGS">SAVINGS</option>
+        </select>
+      </label>
+
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? i18n.translate('accounts.creating') : i18n.translate('accounts.addAccountTitle') }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

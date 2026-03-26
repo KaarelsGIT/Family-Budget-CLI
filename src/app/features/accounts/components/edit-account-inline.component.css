@@ -1,0 +1,79 @@
+.edit-inline,
+.edit-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.account-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #15361d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.edit-form input {
+  min-width: 0;
+  flex: 1 1 180px;
+  height: 38px;
+  border: 1px solid #cfd8d3;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.edit-form input:focus {
+  outline: 2px solid rgba(34, 139, 34, 0.18);
+  border-color: forestgreen;
+}
+
+.icon-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d6ddd8;
+  border-radius: 8px;
+  background: #f8fbf9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d3324;
+}
+
+.icon-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-button.confirm {
+  color: forestgreen;
+}
+
+.icon-button.cancel {
+  color: crimson;
+}
+
+.icon-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error-message {
+  margin: 8px 0 0;
+  color: crimson;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .edit-form {
+    flex-wrap: wrap;
+  }
+
+  .edit-form input {
+    flex-basis: 100%;
+  }
+}

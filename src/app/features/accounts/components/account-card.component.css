@@ -1,0 +1,109 @@
+.account-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-title-row {
+  min-width: 0;
+}
+
+.card-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.account-balance {
+  font-size: 22px;
+  margin-top: 8px;
+  color: #14351c;
+  font-weight: 700;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #e0f2e9;
+  color: #135a30;
+  font-weight: 700;
+}
+
+.header-icon-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d6ddd8;
+  border-radius: 8px;
+  background: #f8fbf9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d3324;
+}
+
+.header-icon-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.header-icon-button:hover {
+  background: #eff4f1;
+}
+
+.danger-icon {
+  color: crimson;
+}
+
+.header-icon-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.error-message {
+  margin: 0;
+  color: crimson;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .card-header {
+    flex-direction: column;
+  }
+
+  .card-main,
+  .card-tools {
+    width: 100%;
+  }
+
+  .card-meta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
