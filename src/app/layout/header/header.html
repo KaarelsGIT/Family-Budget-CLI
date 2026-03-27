@@ -22,10 +22,12 @@
           </div>
         </li>
 
-        <li>
-          <a
-            routerLink="/notifications"
-            class="icon-link"
+        <li class="notifications-menu">
+          <button
+            type="button"
+            class="icon-link notification-trigger"
+            [class.has-unread]="unreadNotificationsCount > 0"
+            (click)="toggleNotificationsMenu()"
             [attr.aria-label]="i18n.translate('header.notifications')"
             [attr.title]="i18n.translate('header.notifications')">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -33,7 +35,23 @@
                 d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-4H5v-1.5l1.5-1.5V10a5.5 5.5 0 1 1 11 0v5l1.5 1.5V18Z"
                 fill="currentColor" />
             </svg>
-          </a>
+            <span class="notification-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount }}</span>
+          </button>
+
+          <div class="tools-dropdown notifications-dropdown" *ngIf="isNotificationsOpen">
+            <p class="notifications-empty" *ngIf="isLoadingNotifications">{{ i18n.translate('header.notificationsLoading') }}</p>
+
+            <ng-container *ngIf="!isLoadingNotifications && notifications.length > 0">
+              <div class="notification-item" *ngFor="let notification of notifications">
+                <p>{{ notification.message }}</p>
+                <span>{{ formatNotificationDate(notification.createdAt) }}</span>
+              </div>
+            </ng-container>
+
+            <p class="notifications-empty" *ngIf="!isLoadingNotifications && notifications.length === 0">
+              {{ i18n.translate('header.notificationsEmpty') }}
+            </p>
+          </div>
         </li>
 
         <li class="language-menu">

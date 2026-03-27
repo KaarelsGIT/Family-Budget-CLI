@@ -4,6 +4,7 @@ import { AuthService } from '../../../auth/auth.service';
 import { TranslationService } from '../../../i18n/translation.service';
 import { AccountCardComponent } from '../components/account-card.component';
 import { AddAccountModalComponent } from '../components/add-account-modal.component';
+import { TransferModalComponent } from '../components/transfer-modal.component';
 import { Account } from '../models/account.model';
 import { AccountService } from '../services/account.service';
 
@@ -23,7 +24,7 @@ interface AccountSection {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent],
+  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, TransferModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
@@ -35,6 +36,7 @@ export class AccountsPageComponent {
   readonly accounts = signal<Account[]>([]);
   readonly isLoading = signal(false);
   readonly isModalOpen = signal(false);
+  readonly selectedTransferAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
 
   readonly totalBalance = computed(() =>
@@ -107,6 +109,14 @@ export class AccountsPageComponent {
     this.isModalOpen.set(false);
   }
 
+  openTransferModal(account: Account): void {
+    this.selectedTransferAccount.set(account);
+  }
+
+  closeTransferModal(): void {
+    this.selectedTransferAccount.set(null);
+  }
+
   handleAccountsChanged(): void {
     this.loadAccounts();
   }
@@ -171,9 +181,15 @@ export class AccountsPageComponent {
   }
 
   private sortAccounts(accounts: Account[]): Account[] {
+    const typeOrder: Record<Account['type'], number> = {
+      MAIN: 0,
+      GOAL: 1,
+      SAVINGS: 2
+    };
+
     return [...accounts].sort((left, right) => {
       if (left.type !== right.type) {
-        return left.type === 'MAIN' ? -1 : 1;
+        return typeOrder[left.type] - typeOrder[right.type];
       }
 
       return left.name.localeCompare(right.name);

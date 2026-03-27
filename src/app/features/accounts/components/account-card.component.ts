@@ -21,6 +21,7 @@ export class AccountCardComponent {
 
   readonly account = input.required<Account>();
   readonly changed = output<void>();
+  readonly transferRequested = output<Account>();
   readonly editInline = viewChild(EditAccountInlineComponent);
 
   readonly isDeleting = signal(false);
@@ -52,6 +53,7 @@ export class AccountCardComponent {
     }
 
     this.errorMessage.set('');
+    this.transferRequested.emit(this.account());
   }
 
   startInlineEdit(): void {
@@ -92,5 +94,16 @@ export class AccountCardComponent {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(balance);
+  }
+
+  getTypeLabel(type: Account['type']): string {
+    switch (type) {
+      case 'MAIN':
+        return this.i18n.translate('accounts.typeMain');
+      case 'GOAL':
+        return this.i18n.translate('accounts.typeGoal');
+      default:
+        return this.i18n.translate('accounts.typeSavings');
+    }
   }
 }

@@ -16,8 +16,9 @@
       <label class="field">
         <span>{{ i18n.translate('accounts.accountType') }}</span>
         <select formControlName="type">
-          <option value="MAIN">MAIN</option>
-          <option value="SAVINGS">SAVINGS</option>
+          <option value="SAVINGS">{{ i18n.translate('accounts.typeSavings') }}</option>
+          <option value="GOAL">{{ i18n.translate('accounts.typeGoal') }}</option>
+          <option value="MAIN">{{ i18n.translate('accounts.typeMain') }}</option>
         </select>
       </label>
 

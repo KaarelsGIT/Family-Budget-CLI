@@ -9,6 +9,7 @@ interface LoginResponse {
     username: string;
     authType: string;
     role: 'ADMIN' | 'PARENT' | 'CHILD';
+    preferredLanguage: 'et' | 'en' | 'fi';
   };
 }
 
@@ -36,6 +37,8 @@ export class AuthService {
   constructor(private readonly http: HttpClient) {}
 
   login(username: string, password: string): Observable<void> {
+    const selectedLanguage = this.i18n.language();
+
     return this.http.post<LoginResponse>('/api/auth/login', { username, password }).pipe(
       tap((response) => {
         const token = this.createBasicToken(username, password);
@@ -50,6 +53,15 @@ export class AuthService {
         localStorage.setItem(this.tokenStorageKey, token);
         localStorage.setItem(this.usernameStorageKey, response.data.username);
         localStorage.setItem(this.roleStorageKey, response.data.role);
+
+        this.i18n.setLanguage(selectedLanguage);
+        if (response.data.preferredLanguage !== selectedLanguage) {
+          this.updatePreferredLanguage(selectedLanguage).subscribe({
+            error: () => {
+              // Keep the current UI language even if syncing it to the backend fails.
+            }
+          });
+        }
       }),
       map(() => void 0),
       catchError((error: HttpErrorResponse) => {
@@ -114,6 +126,17 @@ export class AuthService {
 
     const password = decoded.slice(separatorIndex + 1);
     this.updateCredentials(username, password);
+  }
+
+  updatePreferredLanguage(language: 'et' | 'en' | 'fi'): Observable<void> {
+    const userId = this.getUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not found'));
+    }
+
+    return this.http.put(`/api/users/${userId}`, { preferredLanguage: language }).pipe(
+      map(() => void 0)
+    );
   }
 
   logout(): void {

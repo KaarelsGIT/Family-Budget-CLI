@@ -25,7 +25,7 @@ export class AddAccountModalComponent {
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
-    type: ['MAIN' as const, Validators.required]
+    type: ['SAVINGS' as const, Validators.required]
   });
 
   close(): void {

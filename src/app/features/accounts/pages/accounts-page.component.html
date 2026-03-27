@@ -17,24 +17,21 @@
         <h2>{{ i18n.translate(section.titleKey) }}</h2>
       </div>
 
-      <div class="account-grid children-grid" *ngIf="section.key === 'children' && section.groups.length > 0">
-        <ng-container *ngFor="let group of section.groups; trackBy: trackByOwnerId">
-          <app-account-card
-            *ngFor="let account of group.accounts; trackBy: trackByAccountId"
-            [account]="account"
-            (changed)="handleAccountsChanged()" />
-        </ng-container>
-      </div>
-
-      <div class="owner-group-grid" *ngIf="section.key !== 'children' && section.groups.length > 0; else emptySection">
-        <section class="owner-group" *ngFor="let group of section.groups; trackBy: trackByOwnerId">
-          <h3>{{ i18n.translate('accounts.ownerLabel', { username: group.ownerUsername }) }}</h3>
+      <div class="owner-group-grid" *ngIf="section.groups.length > 0; else emptySection">
+        <section
+          class="owner-group"
+          *ngFor="let group of section.groups; trackBy: trackByOwnerId">
+          <div class="owner-group-header">
+            <h3>{{ i18n.translate('accounts.ownerLabel', { username: group.ownerUsername }) }}</h3>
+            <span class="owner-count">{{ group.accounts.length }}</span>
+          </div>
 
           <div class="account-grid owner-accounts">
             <app-account-card
               *ngFor="let account of group.accounts; trackBy: trackByAccountId"
               [account]="account"
-              (changed)="handleAccountsChanged()" />
+              (changed)="handleAccountsChanged()"
+              (transferRequested)="openTransferModal($event)" />
           </div>
         </section>
       </div>
@@ -53,4 +50,11 @@
     *ngIf="isModalOpen()"
     (closed)="closeAddAccountModal()"
     (created)="handleAccountsChanged()" />
+
+  <app-transfer-modal
+    *ngIf="selectedTransferAccount()"
+    [sourceAccount]="selectedTransferAccount()!"
+    [accounts]="accounts()"
+    (closed)="closeTransferModal()"
+    (transferred)="handleAccountsChanged()" />
 </section>

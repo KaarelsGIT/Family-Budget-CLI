@@ -1,0 +1,145 @@
+<section class="transactions-container">
+  <header class="page-header">
+    <div>
+      <h1>{{ i18n.translate('transactions.title') }}</h1>
+      <p class="page-copy">{{ i18n.translate('transactions.copy') }}</p>
+    </div>
+  </header>
+
+  <section class="filters-card">
+    <div class="filters-grid">
+      <label class="field">
+        <span>{{ i18n.translate('transactions.filterUser') }}</span>
+        <select [ngModel]="filters().userId ?? ''" (ngModelChange)="onUserChange($event)">
+          <option value="">{{ i18n.translate('transactions.allUsers') }}</option>
+          <option *ngFor="let user of users()" [value]="user.id">{{ user.username }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.filterCategory') }}</span>
+        <select [ngModel]="filters().categoryId ?? ''" (ngModelChange)="onCategoryChange($event)">
+          <option value="">{{ i18n.translate('transactions.allCategories') }}</option>
+          <option *ngFor="let category of mainCategories()" [value]="category.id">{{ category.name }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.filterSubcategory') }}</span>
+        <select
+          [disabled]="filters().categoryId === null"
+          [ngModel]="filters().subcategoryId ?? ''"
+          (ngModelChange)="onSubcategoryChange($event)">
+          <option value="">{{ i18n.translate('transactions.allSubcategories') }}</option>
+          <option *ngFor="let category of subcategories()" [value]="category.id">{{ category.name }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.filterFrom') }}</span>
+        <input type="date" [ngModel]="filters().fromDate" (ngModelChange)="onDateChange('fromDate', $event)" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.filterTo') }}</span>
+        <input type="date" [ngModel]="filters().toDate" (ngModelChange)="onDateChange('toDate', $event)" />
+      </label>
+
+      <div class="filters-actions">
+        <button type="button" class="secondary" (click)="clearFilters()">
+          {{ i18n.translate('transactions.clearFilters') }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('transactions.loading') }}</p>
+  <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <section class="table-card" *ngIf="!errorMessage()">
+    <div class="table-summary">
+      <strong>{{ i18n.translate('transactions.totalItems') }}: {{ totalItems() }}</strong>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sortable" (click)="setSort('createdBy.username')">
+              {{ i18n.translate('transactions.columnUser') }}
+              <span *ngIf="isSortedBy('createdBy.username')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="sortable" (click)="setSort('type')">
+              {{ i18n.translate('transactions.columnType') }}
+              <span *ngIf="isSortedBy('type')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="sortable" (click)="setSort('transactionDate')">
+              {{ i18n.translate('transactions.columnDate') }}
+              <span *ngIf="isSortedBy('transactionDate')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th>{{ i18n.translate('transactions.columnAccount') }}</th>
+            <th class="sortable" (click)="setSort('category.name')">
+              {{ i18n.translate('transactions.columnCategory') }}
+              <span *ngIf="isSortedBy('category.name')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="sortable amount-column" (click)="setSort('amount')">
+              {{ i18n.translate('transactions.columnAmount') }}
+              <span *ngIf="isSortedBy('amount')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="sortable" (click)="setSort('createdAt')">
+              {{ i18n.translate('transactions.columnCreated') }}
+              <span *ngIf="isSortedBy('createdAt')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th>{{ i18n.translate('transactions.columnComment') }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let transaction of transactions(); trackBy: trackByTransactionId; let index = index">
+            <td>{{ index + 1 + filters().page * filters().size }}</td>
+            <td>{{ transaction.createdByUsername }}</td>
+            <td>
+              <span class="type-badge" [class.income]="transaction.type === 'INCOME'" [class.expense]="transaction.type === 'EXPENSE'" [class.transfer]="transaction.type === 'TRANSFER'">
+                {{ getTypeLabel(transaction.type) }}
+              </span>
+            </td>
+            <td>{{ formatDate(transaction.transactionDate) }}</td>
+            <td>{{ getAccountFlow(transaction) }}</td>
+            <td>{{ getCategoryLabel(transaction) }}</td>
+            <td class="amount-column">{{ formatAmount(transaction.amount) }}</td>
+            <td>{{ formatCreatedAt(transaction.createdAt) }}</td>
+            <td>{{ transaction.comment || '—' }}</td>
+          </tr>
+
+          <tr *ngIf="!isLoading() && transactions().length === 0">
+            <td colspan="9" class="empty-row">{{ i18n.translate('transactions.noTransactions') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="pagination" *ngIf="!errorMessage()">
+    <label class="page-size">
+      <span>{{ i18n.translate('transactions.rowsPerPage') }}</span>
+      <select [ngModel]="filters().size" (ngModelChange)="onPageSizeChange($event)">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </label>
+
+    <div class="page-controls">
+      <button type="button" class="secondary" [disabled]="!hasPreviousPage()" (click)="changePage(-1)">
+        {{ i18n.translate('transactions.previousPage') }}
+      </button>
+
+      <span>{{ i18n.translate('transactions.pageLabel', { page: filters().page + 1, total: pageCount() }) }}</span>
+
+      <button type="button" class="secondary" [disabled]="!hasNextPage()" (click)="changePage(1)">
+        {{ i18n.translate('transactions.nextPage') }}
+      </button>
+    </div>
+  </footer>
+</section>
