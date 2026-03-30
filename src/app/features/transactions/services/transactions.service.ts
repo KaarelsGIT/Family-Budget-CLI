@@ -2,6 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import {
+  CreateTransactionCategoryPayload,
+  CreateTransactionPayload,
   TransactionCategory,
   TransactionItem,
   TransactionListResult,
@@ -37,11 +39,14 @@ interface TransactionApiResponse {
 
 interface CategoryApiResponse {
   id: number;
+  userId: number;
   name: string;
-  type: 'INCOME' | 'EXPENSE';
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   parentCategoryId: number | null;
   parentCategoryName: string | null;
   group: 'FAMILY' | 'CHILD';
+  isRecurring: boolean;
+  dueDayOfMonth: number | null;
 }
 
 interface UserApiResponse {
@@ -68,9 +73,6 @@ export class TransactionsService {
     if (query.categoryId !== null) {
       params = params.set('categoryId', query.categoryId);
     }
-    if (query.subcategoryId !== null) {
-      params = params.set('subcategoryId', query.subcategoryId);
-    }
     if (query.from) {
       params = params.set('from', query.from);
     }
@@ -91,11 +93,14 @@ export class TransactionsService {
     return this.http.get<ListResponse<CategoryApiResponse[]>>('/api/categories', { params }).pipe(
       map((response) => response.data.map((category) => ({
         id: category.id,
+        userId: category.userId,
         name: category.name,
         type: category.type,
         parentCategoryId: category.parentCategoryId,
         parentCategoryName: category.parentCategoryName,
-        group: category.group
+        group: category.group,
+        isRecurring: category.isRecurring,
+        dueDayOfMonth: category.dueDayOfMonth
       })))
     );
   }
@@ -107,6 +112,50 @@ export class TransactionsService {
         username: user.username,
         role: user.role
       })))
+    );
+  }
+
+  createTransaction(payload: CreateTransactionPayload): Observable<TransactionItem> {
+    const isTransfer = payload.type === 'TRANSFER';
+    const body = {
+      amount: payload.amount,
+      type: payload.type,
+      fromAccountId: isTransfer
+        ? (payload.transferFromAccountId ?? payload.accountId)
+        : (payload.type === 'EXPENSE' ? payload.accountId : null),
+      toAccountId: isTransfer
+        ? (payload.transferToAccountId ?? payload.toAccountId ?? null)
+        : (payload.type === 'INCOME' ? payload.accountId : null),
+      categoryId: payload.categoryId,
+      transactionDate: payload.transactionDate,
+      comment: payload.comment || null
+    };
+
+    return this.http.post<ApiResponse<TransactionApiResponse>>('/api/transactions', body).pipe(
+      map((response) => this.mapTransaction(response.data))
+    );
+  }
+
+  createCategory(payload: CreateTransactionCategoryPayload): Observable<TransactionCategory> {
+    const body = {
+      ...payload,
+      name: payload.name.trim(),
+      isRecurring: payload.isRecurring ?? false,
+      dueDayOfMonth: payload.dueDayOfMonth ?? null
+    };
+
+    return this.http.post<ApiResponse<CategoryApiResponse>>('/api/categories', body).pipe(
+      map((response) => ({
+        id: response.data.id,
+        userId: response.data.userId,
+        name: response.data.name,
+        type: response.data.type,
+        parentCategoryId: response.data.parentCategoryId,
+        parentCategoryName: response.data.parentCategoryName,
+        group: response.data.group,
+        isRecurring: response.data.isRecurring,
+        dueDayOfMonth: response.data.dueDayOfMonth
+      }))
     );
   }
 

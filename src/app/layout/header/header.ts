@@ -7,6 +7,7 @@ import { LoginModalComponent } from '../../login-modal/login-modal.component';
 import { CalculatorComponent } from '../../tools/calculator/calculator.component';
 import { LanguageCode, TranslationService } from '../../i18n/translation.service';
 import { NotificationItem, NotificationService } from '../../notifications/notification.service';
+import { TransactionDraftService } from '../../features/transactions/services/transaction-draft.service';
 
 @Component({
   selector: 'app-header',
@@ -20,6 +21,7 @@ export class Header {
   readonly i18n = inject(TranslationService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
+  private readonly transactionDraftService = inject(TransactionDraftService);
   isLoginModalOpen = false;
   isToolsOpen = false;
   isUserMenuOpen = false;
@@ -148,6 +150,18 @@ export class Header {
       hour: '2-digit',
       minute: '2-digit'
     }).format(new Date(value));
+  }
+
+  handleNotificationAction(notification: NotificationItem): void {
+    if (notification.action !== 'PAY' || notification.relatedCategoryId === null) {
+      return;
+    }
+
+    this.isNotificationsOpen = false;
+    this.transactionDraftService.requestOpen({
+      categoryId: notification.relatedCategoryId
+    });
+    this.router.navigateByUrl('/transactions');
   }
 
   logout(): void {

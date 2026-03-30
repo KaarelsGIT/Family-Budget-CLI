@@ -11,6 +11,13 @@
   color: #112b18;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .page-copy {
   margin: 0;
   color: #526457;
@@ -90,6 +97,21 @@ button.secondary:disabled {
   cursor: not-allowed;
 }
 
+button.primary-action {
+  min-height: 42px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  background: forestgreen;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.primary-action:hover {
+  background: #176017;
+}
+
 .state-message,
 .error-message {
   margin: 0;
@@ -142,6 +164,30 @@ tbody tr:hover {
   background: #f2f8f4;
 }
 
+tbody tr.income-row {
+  background: #edf8f0;
+}
+
+tbody tr.expense-row {
+  background: #fdf0ed;
+}
+
+tbody tr.transfer-row {
+  background: inherit;
+}
+
+tbody tr.income-row:hover {
+  background: #def1e3;
+}
+
+tbody tr.expense-row:hover {
+  background: #f9e2dc;
+}
+
+tbody tr.transfer-row:hover {
+  background: #f2f8f4;
+}
+
 .sortable {
   cursor: pointer;
   user-select: none;
@@ -172,8 +218,8 @@ tbody tr:hover {
 }
 
 .type-badge.transfer {
-  background: #e6eefc;
-  color: #305ca8;
+  background: #edf1ee;
+  color: #506257;
 }
 
 .empty-row {
@@ -216,6 +262,11 @@ tbody tr:hover {
 @media (max-width: 720px) {
   .transactions-container {
     padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .filters-card,

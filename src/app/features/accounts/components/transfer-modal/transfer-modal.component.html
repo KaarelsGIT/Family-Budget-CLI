@@ -16,8 +16,9 @@
       <label class="field">
         <span>{{ i18n.translate('accounts.transferTo') }}</span>
         <select
-          [value]="selectedToAccountId()"
-          (change)="onDestinationChange($any($event.target).value)">
+          [ngModel]="selectedToAccountId()"
+          (ngModelChange)="onDestinationChange($event)"
+          [ngModelOptions]="{ standalone: true }">
           <option value="" disabled>{{ i18n.translate('accounts.transferTo') }}</option>
           <optgroup *ngIf="ownDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOwnAccounts')">
             <option *ngFor="let option of ownDestinationOptions()" [value]="option.value">{{ option.label }}</option>

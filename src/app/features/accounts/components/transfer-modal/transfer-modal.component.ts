@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { TranslationService } from '../../../i18n/translation.service';
-import { Account } from '../models/account.model';
-import { AccountService, SelectableUser } from '../services/account.service';
+import { TranslationService } from '../../../../i18n/translation.service';
+import { Account } from '../../models/account.model';
+import { AccountService, SelectableUser } from '../../services/account.service';
 
 interface TransferDestinationOption {
   accountId: number;
@@ -16,7 +16,7 @@ interface TransferDestinationOption {
 @Component({
   selector: 'app-transfer-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './transfer-modal.component.html',
   styleUrl: './transfer-modal.component.css'
 })

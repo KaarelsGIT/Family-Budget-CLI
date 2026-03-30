@@ -1,27 +1,34 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { TranslationService } from '../../../i18n/translation.service';
+import { TranslationService } from '../../../../i18n/translation.service';
+import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
 import {
   TransactionCategory,
   TransactionItem,
   TransactionQuery,
   TransactionUserOption
-} from '../models/transaction.model';
-import { TransactionsService } from '../services/transactions.service';
+} from '../../models/transaction.model';
+import { TransactionDraftService } from '../../services/transaction-draft.service';
+import { TransactionsService } from '../../services/transactions.service';
 
 type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'createdBy.username' | 'category.name' | 'type';
+interface CategoryFilterOption {
+  id: number;
+  label: string;
+}
 
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddTransactionModalComponent],
   templateUrl: './transactions-page.component.html',
   styleUrl: './transactions-page.component.css'
 })
 export class TransactionsPageComponent {
   private readonly transactionsService = inject(TransactionsService);
+  private readonly transactionDraftService = inject(TransactionDraftService);
   readonly i18n = inject(TranslationService);
 
   readonly transactions = signal<TransactionItem[]>([]);
@@ -29,6 +36,7 @@ export class TransactionsPageComponent {
   readonly users = signal<TransactionUserOption[]>([]);
   readonly isLoading = signal(false);
   readonly isLoadingFilters = signal(false);
+  readonly isAddTransactionModalOpen = signal(false);
   readonly errorMessage = signal('');
   readonly totalItems = signal(0);
 
@@ -39,27 +47,13 @@ export class TransactionsPageComponent {
     sortOrder: 'desc' as 'asc' | 'desc',
     userId: null as number | null,
     categoryId: null as number | null,
-    subcategoryId: null as number | null,
     fromDate: '',
     toDate: ''
   });
 
-  readonly mainCategories = computed(() =>
-    this.categories()
-      .filter((category) => category.parentCategoryId === null)
-      .sort((left, right) => left.name.localeCompare(right.name))
+  readonly categoryFilterOptions = computed<CategoryFilterOption[]>(() =>
+    this.buildCategoryFilterOptions(this.categories())
   );
-
-  readonly subcategories = computed(() => {
-    const categoryId = this.filters().categoryId;
-    if (categoryId === null) {
-      return [];
-    }
-
-    return this.categories()
-      .filter((category) => category.parentCategoryId === categoryId)
-      .sort((left, right) => left.name.localeCompare(right.name));
-  });
 
   readonly pageCount = computed(() => {
     const size = this.filters().size;
@@ -72,6 +66,42 @@ export class TransactionsPageComponent {
   constructor() {
     this.loadFilterOptions();
     this.loadTransactions();
+    effect(() => {
+      if (this.transactionDraftService.openTransactionRequest()) {
+        this.isAddTransactionModalOpen.set(true);
+      }
+    });
+  }
+
+  openAddTransactionModal(): void {
+    console.log('[TransactionsPage] openAddTransactionModal() clicked');
+
+    try {
+      this.isAddTransactionModalOpen.set(true);
+      console.log('[TransactionsPage] AddTransactionModal open state set to true');
+    } catch (error) {
+      console.error('[TransactionsPage] Failed to open AddTransactionModal', error);
+    }
+  }
+
+  closeAddTransactionModal(): void {
+    this.isAddTransactionModalOpen.set(false);
+    this.transactionDraftService.reset();
+    this.transactionDraftService.clearOpenRequest();
+  }
+
+  handleTransactionCreated(): void {
+    this.loadTransactions();
+  }
+
+  handleCategoryCreated(category: TransactionCategory): void {
+    this.categories.update((categories) => {
+      if (categories.some(({ id }) => id === category.id)) {
+        return [...categories];
+      }
+
+      return [...categories, category];
+    });
   }
 
   loadTransactions(): void {
@@ -108,17 +138,7 @@ export class TransactionsPageComponent {
     this.filters.update((state) => ({
       ...state,
       page: 0,
-      categoryId: value ? Number(value) : null,
-      subcategoryId: null
-    }));
-    this.loadTransactions();
-  }
-
-  onSubcategoryChange(value: string): void {
-    this.filters.update((state) => ({
-      ...state,
-      page: 0,
-      subcategoryId: value ? Number(value) : null
+      categoryId: value ? Number(value) : null
     }));
     this.loadTransactions();
   }
@@ -140,7 +160,6 @@ export class TransactionsPageComponent {
       sortOrder: 'desc',
       userId: null,
       categoryId: null,
-      subcategoryId: null,
       fromDate: '',
       toDate: ''
     });
@@ -213,11 +232,15 @@ export class TransactionsPageComponent {
     }
 
     const category = this.categories().find(({ id }) => id === transaction.categoryId);
-    if (category?.parentCategoryName) {
+    if (!category) {
+      return transaction.categoryName ?? this.i18n.translate('transactions.noCategory');
+    }
+
+    if (category.parentCategoryName) {
       return `${category.parentCategoryName} / ${category.name}`;
     }
 
-    return transaction.categoryName ?? this.i18n.translate('transactions.noCategory');
+    return category.name;
   }
 
   getAccountFlow(transaction: TransactionItem): string {
@@ -253,14 +276,7 @@ export class TransactionsPageComponent {
   private loadFilterOptions(): void {
     this.isLoadingFilters.set(true);
 
-    this.transactionsService.getCategories().subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-      },
-      error: () => {
-        this.categories.set([]);
-      }
-    });
+    this.loadCategories();
 
     this.transactionsService.getUsers()
       .pipe(finalize(() => {
@@ -276,6 +292,17 @@ export class TransactionsPageComponent {
       });
   }
 
+  private loadCategories(): void {
+    this.transactionsService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: () => {
+        this.categories.set([]);
+      }
+    });
+  }
+
   private buildQuery(): TransactionQuery {
     const filters = this.filters();
 
@@ -286,9 +313,38 @@ export class TransactionsPageComponent {
       sortOrder: filters.sortOrder,
       userId: filters.userId,
       categoryId: filters.categoryId,
-      subcategoryId: filters.subcategoryId,
       from: filters.fromDate || null,
       to: filters.toDate || null
     };
+  }
+
+  private buildCategoryFilterOptions(categories: TransactionCategory[]): CategoryFilterOption[] {
+    const childrenByParent = new Map<number, TransactionCategory[]>();
+    for (const category of categories) {
+      if (category.parentCategoryId === null) {
+        continue;
+      }
+      const list = childrenByParent.get(category.parentCategoryId) ?? [];
+      list.push(category);
+      childrenByParent.set(category.parentCategoryId, list);
+    }
+
+    const rootCategories = categories
+      .filter((category) => category.parentCategoryId === null)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return rootCategories.flatMap((parent) => {
+      const children = childrenByParent.get(parent.id) ?? [];
+      if (children.length === 0) {
+        return [{ id: parent.id, label: parent.name }];
+      }
+
+      return children
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((child) => ({
+          id: child.id,
+          label: `${parent.name} / ${child.name}`
+        }));
+    });
   }
 }

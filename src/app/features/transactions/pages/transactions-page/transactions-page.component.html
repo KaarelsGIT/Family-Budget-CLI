@@ -4,6 +4,10 @@
       <h1>{{ i18n.translate('transactions.title') }}</h1>
       <p class="page-copy">{{ i18n.translate('transactions.copy') }}</p>
     </div>
+
+    <button type="button" class="primary-action" (click)="openAddTransactionModal()">
+      {{ i18n.translate('transactions.addAction') }}
+    </button>
   </header>
 
   <section class="filters-card">
@@ -17,21 +21,10 @@
       </label>
 
       <label class="field">
-        <span>{{ i18n.translate('transactions.filterCategory') }}</span>
+        <span>{{ i18n.translate('transactions.category') }}</span>
         <select [ngModel]="filters().categoryId ?? ''" (ngModelChange)="onCategoryChange($event)">
           <option value="">{{ i18n.translate('transactions.allCategories') }}</option>
-          <option *ngFor="let category of mainCategories()" [value]="category.id">{{ category.name }}</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('transactions.filterSubcategory') }}</span>
-        <select
-          [disabled]="filters().categoryId === null"
-          [ngModel]="filters().subcategoryId ?? ''"
-          (ngModelChange)="onSubcategoryChange($event)">
-          <option value="">{{ i18n.translate('transactions.allSubcategories') }}</option>
-          <option *ngFor="let category of subcategories()" [value]="category.id">{{ category.name }}</option>
+          <option *ngFor="let category of categoryFilterOptions()" [value]="category.id">{{ category.label }}</option>
         </select>
       </label>
 
@@ -96,7 +89,11 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let transaction of transactions(); trackBy: trackByTransactionId; let index = index">
+          <tr
+            *ngFor="let transaction of transactions(); trackBy: trackByTransactionId; let index = index"
+            [class.income-row]="transaction.type === 'INCOME'"
+            [class.expense-row]="transaction.type === 'EXPENSE'"
+            [class.transfer-row]="transaction.type === 'TRANSFER'">
             <td>{{ index + 1 + filters().page * filters().size }}</td>
             <td>{{ transaction.createdByUsername }}</td>
             <td>
@@ -142,4 +139,11 @@
       </button>
     </div>
   </footer>
+
+  <app-add-transaction-modal
+    *ngIf="isAddTransactionModalOpen()"
+    [categories]="categories()"
+    (closed)="closeAddTransactionModal()"
+    (created)="handleTransactionCreated()"
+    (categoryCreated)="handleCategoryCreated($event)" />
 </section>

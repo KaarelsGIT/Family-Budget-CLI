@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { AuthService } from '../../../auth/auth.service';
-import { TranslationService } from '../../../i18n/translation.service';
-import { AccountCardComponent } from '../components/account-card.component';
-import { AddAccountModalComponent } from '../components/add-account-modal.component';
-import { TransferModalComponent } from '../components/transfer-modal.component';
-import { Account } from '../models/account.model';
-import { AccountService } from '../services/account.service';
+import { AuthService } from '../../../../auth/auth.service';
+import { TranslationService } from '../../../../i18n/translation.service';
+import { AccountCardComponent } from '../../components/account-card/account-card.component';
+import { AddAccountModalComponent } from '../../components/add-account-modal/add-account-modal.component';
+import { TransferModalComponent } from '../../components/transfer-modal/transfer-modal.component';
+import { Account } from '../../models/account.model';
+import { AccountService } from '../../services/account.service';
 
 interface AccountOwnerGroup {
   ownerId: number;

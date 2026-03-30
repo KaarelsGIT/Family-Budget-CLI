@@ -45,6 +45,13 @@
               <div class="notification-item" *ngFor="let notification of notifications">
                 <p>{{ notification.message }}</p>
                 <span>{{ formatNotificationDate(notification.createdAt) }}</span>
+                <button
+                  *ngIf="notification.action === 'PAY'"
+                  type="button"
+                  class="notification-action-button"
+                  (click)="handleNotificationAction(notification)">
+                  {{ i18n.translate('pay.action') }}
+                </button>
               </div>
             </ng-container>
 

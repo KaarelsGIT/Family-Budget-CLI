@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { TranslationService } from '../../../i18n/translation.service';
-import { Account } from '../models/account.model';
-import { AccountService } from '../services/account.service';
+import { TranslationService } from '../../../../i18n/translation.service';
+import { Account } from '../../models/account.model';
+import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-edit-account-inline',

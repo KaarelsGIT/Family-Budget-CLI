@@ -1,0 +1,180 @@
+<div class="modal-overlay">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="transaction-modal-title">
+    <div class="modal-header">
+      <h2 id="transaction-modal-title">{{ getModalTitle() }}</h2>
+      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <form *ngIf="view() === 'transaction'; else categoryFormView" [formGroup]="transactionForm" class="modal-form" (ngSubmit)="submitTransaction()">
+      <label class="field">
+        <span>{{ i18n.translate('transactions.transactionType') }}</span>
+        <select formControlName="type">
+          <option *ngFor="let option of transactionTypeOptions(); trackBy: trackByTransactionType" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
+
+      <ng-container *ngIf="transactionType() === 'TRANSFER'; else incomeExpenseFields">
+        <label class="field">
+          <span>{{ i18n.translate('accounts.transferFrom') }}</span>
+          <select formControlName="transferFromAccountId">
+            <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
+            <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
+              {{ getAccountLabel(account) }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('accounts.transferTo') }}</span>
+          <select formControlName="transferToAccountId">
+            <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
+            <optgroup *ngIf="transferOwnDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOwnAccounts')">
+              <option *ngFor="let option of transferOwnDestinationOptions(); trackBy: trackByTransferOption" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </optgroup>
+            <optgroup *ngIf="transferOtherDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOtherUsers')">
+              <option *ngFor="let option of transferOtherDestinationOptions(); trackBy: trackByTransferOption" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </optgroup>
+          </select>
+        </label>
+      </ng-container>
+
+      <ng-template #incomeExpenseFields>
+        <label class="field">
+          <span>{{ getAccountFieldLabel() }}</span>
+          <select formControlName="accountId">
+            <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
+            <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
+              {{ getAccountLabel(account) }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('transactions.mainCategory') }}</span>
+          <select formControlName="mainCategoryId">
+            <option value="" disabled>{{ mainCategoryPlaceholder() }}</option>
+            <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
+            <option *ngFor="let category of mainCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('transactions.subCategory') }}</span>
+          <select formControlName="categoryId" [disabled]="!selectedMainCategory()">
+            <option value="" disabled>{{ subCategoryPlaceholder() }}</option>
+            <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
+            <option *ngFor="let category of subCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
+              {{ category.label }}
+            </option>
+          </select>
+        </label>
+      </ng-template>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.columnDate') }}</span>
+        <input type="date" formControlName="transactionDate" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.columnAmount') }}</span>
+        <input type="number" min="0.01" step="0.01" formControlName="amount" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.columnComment') }}</span>
+        <textarea rows="3" formControlName="comment"></textarea>
+      </label>
+
+      <p class="error-message" *ngIf="transactionType() === 'TRANSFER' && !hasTransferDestinations()">
+        {{ i18n.translate('accounts.noSectionAccounts') }}
+      </p>
+      <p class="state-message" *ngIf="isLoadingAccounts()">{{ i18n.translate('transactions.loadingAccounts') }}</p>
+      <p class="success-message" *ngIf="successMessage()">{{ successMessage() }}</p>
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button
+          type="submit"
+          class="primary"
+          [disabled]="isSubmitting() || isLoadingAccounts() || (transactionType() === 'TRANSFER' && !hasTransferDestinations())">
+          {{ isSubmitting() ? getSubmittingLabel() : getSubmitButtonLabel() }}
+        </button>
+      </div>
+    </form>
+
+    <ng-template #categoryFormView>
+      <form [formGroup]="categoryForm" class="modal-form" (ngSubmit)="submitCategory()">
+        <p class="helper-copy">
+          {{ categoryMode() === 'main' ? i18n.translate('transactions.addMainCategoryCopy') : i18n.translate('transactions.addSubcategoryCopy') }}
+        </p>
+
+        <div class="inline-actions">
+          <button type="button" class="secondary" (click)="openMainCategoryForm()">
+            {{ i18n.translate('transactions.addMainCategory') }}
+          </button>
+          <button type="button" class="secondary" (click)="openSubcategoryForm()">
+            {{ i18n.translate('transactions.addSubcategory') }}
+          </button>
+        </div>
+
+        <label class="field">
+          <span>{{ i18n.translate('transactions.transactionType') }}</span>
+          <select formControlName="type">
+            <option value="EXPENSE">{{ i18n.translate('transactions.typeExpense') }}</option>
+            <option value="INCOME">{{ i18n.translate('transactions.typeIncome') }}</option>
+          </select>
+        </label>
+
+        <label class="field" *ngIf="categoryMode() === 'sub'">
+          <span>{{ i18n.translate('transactions.parentCategory') }}</span>
+          <select formControlName="parentCategoryId">
+            <option value="">{{ i18n.translate('transactions.selectMainCategory') }}</option>
+            <option *ngFor="let category of categoryParentOptions()" [value]="category.id">{{ category.name }}</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('transactions.categoryName') }}</span>
+          <input type="text" formControlName="name" />
+        </label>
+
+        <label class="field" *ngIf="shouldAllowRecurring()">
+          <span>{{ i18n.translate('recurring.label') }}</span>
+          <input type="checkbox" formControlName="isRecurring" />
+        </label>
+
+        <label class="field" *ngIf="shouldAllowRecurring() && categoryForm.controls.isRecurring.value">
+          <span>{{ i18n.translate('recurring.dueDate') }}</span>
+          <input
+            type="number"
+            min="1"
+            max="31"
+            inputmode="numeric"
+            formControlName="dueDayOfMonth" />
+        </label>
+
+        <p class="error-message" *ngIf="categoryErrorMessage()">{{ categoryErrorMessage() }}</p>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" (click)="backToTransactionForm()">
+            {{ i18n.translate('transactions.backToTransaction') }}
+          </button>
+          <button type="submit" class="primary" [disabled]="isSubmittingCategory()">
+            {{ isSubmittingCategory() ? i18n.translate('transactions.creatingCategory') : i18n.translate('transactions.saveCategory') }}
+          </button>
+        </div>
+      </form>
+    </ng-template>
+  </section>
+</div>

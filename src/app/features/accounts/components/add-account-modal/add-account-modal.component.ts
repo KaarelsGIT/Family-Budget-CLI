@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { TranslationService } from '../../../i18n/translation.service';
-import { AccountService } from '../services/account.service';
+import { TranslationService } from '../../../../i18n/translation.service';
+import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-add-account-modal',

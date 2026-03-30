@@ -228,6 +228,22 @@ header {
   font-size: 12px;
 }
 
+.notification-action-button {
+  align-self: flex-start;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #1f7a1f;
+  border-radius: 999px;
+  background: #effaf0;
+  color: #145014;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notification-action-button:hover {
+  background: #dff2e2;
+}
+
 .notifications-empty {
   margin: 0;
   padding: 10px 8px;
