@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
@@ -16,7 +16,7 @@ interface TransferDestinationOption {
 @Component({
   selector: 'app-transfer-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './transfer-modal.component.html',
   styleUrl: './transfer-modal.component.css'
 })
@@ -33,12 +33,12 @@ export class TransferModalComponent implements OnInit {
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
   readonly selectableUsers = signal<SelectableUser[]>([]);
-  readonly selectedToAccountId = signal('');
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
     transactionDate: [this.getTodayDate(), Validators.required],
-    comment: ['', [Validators.maxLength(500)]]
+    comment: ['', [Validators.maxLength(500)]],
+    transferToAccountId: ['', Validators.required]
   });
 
   readonly ownDestinationOptions = computed(() =>
@@ -73,24 +73,19 @@ export class TransferModalComponent implements OnInit {
     this.closed.emit();
   }
 
-  onDestinationChange(value: string): void {
-    this.selectedToAccountId.set(value);
-    this.errorMessage.set('');
-  }
-
   submit(): void {
     if (this.form.invalid || this.isSubmitting() || !this.hasDestinations()) {
       if (!this.hasDestinations()) {
         this.errorMessage.set(this.i18n.translate('accounts.noSectionAccounts'));
-      } else if (!this.selectedToAccountId()) {
+      } else if (!this.form.controls.transferToAccountId.value) {
         this.errorMessage.set(this.i18n.translate('accounts.transferTo'));
       }
       this.form.markAllAsTouched();
       return;
     }
 
-    const { amount, comment, transactionDate } = this.form.getRawValue();
-    const parsedToAccountId = Number.parseInt(this.selectedToAccountId(), 10);
+    const { amount, comment, transactionDate, transferToAccountId } = this.form.getRawValue();
+    const parsedToAccountId = Number.parseInt(transferToAccountId, 10);
     if (!Number.isFinite(parsedToAccountId) || parsedToAccountId < 1) {
       this.errorMessage.set(this.i18n.translate('accounts.transferTo'));
       this.form.markAllAsTouched();
@@ -144,17 +139,18 @@ export class TransferModalComponent implements OnInit {
   }
 
   private ensureDefaultDestinationSelected(): void {
-    const toAccountId = this.selectedToAccountId();
-    if (toAccountId) {
+    const options = this.destinationOptions();
+    if (options.length === 0) {
       return;
     }
 
-    const firstOption = this.destinationOptions()[0];
-    if (!firstOption) {
+    const currentValue = this.form.controls.transferToAccountId.value;
+    const isCurrentValueValid = options.some((option) => option.value === currentValue);
+    if (isCurrentValueValid) {
       return;
     }
 
-    this.selectedToAccountId.set(firstOption.value);
+    this.form.patchValue({ transferToAccountId: options[0].value });
   }
 
   private getTodayDate(): string {
