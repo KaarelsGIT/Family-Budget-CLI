@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { TranslationService } from '../i18n/translation.service';
 
 interface UserSummary {
@@ -114,7 +115,7 @@ export class User implements OnInit {
     this.errorMessage = '';
     this.isSaving = true;
 
-    this.http.put(`/api/users/${userId}`, payload)
+    this.http.put(`${environment.apiUrl}/users/${userId}`, payload)
       .pipe(finalize(() => {
         this.isSaving = false;
       }))
@@ -162,7 +163,7 @@ export class User implements OnInit {
     this.memberErrorMessage = '';
     this.isCreatingMember = true;
 
-    this.http.post('/api/users', this.familyMemberForm.getRawValue())
+    this.http.post(`${environment.apiUrl}/users`, this.familyMemberForm.getRawValue())
       .pipe(finalize(() => {
         this.isCreatingMember = false;
       }))
@@ -194,7 +195,7 @@ export class User implements OnInit {
     this.usersFeedbackMessage = '';
     this.isLoadingUsers = true;
 
-    this.http.get<ApiResponse<UserSummary[]>>('/api/users')
+    this.http.get<ApiResponse<UserSummary[]>>(`${environment.apiUrl}/users`)
       .pipe(finalize(() => {
         this.isLoadingUsers = false;
       }))
@@ -281,7 +282,7 @@ export class User implements OnInit {
     this.usersErrorMessage = '';
     this.isSavingSelectedUser = true;
 
-    this.http.put<ApiResponse<UserSummary>>(`/api/users/${this.selectedUserId}`, payload)
+    this.http.put<ApiResponse<UserSummary>>(`${environment.apiUrl}/users/${this.selectedUserId}`, payload)
       .pipe(finalize(() => {
         this.isSavingSelectedUser = false;
       }))
@@ -341,7 +342,7 @@ export class User implements OnInit {
     this.usersErrorMessage = '';
     this.isDeletingSelectedUser = true;
 
-    this.http.delete<ApiResponse<string>>(`/api/users/${selectedUser.id}`)
+    this.http.delete<ApiResponse<string>>(`${environment.apiUrl}/users/${selectedUser.id}`)
       .pipe(finalize(() => {
         this.isDeletingSelectedUser = false;
       }))

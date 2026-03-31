@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import {
   CreateTransactionCategoryPayload,
   CreateTransactionPayload,
@@ -80,7 +81,7 @@ export class TransactionsService {
       params = params.set('to', query.to);
     }
 
-    return this.http.get<ListResponse<TransactionApiResponse[]>>('/api/transactions', { params }).pipe(
+    return this.http.get<ListResponse<TransactionApiResponse[]>>(`${environment.apiUrl}/transactions`, { params }).pipe(
       map((response) => ({
         data: response.data.map((item) => this.mapTransaction(item)),
         total: response.total
@@ -90,7 +91,7 @@ export class TransactionsService {
 
   getCategories(): Observable<TransactionCategory[]> {
     const params = new HttpParams().set('size', 500);
-    return this.http.get<ListResponse<CategoryApiResponse[]>>('/api/categories', { params }).pipe(
+    return this.http.get<ListResponse<CategoryApiResponse[]>>(`${environment.apiUrl}/categories`, { params }).pipe(
       map((response) => response.data.map((category) => ({
         id: category.id,
         userId: category.userId,
@@ -106,7 +107,7 @@ export class TransactionsService {
   }
 
   getUsers(): Observable<TransactionUserOption[]> {
-    return this.http.get<ApiResponse<UserApiResponse[]>>('/api/users?selectable=true').pipe(
+    return this.http.get<ApiResponse<UserApiResponse[]>>(`${environment.apiUrl}/users?selectable=true`).pipe(
       map((response) => response.data.map((user) => ({
         id: user.id,
         username: user.username,
@@ -131,7 +132,7 @@ export class TransactionsService {
       comment: payload.comment || null
     };
 
-    return this.http.post<ApiResponse<TransactionApiResponse>>('/api/transactions', body).pipe(
+    return this.http.post<ApiResponse<TransactionApiResponse>>(`${environment.apiUrl}/transactions`, body).pipe(
       map((response) => this.mapTransaction(response.data))
     );
   }
@@ -144,7 +145,7 @@ export class TransactionsService {
       dueDayOfMonth: payload.dueDayOfMonth ?? null
     };
 
-    return this.http.post<ApiResponse<CategoryApiResponse>>('/api/categories', body).pipe(
+    return this.http.post<ApiResponse<CategoryApiResponse>>(`${environment.apiUrl}/categories`, body).pipe(
       map((response) => ({
         id: response.data.id,
         userId: response.data.userId,

@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { TranslationService } from '../i18n/translation.service';
 
 interface LoginResponse {
@@ -39,7 +40,7 @@ export class AuthService {
   login(username: string, password: string): Observable<void> {
     const selectedLanguage = this.i18n.language();
 
-    return this.http.post<LoginResponse>('/api/auth/login', { username, password }).pipe(
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, { username, password }).pipe(
       tap((response) => {
         const token = this.createBasicToken(username, password);
         this.authState.set({
@@ -134,7 +135,7 @@ export class AuthService {
       return throwError(() => new Error('User not found'));
     }
 
-    return this.http.put(`/api/users/${userId}`, { preferredLanguage: language }).pipe(
+    return this.http.put(`${environment.apiUrl}/users/${userId}`, { preferredLanguage: language }).pipe(
       map(() => void 0)
     );
   }

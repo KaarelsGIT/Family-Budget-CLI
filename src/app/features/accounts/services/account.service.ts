@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { Account } from '../models/account.model';
 
 interface ApiResponse<T> {
@@ -53,31 +54,31 @@ export class AccountService {
   private readonly http = inject(HttpClient);
 
   getAccounts(): Observable<Account[]> {
-    return this.http.get<ListResponse<AccountApiResponse[]>>('/api/accounts').pipe(
+    return this.http.get<ListResponse<AccountApiResponse[]>>(`${environment.apiUrl}/accounts`).pipe(
       map((response) => response.data.map((account) => this.mapAccount(account)))
     );
   }
 
   createAccount(account: AccountPayload): Observable<Account> {
-    return this.http.post<ApiResponse<AccountApiResponse>>('/api/accounts', account).pipe(
+    return this.http.post<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts`, account).pipe(
       map((response) => this.mapAccount(response.data))
     );
   }
 
   updateAccount(id: number, account: UpdateAccountPayload): Observable<Account> {
-    return this.http.put<ApiResponse<AccountApiResponse>>(`/api/accounts/${id}`, account).pipe(
+    return this.http.put<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}`, account).pipe(
       map((response) => this.mapAccount(response.data))
     );
   }
 
   deleteAccount(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<string>>(`/api/accounts/${id}`).pipe(
+    return this.http.delete<ApiResponse<string>>(`${environment.apiUrl}/accounts/${id}`).pipe(
       map(() => void 0)
     );
   }
 
   createTransfer(payload: CreateTransferPayload): Observable<void> {
-    return this.http.post<ApiResponse<unknown>>('/api/transactions', {
+    return this.http.post<ApiResponse<unknown>>(`${environment.apiUrl}/transactions`, {
       amount: payload.amount,
       type: 'TRANSFER',
       fromAccountId: payload.fromAccountId,
@@ -91,7 +92,7 @@ export class AccountService {
   }
 
   getSelectableUsers(): Observable<SelectableUser[]> {
-    return this.http.get<ApiResponse<SelectableUserApiResponse[]>>('/api/users?selectable=true').pipe(
+    return this.http.get<ApiResponse<SelectableUserApiResponse[]>>(`${environment.apiUrl}/users?selectable=true`).pipe(
       map((response) => response.data.map((user) => ({
         id: user.id,
         username: user.username,
