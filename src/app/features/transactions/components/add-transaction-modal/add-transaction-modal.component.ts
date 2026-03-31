@@ -7,6 +7,7 @@ import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
+import { TransferFormComponent, TransferSubmittedEvent } from '../../../accounts/components/transfer-form/transfer-form.component';
 import { TransactionCategory, TransactionOpenRequest } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
 import { TransactionsService } from '../../services/transactions.service';
@@ -39,7 +40,7 @@ interface TransferDestinationOption {
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TransferFormComponent],
   templateUrl: './add-transaction-modal.component.html',
   styleUrl: './add-transaction-modal.component.css'
 })
@@ -160,6 +161,14 @@ export class AddTransactionModalComponent {
     this.transferDestinationOptions().filter((option) => option.groupKey === 'accounts.transferOtherUsers')
   );
   readonly hasTransferDestinations = computed(() => this.transferDestinationOptions().length > 0);
+  readonly selectedTransferSourceAccount = computed(() => {
+    const sourceAccountId = this.selectedTransferFromAccountId();
+    if (sourceAccountId === null) {
+      return null;
+    }
+
+    return this.ownAccounts().find((account) => account.id === sourceAccountId) ?? null;
+  });
 
   constructor() {
     this.patchFromDraft();
@@ -167,7 +176,6 @@ export class AddTransactionModalComponent {
     this.setupSubscriptions();
     this.setupOpenRequestEffect();
     this.loadAccounts();
-    this.loadSelectableUsers();
     this.ensureDefaultIncomeExpenseAccount();
     this.syncRecurringControls();
     effect(() => {
@@ -321,6 +329,10 @@ export class AddTransactionModalComponent {
   }
 
   submitTransaction(): void {
+    if (this.transactionType() === 'TRANSFER') {
+      return;
+    }
+
     if (this.isSubmitting() || this.transactionForm.invalid) {
       this.transactionForm.markAllAsTouched();
       this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
@@ -330,8 +342,6 @@ export class AddTransactionModalComponent {
     const {
       type,
       accountId,
-      transferFromAccountId,
-      transferToAccountId,
       mainCategoryId,
       categoryId,
       transactionDate,
@@ -343,54 +353,6 @@ export class AddTransactionModalComponent {
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
-      return;
-    }
-
-    if (type === 'TRANSFER') {
-      const sourceAccountId = this.parseNumber(transferFromAccountId) ?? this.parseNumber(accountId);
-      const destinationAccountId = this.parseNumber(transferToAccountId);
-
-      if (sourceAccountId === null || destinationAccountId === null || sourceAccountId === destinationAccountId) {
-        this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
-        return;
-      }
-
-      this.errorMessage.set('');
-      this.isSubmitting.set(true);
-
-      this.transactionsService.createTransaction({
-        amount: parsedAmount,
-        type: 'TRANSFER',
-        accountId: sourceAccountId,
-        transferFromAccountId: sourceAccountId,
-        transferToAccountId: destinationAccountId,
-        categoryId: null,
-        transactionDate,
-        comment: trimmedComment
-      }).pipe(
-        finalize(() => this.isSubmitting.set(false))
-      ).subscribe({
-        next: () => {
-          this.showSuccessMessage(this.i18n.translate('transaction.add.success'));
-          this.draftService.update({
-            type: 'TRANSFER',
-            accountId: sourceAccountId,
-            transferFromAccountId: sourceAccountId,
-            transferToAccountId: destinationAccountId,
-            toAccountId: destinationAccountId,
-            transactionDate
-          });
-          this.draftService.clearTransientFields();
-          this.transactionForm.patchValue({
-            amount: null as unknown as string,
-            comment: ''
-          }, { emitEvent: false });
-          this.created.emit();
-        },
-        error: (error: { error?: { message?: string } }) => {
-          this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.createFailed'));
-        }
-      });
       return;
     }
 
@@ -441,6 +403,29 @@ export class AddTransactionModalComponent {
         this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.createFailed'));
       }
     });
+  }
+
+  onTransferCreated(event: TransferSubmittedEvent): void {
+    this.errorMessage.set('');
+    this.showSuccessMessage(this.i18n.translate('transaction.add.success'));
+    this.draftService.update({
+      type: 'TRANSFER',
+      accountId: event.fromAccountId,
+      transferFromAccountId: event.fromAccountId,
+      transferToAccountId: event.toAccountId,
+      toAccountId: event.toAccountId,
+      transactionDate: event.transactionDate,
+      amount: String(event.amount),
+      comment: event.comment
+    });
+    this.draftService.clearTransientFields();
+    this.transactionForm.patchValue({
+      transferFromAccountId: String(event.fromAccountId),
+      transferToAccountId: String(event.toAccountId),
+      amount: '',
+      comment: ''
+    }, { emitEvent: false });
+    this.created.emit();
   }
 
   submitCategory(): void {
@@ -685,19 +670,6 @@ export class AddTransactionModalComponent {
         },
         error: (error: { error?: { message?: string } }) => {
           this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.accountsLoadFailed'));
-        }
-      });
-  }
-
-  private loadSelectableUsers(): void {
-    this.accountService.getSelectableUsers()
-      .pipe(takeUntilDestroyed())
-      .subscribe({
-        next: (users) => {
-          this.selectableUsers.set(users);
-        },
-        error: () => {
-          this.selectableUsers.set([]);
         }
       });
   }

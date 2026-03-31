@@ -7,49 +7,10 @@
       <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
-    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
-      <label class="field">
-        <span>{{ i18n.translate('accounts.transferFrom') }}</span>
-        <input type="text" [value]="sourceAccount().name" readonly />
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('accounts.transferTo') }}</span>
-        <select formControlName="transferToAccountId">
-          <option value="" disabled hidden>{{ i18n.translate('accounts.transferTo') }}</option>
-          <optgroup *ngIf="ownDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOwnAccounts')">
-            <option *ngFor="let option of ownDestinationOptions()" [value]="option.value">{{ option.label }}</option>
-          </optgroup>
-          <optgroup *ngIf="otherUserDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOtherUsers')">
-            <option *ngFor="let option of otherUserDestinationOptions()" [value]="option.value">{{ option.label }}</option>
-          </optgroup>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('accounts.transferAmount') }}</span>
-        <input type="number" min="0.01" step="0.01" formControlName="amount" />
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('transactions.columnDate') }}</span>
-        <input type="date" formControlName="transactionDate" />
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('accounts.transferComment') }}</span>
-        <textarea rows="3" formControlName="comment"></textarea>
-      </label>
-
-      <p class="error-message" *ngIf="!hasDestinations()">{{ i18n.translate('accounts.noSectionAccounts') }}</p>
-      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-
-      <div class="modal-actions">
-        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
-        <button type="submit" class="primary" [disabled]="isSubmitting() || !hasDestinations()">
-          {{ isSubmitting() ? i18n.translate('accounts.processing') : i18n.translate('accounts.transferCreate') }}
-        </button>
-      </div>
-    </form>
+    <app-transfer-form
+      [sourceAccount]="sourceAccount()"
+      [accounts]="accounts()"
+      (transferred)="onTransferred($event)"
+      (error)="onError($event)" />
   </section>
 </div>
