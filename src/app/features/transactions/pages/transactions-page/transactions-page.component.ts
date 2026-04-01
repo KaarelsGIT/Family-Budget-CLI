@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
 import {
@@ -30,7 +31,11 @@ interface CategoryFilterOption {
 export class TransactionsPageComponent {
   private readonly transactionsService = inject(TransactionsService);
   private readonly transactionDraftService = inject(TransactionDraftService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
+
+  readonly currentUserId = this.authService.getUserId();
+  readonly currentUserRole = this.authService.getRole();
 
   readonly transactions = signal<TransactionItem[]>([]);
   readonly categories = signal<TransactionCategory[]>([]);
@@ -46,11 +51,13 @@ export class TransactionsPageComponent {
     size: 10,
     sortBy: 'transactionDate' as SortField,
     sortOrder: 'desc' as 'asc' | 'desc',
-    userId: null as number | null,
+    userId: this.currentUserId,
     categoryId: null as number | null,
     fromDate: '',
     toDate: ''
   });
+
+  readonly filterUsers = computed(() => this.buildUserFilterOptions(this.users()));
 
   readonly categoryFilterOptions = computed<CategoryFilterOption[]>(() =>
     this.buildCategoryFilterOptions(this.categories())
@@ -159,7 +166,7 @@ export class TransactionsPageComponent {
       size: 10,
       sortBy: 'transactionDate',
       sortOrder: 'desc',
-      userId: null,
+      userId: this.currentUserId,
       categoryId: null,
       fromDate: '',
       toDate: ''
@@ -307,11 +314,23 @@ export class TransactionsPageComponent {
       size: filters.size,
       sortBy: filters.sortBy,
       sortOrder: filters.sortOrder,
-      userId: filters.userId,
+      userId: filters.userId ?? this.currentUserId,
       categoryId: filters.categoryId,
       from: filters.fromDate || null,
       to: filters.toDate || null
     };
+  }
+
+  private buildUserFilterOptions(users: TransactionUserOption[]): TransactionUserOption[] {
+    if (this.currentUserId === null) {
+      return users;
+    }
+
+    if (this.currentUserRole === 'CHILD') {
+      return users.filter((user) => user.id === this.currentUserId);
+    }
+
+    return users;
   }
 
   private buildCategoryFilterOptions(categories: TransactionCategory[]): CategoryFilterOption[] {

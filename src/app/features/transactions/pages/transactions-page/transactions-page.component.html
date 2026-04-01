@@ -15,8 +15,7 @@
       <label class="field">
         <span>{{ i18n.translate('transactions.filterUser') }}</span>
         <select [ngModel]="filters().userId ?? ''" (ngModelChange)="onUserChange($event)">
-          <option value="">{{ i18n.translate('transactions.allUsers') }}</option>
-          <option *ngFor="let user of users()" [value]="user.id">{{ user.username }}</option>
+          <option *ngFor="let user of filterUsers()" [value]="user.id">{{ user.username }}</option>
         </select>
       </label>
 
