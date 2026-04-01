@@ -22,6 +22,7 @@ export class AccountCardComponent {
   readonly account = input.required<Account>();
   readonly changed = output<void>();
   readonly transferRequested = output<Account>();
+  readonly adjustBalanceRequested = output<Account>();
   readonly editInline = viewChild(EditAccountInlineComponent);
 
   readonly isDeleting = signal(false);
@@ -54,6 +55,15 @@ export class AccountCardComponent {
 
     this.errorMessage.set('');
     this.transferRequested.emit(this.account());
+  }
+
+  onAdjustBalance(): void {
+    if (!this.canEditAccount()) {
+      return;
+    }
+
+    this.errorMessage.set('');
+    this.adjustBalanceRequested.emit(this.account());
   }
 
   startInlineEdit(): void {

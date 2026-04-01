@@ -31,7 +31,8 @@
               *ngFor="let account of group.accounts; trackBy: trackByAccountId"
               [account]="account"
               (changed)="handleAccountsChanged()"
-              (transferRequested)="openTransferModal($event)" />
+              (transferRequested)="openTransferModal($event)"
+              (adjustBalanceRequested)="openAdjustBalanceModal($event)" />
           </div>
         </section>
       </div>
@@ -50,6 +51,12 @@
     *ngIf="isModalOpen()"
     (closed)="closeAddAccountModal()"
     (created)="handleAccountsChanged()" />
+
+  <app-adjust-balance-modal
+    *ngIf="selectedAdjustBalanceAccount()"
+    [account]="selectedAdjustBalanceAccount()!"
+    (closed)="closeAdjustBalanceModal()"
+    (adjusted)="handleAccountsChanged()" />
 
   <app-transfer-modal
     *ngIf="selectedTransferAccount()"

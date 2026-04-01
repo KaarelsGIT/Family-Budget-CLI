@@ -32,6 +32,10 @@ interface SelectableUserApiResponse {
 
 type AccountPayload = Pick<Account, 'name' | 'type'>;
 type UpdateAccountPayload = Pick<Account, 'name'>;
+interface AdjustBalancePayload {
+  amount: number;
+  comment: string;
+}
 interface CreateTransferPayload {
   amount: number;
   fromAccountId: number;
@@ -67,6 +71,12 @@ export class AccountService {
 
   updateAccount(id: number, account: UpdateAccountPayload): Observable<Account> {
     return this.http.put<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}`, account).pipe(
+      map((response) => this.mapAccount(response.data))
+    );
+  }
+
+  adjustBalance(id: number, payload: AdjustBalancePayload): Observable<Account> {
+    return this.http.patch<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}/adjust-balance`, payload).pipe(
       map((response) => this.mapAccount(response.data))
     );
   }

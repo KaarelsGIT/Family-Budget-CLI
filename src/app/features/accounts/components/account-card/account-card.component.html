@@ -21,6 +21,18 @@
         <button
           type="button"
           class="header-icon-button"
+          *ngIf="canEditAccount()"
+          (click)="onAdjustBalance()"
+          [attr.aria-label]="i18n.translate('accounts.adjustBalance')"
+          [attr.title]="i18n.translate('accounts.adjustBalance')">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3Zm1 5v4.2l3 1.8-1 1.7-4-2.4V8h2Zm-6 1h2v2H7V9Zm0 4h2v2H7v-2Zm0 4h2v2H7v-2Zm10-8h2v2h-2V9Zm0 4h2v2h-2v-2Zm0 4h2v2h-2v-2Z" fill="currentColor"/>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="header-icon-button"
           *ngIf="canTransfer()"
           (click)="onTransfer()"
           [attr.aria-label]="i18n.translate('accounts.transfer')"

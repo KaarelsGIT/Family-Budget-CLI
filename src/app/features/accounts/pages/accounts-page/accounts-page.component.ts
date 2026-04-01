@@ -4,6 +4,7 @@ import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
 import { AddAccountModalComponent } from '../../components/add-account-modal/add-account-modal.component';
+import { AdjustBalanceModalComponent } from '../../components/adjust-balance-modal/adjust-balance-modal.component';
 import { TransferModalComponent } from '../../components/transfer-modal/transfer-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
@@ -24,7 +25,7 @@ interface AccountSection {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, TransferModalComponent],
+  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, TransferModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
@@ -36,6 +37,7 @@ export class AccountsPageComponent {
   readonly accounts = signal<Account[]>([]);
   readonly isLoading = signal(false);
   readonly isModalOpen = signal(false);
+  readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedTransferAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
 
@@ -110,11 +112,21 @@ export class AccountsPageComponent {
   }
 
   openTransferModal(account: Account): void {
+    this.selectedAdjustBalanceAccount.set(null);
     this.selectedTransferAccount.set(account);
   }
 
   closeTransferModal(): void {
     this.selectedTransferAccount.set(null);
+  }
+
+  openAdjustBalanceModal(account: Account): void {
+    this.selectedTransferAccount.set(null);
+    this.selectedAdjustBalanceAccount.set(account);
+  }
+
+  closeAdjustBalanceModal(): void {
+    this.selectedAdjustBalanceAccount.set(null);
   }
 
   handleAccountsChanged(): void {
