@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -74,6 +74,14 @@ export class AddTransactionModalComponent {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly selectedTransferFromAccountId = signal<number | null>(null);
   readonly selectedTransferToAccountId = signal<number | null>(null);
+  readonly modalOffsetX = signal(0);
+  readonly modalOffsetY = signal(0);
+
+  private dragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragOriginX = 0;
+  private dragOriginY = 0;
   readonly transactionTypeOptions = computed<TypeOption[]>(() => {
     const collator = new Intl.Collator(this.i18n.language(), { sensitivity: 'base' });
     return [
@@ -190,6 +198,39 @@ export class AddTransactionModalComponent {
 
   close(): void {
     this.closed.emit();
+  }
+
+  startDrag(event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target || target.closest('button')) {
+      return;
+    }
+
+    if (event.button !== 0) {
+      return;
+    }
+
+    this.dragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragOriginX = this.modalOffsetX();
+    this.dragOriginY = this.modalOffsetY();
+  }
+
+  @HostListener('document:pointermove', ['$event'])
+  onDocumentPointerMove(event: PointerEvent): void {
+    if (!this.dragging) {
+      return;
+    }
+
+    this.modalOffsetX.set(this.dragOriginX + (event.clientX - this.dragStartX));
+    this.modalOffsetY.set(this.dragOriginY + (event.clientY - this.dragStartY));
+  }
+
+  @HostListener('document:pointerup')
+  @HostListener('document:pointercancel')
+  endDrag(): void {
+    this.dragging = false;
   }
 
   openMainCategoryForm(): void {
@@ -406,7 +447,7 @@ export class AddTransactionModalComponent {
         this.created.emit();
       },
       error: (error: { error?: { message?: string } }) => {
-        this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.createFailed'));
+        this.errorMessage.set(this.resolveErrorMessage(error, 'transactions.createFailed'));
       }
     });
   }
@@ -593,6 +634,25 @@ export class AddTransactionModalComponent {
 
   getAccountLabel(account: Account): string {
     return `${account.name} · ${account.ownerUsername}`;
+  }
+
+  private resolveErrorMessage(
+    error: { error?: { message?: string } },
+    fallbackKey: 'transactions.createFailed'
+  ): string {
+    const message = error.error?.message;
+    if (
+      message === 'Kontol ei ole piisavalt raha' ||
+      message === 'Saldo ei tohi minna alla nulli!'
+    ) {
+      return this.i18n.translate('transactions.balanceWouldGoNegative');
+    }
+
+    return message || this.i18n.translate(fallbackKey);
+  }
+
+  getModalTransform(): string {
+    return `translate3d(${this.modalOffsetX()}px, ${this.modalOffsetY()}px, 0)`;
   }
 
   private initializeSignalsFromDraft(): void {

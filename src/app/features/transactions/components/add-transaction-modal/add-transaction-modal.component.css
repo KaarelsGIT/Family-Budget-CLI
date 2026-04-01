@@ -21,6 +21,7 @@
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+  will-change: transform;
 }
 
 .modal-header {
@@ -29,6 +30,9 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
 }
 
 .modal-header h2 {
@@ -44,6 +48,8 @@
   width: 36px;
   height: 36px;
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .modal-form {

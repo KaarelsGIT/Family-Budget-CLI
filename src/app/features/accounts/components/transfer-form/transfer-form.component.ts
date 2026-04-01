@@ -117,7 +117,7 @@ export class TransferFormComponent implements OnInit {
       toAccountId: parsedToAccountId,
       transactionDate,
       comment
-    }).pipe(
+      }).pipe(
       finalize(() => this.isSubmitting.set(false))
     ).subscribe({
       next: () => {
@@ -130,7 +130,7 @@ export class TransferFormComponent implements OnInit {
         });
       },
       error: (error: { error?: { message?: string } }) => {
-        this.setError(error.error?.message || this.i18n.translate('accounts.transferFailed'));
+        this.setError(this.resolveErrorMessage(error, 'accounts.transferFailed'));
       }
     });
   }
@@ -198,5 +198,20 @@ export class TransferFormComponent implements OnInit {
   private setError(message: string): void {
     this.errorMessage.set(message);
     this.error.emit(message);
+  }
+
+  private resolveErrorMessage(
+    error: { error?: { message?: string } },
+    fallbackKey: 'accounts.transferFailed'
+  ): string {
+    const message = error.error?.message;
+    if (
+      message === 'Kontol ei ole piisavalt raha' ||
+      message === 'Saldo ei tohi minna alla nulli!'
+    ) {
+      return this.i18n.translate('transactions.balanceWouldGoNegative');
+    }
+
+    return message || this.i18n.translate(fallbackKey);
   }
 }
