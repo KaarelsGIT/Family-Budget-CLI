@@ -6,6 +6,7 @@ import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { EditAccountInlineComponent } from '../edit-account-inline/edit-account-inline.component';
+import { formatEuroAmount } from '../../../../shared/utils/money-format';
 
 @Component({
   selector: 'app-account-card',
@@ -20,6 +21,7 @@ export class AccountCardComponent {
   readonly i18n = inject(TranslationService);
 
   readonly account = input.required<Account>();
+  readonly accentColor = input<string | null>(null);
   readonly changed = output<void>();
   readonly transferRequested = output<Account>();
   readonly adjustBalanceRequested = output<Account>();
@@ -98,12 +100,11 @@ export class AccountCardComponent {
   }
 
   formatBalance(balance: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(balance);
+    return formatEuroAmount(balance, this.i18n.language());
+  }
+
+  hasAccentColor(): boolean {
+    return !!this.accentColor();
   }
 
   getTypeLabel(type: Account['type']): string {
@@ -112,6 +113,8 @@ export class AccountCardComponent {
         return this.i18n.translate('accounts.typeMain');
       case 'GOAL':
         return this.i18n.translate('accounts.typeGoal');
+      case 'CASH':
+        return this.i18n.translate('accounts.typeCash');
       default:
         return this.i18n.translate('accounts.typeSavings');
     }

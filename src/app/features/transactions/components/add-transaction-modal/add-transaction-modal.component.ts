@@ -142,7 +142,8 @@ export class AddTransactionModalComponent {
         const typeOrder: Record<Account['type'], number> = {
           MAIN: 0,
           GOAL: 1,
-          SAVINGS: 2
+          SAVINGS: 2,
+          CASH: 3
         };
 
         if (left.type !== right.type) {
@@ -370,6 +371,11 @@ export class AddTransactionModalComponent {
       return;
     }
 
+    if (type === 'EXPENSE' && parsedAmount > this.getSelectedAccountBalance(selectedAccountId)) {
+      this.errorMessage.set(this.i18n.translate('transactions.balanceWouldGoNegative'));
+      return;
+    }
+
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
@@ -569,6 +575,20 @@ export class AddTransactionModalComponent {
 
   trackByAccountId(_index: number, account: Account): number {
     return account.id;
+  }
+
+  isExpenseAmountWithinBalance(): boolean {
+    if (this.transactionType() !== 'EXPENSE') {
+      return true;
+    }
+
+    const selectedAccountId = this.parseNumber(this.transactionForm.controls.accountId.getRawValue());
+    const amount = Number(this.transactionForm.controls.amount.getRawValue());
+    if (selectedAccountId === null || !Number.isFinite(amount) || amount <= 0) {
+      return true;
+    }
+
+    return amount <= this.getSelectedAccountBalance(selectedAccountId);
   }
 
   getAccountLabel(account: Account): string {
@@ -778,6 +798,10 @@ export class AddTransactionModalComponent {
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private getSelectedAccountBalance(accountId: number): number {
+    return this.ownAccounts().find((account) => account.id === accountId)?.balance ?? 0;
   }
 
   private syncIncomeExpenseSelection(): void {
@@ -1040,7 +1064,7 @@ export class AddTransactionModalComponent {
       .map((account) => ({
         accountId: account.id,
         value: String(account.id),
-        label: `${account.name} (${account.type})`,
+        label: account.name,
         groupKey: 'accounts.transferOwnAccounts' as const
       }));
 
@@ -1050,7 +1074,7 @@ export class AddTransactionModalComponent {
       .map((user) => ({
         accountId: user.defaultMainAccountId as number,
         value: String(user.defaultMainAccountId),
-        label: `${user.username} (MAIN)`,
+        label: user.username,
         groupKey: 'accounts.transferOtherUsers' as const
       }));
 

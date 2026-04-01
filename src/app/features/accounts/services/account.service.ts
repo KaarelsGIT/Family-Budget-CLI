@@ -20,7 +20,7 @@ interface AccountApiResponse {
   ownerUsername: string;
   ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
   balance: number | string | null;
-  type: 'MAIN' | 'SAVINGS' | 'GOAL';
+  type: 'MAIN' | 'SAVINGS' | 'GOAL' | 'CASH';
 }
 
 interface SelectableUserApiResponse {

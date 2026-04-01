@@ -89,6 +89,10 @@
             <input type="number" min="0.01" step="0.01" formControlName="amount" />
           </label>
 
+          <p class="error-message" *ngIf="transactionType() === 'EXPENSE' && !isExpenseAmountWithinBalance() && transactionForm.controls.amount.value">
+            {{ i18n.translate('transactions.balanceWouldGoNegative') }}
+          </p>
+
           <label class="field">
             <span>{{ i18n.translate('transactions.columnComment') }}</span>
             <textarea rows="3" formControlName="comment"></textarea>
@@ -103,7 +107,7 @@
 
           <div class="modal-actions">
             <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
-            <button type="submit" class="primary" [disabled]="isSubmitting() || isLoadingAccounts()">
+            <button type="submit" class="primary" [disabled]="isSubmitting() || isLoadingAccounts() || (transactionType() === 'EXPENSE' && !isExpenseAmountWithinBalance())">
               {{ isSubmitting() ? getSubmittingLabel() : getSubmitButtonLabel() }}
             </button>
           </div>

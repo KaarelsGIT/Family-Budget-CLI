@@ -8,6 +8,7 @@ import { AdjustBalanceModalComponent } from '../../components/adjust-balance-mod
 import { TransferModalComponent } from '../../components/transfer-modal/transfer-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
+import { formatEuroAmount } from '../../../../shared/utils/money-format';
 
 interface AccountOwnerGroup {
   ownerId: number;
@@ -16,9 +17,15 @@ interface AccountOwnerGroup {
   accounts: Account[];
 }
 
+interface AccountChartSlice {
+  accountId: number;
+  color: string;
+  path: string;
+}
+
 interface AccountSection {
-  key: 'currentUser' | 'parents' | 'children';
-  titleKey: 'accounts.sectionCurrentUser' | 'accounts.sectionParents' | 'accounts.sectionChildren';
+  key: 'currentUser' | 'otherFamilyMembers';
+  titleKey: 'accounts.sectionCurrentUser' | 'accounts.sectionOtherFamilyMembers';
   groups: AccountOwnerGroup[];
 }
 
@@ -40,23 +47,12 @@ export class AccountsPageComponent {
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedTransferAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
-
-  readonly totalBalance = computed(() =>
-    this.accounts().reduce((sum, account) => sum + account.balance, 0)
-  );
-
   readonly sections = computed<AccountSection[]>(() => {
     const currentUserId = this.authService.getUserId();
-    const currentUserRole = this.authService.getRole();
     const accounts = this.accounts();
 
     const currentUserAccounts = accounts.filter((account) => account.ownerId === currentUserId);
-    const parentAccounts = accounts.filter((account) =>
-      account.ownerId !== currentUserId && (account.ownerRole === 'PARENT' || account.ownerRole === 'ADMIN')
-    );
-    const childAccounts = accounts.filter((account) =>
-      account.ownerId !== currentUserId && account.ownerRole === 'CHILD'
-    );
+    const otherFamilyMemberAccounts = accounts.filter((account) => account.ownerId !== currentUserId);
 
     const sections: AccountSection[] = [
       {
@@ -65,20 +61,11 @@ export class AccountsPageComponent {
         groups: this.groupByOwner(currentUserAccounts)
       },
       {
-        key: 'parents',
-        titleKey: 'accounts.sectionParents',
-        groups: this.groupByOwner(parentAccounts)
-      },
-      {
-        key: 'children',
-        titleKey: 'accounts.sectionChildren',
-        groups: this.groupByOwner(childAccounts)
+        key: 'otherFamilyMembers',
+        titleKey: 'accounts.sectionOtherFamilyMembers',
+        groups: this.groupByOwner(otherFamilyMemberAccounts)
       }
     ];
-
-    if (currentUserRole === 'CHILD') {
-      return sections.filter((section) => section.key === 'currentUser' || section.groups.length > 0);
-    }
 
     return sections.filter((section) => section.groups.length > 0);
   });
@@ -138,12 +125,25 @@ export class AccountsPageComponent {
   }
 
   formatBalance(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
+    return formatEuroAmount(value, this.i18n.language());
+  }
+
+  getGroupTotal(accounts: Account[]): number {
+    return accounts.reduce((sum, account) => sum + account.balance, 0);
+  }
+
+  getChartColor(index: number): string {
+    const colors = ['#2f7d46', '#3f9155', '#52a363', '#68b372', '#7cc07f', '#99cd93'];
+    return colors[index % colors.length];
+  }
+
+  getAccountColor(accounts: Account[], account: Account): string | null {
+    const index = accounts.findIndex((item) => item.id === account.id);
+    return index >= 0 ? this.getChartColor(index) : null;
+  }
+
+  trackByChartSliceId(_index: number, slice: AccountChartSlice): number {
+    return slice.accountId;
   }
 
   trackBySectionKey(_index: number, section: AccountSection): string {
@@ -196,7 +196,8 @@ export class AccountsPageComponent {
     const typeOrder: Record<Account['type'], number> = {
       MAIN: 0,
       GOAL: 1,
-      SAVINGS: 2
+      SAVINGS: 2,
+      CASH: 3
     };
 
     return [...accounts].sort((left, right) => {
@@ -206,5 +207,77 @@ export class AccountsPageComponent {
 
       return left.name.localeCompare(right.name);
     });
+  }
+
+  buildAccountChartSlices(accounts: Account[]): AccountChartSlice[] {
+    const positiveBalances = accounts.map((account) => Math.max(0, account.balance));
+    const total = positiveBalances.reduce((sum, value) => sum + value, 0);
+
+    if (total <= 0) {
+      return [];
+    }
+
+    if (accounts.filter((account) => Math.max(0, account.balance) > 0).length === 1) {
+      const singleAccount = accounts.find((account) => Math.max(0, account.balance) > 0);
+      if (!singleAccount) {
+        return [];
+      }
+
+      return [{
+        accountId: singleAccount.id,
+        color: this.getChartColor(accounts.findIndex((account) => account.id === singleAccount.id)),
+        path: this.describeFullCircle(50, 50, 42)
+      }];
+    }
+
+    let currentAngle = -90;
+
+    return accounts.flatMap((account, index) => {
+      const value = Math.max(0, account.balance);
+      if (value <= 0) {
+        return [];
+      }
+
+      const sweep = (value / total) * 360;
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + sweep;
+      currentAngle = endAngle;
+
+      return [{
+        accountId: account.id,
+        color: this.getChartColor(index),
+        path: this.describePieSlice(50, 50, 42, startAngle, endAngle)
+      }];
+    });
+  }
+
+  private describePieSlice(cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string {
+    const start = this.polarToCartesian(cx, cy, radius, endAngle);
+    const end = this.polarToCartesian(cx, cy, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+
+    return [
+      `M ${cx} ${cy}`,
+      `L ${start.x} ${start.y}`,
+      `A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`,
+      'Z'
+    ].join(' ');
+  }
+
+  private describeFullCircle(cx: number, cy: number, radius: number): string {
+    return [
+      `M ${cx} ${cy - radius}`,
+      `A ${radius} ${radius} 0 1 1 ${cx} ${cy + radius}`,
+      `A ${radius} ${radius} 0 1 1 ${cx} ${cy - radius}`,
+      'Z'
+    ].join(' ');
+  }
+
+  private polarToCartesian(cx: number, cy: number, radius: number, angleInDegrees: number): { x: number; y: number } {
+    const angleInRadians = (angleInDegrees - 90) * (Math.PI / 180);
+    return {
+      x: cx + radius * Math.cos(angleInRadians),
+      y: cy + radius * Math.sin(angleInRadians)
+    };
   }
 }

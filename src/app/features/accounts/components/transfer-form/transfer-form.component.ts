@@ -86,6 +86,8 @@ export class TransferFormComponent implements OnInit {
         this.setError(this.i18n.translate('accounts.noSectionAccounts'));
       } else if (!this.form.controls.transferToAccountId.value) {
         this.setError(this.i18n.translate('accounts.transferTo'));
+      } else if (!this.isAmountWithinBalance()) {
+        this.setError(this.i18n.translate('transactions.balanceWouldGoNegative'));
       }
       this.form.markAllAsTouched();
       return;
@@ -96,6 +98,12 @@ export class TransferFormComponent implements OnInit {
 
     if (!Number.isFinite(parsedToAccountId) || parsedToAccountId < 1) {
       this.setError(this.i18n.translate('accounts.transferTo'));
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    if (!this.isAmountWithinBalance()) {
+      this.setError(this.i18n.translate('transactions.balanceWouldGoNegative'));
       this.form.markAllAsTouched();
       return;
     }
@@ -131,6 +139,15 @@ export class TransferFormComponent implements OnInit {
     return option.accountId;
   }
 
+  isAmountWithinBalance(): boolean {
+    const amount = Number(this.form.controls.amount.value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return false;
+    }
+
+    return amount <= this.sourceAccount().balance;
+  }
+
   private destinationOptions(): TransferDestinationOption[] {
     const ownAccountOptions = this.accounts()
       .filter((account) => account.id !== this.sourceAccount().id)
@@ -138,7 +155,7 @@ export class TransferFormComponent implements OnInit {
       .map((account) => ({
         accountId: account.id,
         value: String(account.id),
-        label: `${account.name} (${account.type})`,
+        label: account.name,
         groupKey: 'accounts.transferOwnAccounts' as const
       }));
 
@@ -148,7 +165,7 @@ export class TransferFormComponent implements OnInit {
       .map((user) => ({
         accountId: user.defaultMainAccountId as number,
         value: String(user.defaultMainAccountId),
-        label: `${user.username} (MAIN)`,
+        label: user.username,
         groupKey: 'accounts.transferOtherUsers' as const
       }));
 

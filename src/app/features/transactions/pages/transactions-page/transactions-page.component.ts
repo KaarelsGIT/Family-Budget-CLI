@@ -12,6 +12,7 @@ import {
 } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
 import { TransactionsService } from '../../services/transactions.service';
+import { formatEuroAmount } from '../../../../shared/utils/money-format';
 
 type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'createdBy.username' | 'category.name' | 'type';
 interface CategoryFilterOption {
@@ -199,12 +200,7 @@ export class TransactionsPageComponent {
   }
 
   formatAmount(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
+    return formatEuroAmount(value, this.i18n.language());
   }
 
   formatDate(value: string): string {
