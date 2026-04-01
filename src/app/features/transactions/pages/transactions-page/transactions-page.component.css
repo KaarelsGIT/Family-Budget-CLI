@@ -97,6 +97,65 @@ button.secondary:disabled {
   cursor: not-allowed;
 }
 
+button.danger {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #efc5c0;
+  border-radius: 10px;
+  background: #fff;
+  color: #a53a2b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.danger:hover:not(:disabled) {
+  background: #fff5f3;
+}
+
+.actions-column {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.icon-button {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid #cbd8cf;
+  background: #fff;
+  cursor: pointer;
+  color: #1f5b35;
+  flex: 0 0 auto;
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.icon-button:hover {
+  background: #f1f7f3;
+}
+
+.edit-button {
+  color: #1f5b35;
+}
+
+.delete-button {
+  color: #a53a2b;
+  border-color: #efc5c0;
+}
+
+.delete-button:hover {
+  background: #fff5f3;
+}
+
 button.primary-action {
   min-height: 42px;
   padding: 0 14px;

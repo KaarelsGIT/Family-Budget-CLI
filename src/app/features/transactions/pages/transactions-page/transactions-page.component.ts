@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
+import { EditTransactionModalComponent } from '../../components/edit-transaction-modal/edit-transaction-modal.component';
 import {
   TransactionCategory,
   TransactionItem,
@@ -24,7 +25,7 @@ interface CategoryFilterOption {
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddTransactionModalComponent],
+  imports: [CommonModule, FormsModule, AddTransactionModalComponent, EditTransactionModalComponent],
   templateUrl: './transactions-page.component.html',
   styleUrl: './transactions-page.component.css'
 })
@@ -43,6 +44,7 @@ export class TransactionsPageComponent {
   readonly isLoading = signal(false);
   readonly isLoadingFilters = signal(false);
   readonly isAddTransactionModalOpen = signal(false);
+  readonly selectedTransactionToEdit = signal<TransactionItem | null>(null);
   readonly errorMessage = signal('');
   readonly totalItems = signal(0);
 
@@ -85,6 +87,7 @@ export class TransactionsPageComponent {
     console.log('[TransactionsPage] openAddTransactionModal() clicked');
 
     try {
+      this.selectedTransactionToEdit.set(null);
       this.isAddTransactionModalOpen.set(true);
       console.log('[TransactionsPage] AddTransactionModal open state set to true');
     } catch (error) {
@@ -98,7 +101,34 @@ export class TransactionsPageComponent {
     this.transactionDraftService.clearOpenRequest();
   }
 
+  openEditTransactionModal(transaction: TransactionItem): void {
+    if (!this.canModifyTransaction(transaction)) {
+      return;
+    }
+
+    this.isAddTransactionModalOpen.set(false);
+    this.selectedTransactionToEdit.set(transaction);
+  }
+
+  closeEditTransactionModal(): void {
+    this.selectedTransactionToEdit.set(null);
+  }
+
   handleTransactionCreated(): void {
+    this.filters.update((state) => ({
+      ...state,
+      page: 0
+    }));
+    this.closeAddTransactionModal();
+    this.loadTransactions();
+  }
+
+  handleTransactionUpdated(): void {
+    this.filters.update((state) => ({
+      ...state,
+      page: 0
+    }));
+    this.selectedTransactionToEdit.set(null);
     this.loadTransactions();
   }
 
@@ -131,6 +161,30 @@ export class TransactionsPageComponent {
           this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.loadFailed'));
         }
       });
+  }
+
+  deleteTransaction(transaction: TransactionItem): void {
+    if (!this.canModifyTransaction(transaction)) {
+      return;
+    }
+
+    const confirmed = window.confirm(this.i18n.translate('transactions.deleteConfirm'));
+    if (!confirmed) {
+      return;
+    }
+
+    this.transactionsService.deleteTransaction(transaction.id).subscribe({
+      next: () => {
+        this.filters.update((state) => ({
+          ...state,
+          page: 0
+        }));
+        this.loadTransactions();
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.deleteFailed'));
+      }
+    });
   }
 
   onUserChange(value: string): void {
@@ -274,6 +328,10 @@ export class TransactionsPageComponent {
 
   trackByTransactionId(_index: number, transaction: TransactionItem): number {
     return transaction.id;
+  }
+
+  canModifyTransaction(transaction: TransactionItem): boolean {
+    return transaction.type !== 'TRANSFER' && transaction.createdById === this.currentUserId;
   }
 
   private loadFilterOptions(): void {

@@ -56,6 +56,12 @@ interface UserApiResponse {
   role: 'ADMIN' | 'PARENT' | 'CHILD';
 }
 
+interface UpdateTransactionPayload {
+  amount: number;
+  transactionDate: string;
+  comment?: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -134,6 +140,24 @@ export class TransactionsService {
 
     return this.http.post<ApiResponse<TransactionApiResponse>>(`${environment.apiUrl}/transactions`, body).pipe(
       map((response) => this.mapTransaction(response.data))
+    );
+  }
+
+  updateTransaction(id: number, payload: UpdateTransactionPayload): Observable<TransactionItem> {
+    const body = {
+      amount: payload.amount,
+      transactionDate: payload.transactionDate,
+      comment: payload.comment || null
+    };
+
+    return this.http.put<ApiResponse<TransactionApiResponse>>(`${environment.apiUrl}/transactions/${id}`, body).pipe(
+      map((response) => this.mapTransaction(response.data))
+    );
+  }
+
+  deleteTransaction(id: number): Observable<void> {
+    return this.http.delete<ApiResponse<string>>(`${environment.apiUrl}/transactions/${id}`).pipe(
+      map(() => void 0)
     );
   }
 

@@ -1,0 +1,53 @@
+<div class="modal-overlay">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="edit-transaction-title" [style.transform]="getModalTransform()">
+    <div class="modal-header" (pointerdown)="startDrag($event)">
+      <h2 id="edit-transaction-title">{{ i18n.translate('transactions.editTitle') }}</h2>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+      <div class="summary-grid">
+        <label class="field">
+          <span>{{ i18n.translate('transactions.columnType') }}</span>
+          <div class="readonly-field">{{ getTypeLabel() }}</div>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('transactions.columnAccount') }}</span>
+          <div class="readonly-field">{{ getAccountLabel() }}</div>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('transactions.columnAmount') }}</span>
+          <div class="readonly-field">{{ formatCurrentAmount() }}</div>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.columnDate') }}</span>
+        <input type="date" formControlName="transactionDate" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.columnAmount') }}</span>
+        <input type="number" min="0.01" step="0.01" formControlName="amount" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.columnComment') }}</span>
+        <textarea rows="3" formControlName="comment"></textarea>
+      </label>
+
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? i18n.translate('transactions.editing') : i18n.translate('transactions.saveChanges') }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
