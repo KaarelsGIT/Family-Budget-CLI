@@ -1,0 +1,309 @@
+.statistics-container {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.page-header h1,
+.section-header h2 {
+  margin: 4px 0 0;
+}
+
+.page-copy {
+  margin: 8px 0 0;
+  color: #5f6f64;
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: #4b6f53;
+  font-weight: 700;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.field span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #304238;
+}
+
+.field input,
+.field select {
+  border: 1px solid #cdd8cf;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: white;
+}
+
+.summary-grid,
+.charts-grid,
+.transfer-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.summary-card,
+.chart-card,
+.table-card,
+.transfers-card {
+  background: white;
+  border: 1px solid #dde5df;
+  border-radius: 18px;
+  box-shadow: 0 14px 36px rgba(25, 48, 31, 0.05);
+}
+
+.summary-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-card strong {
+  font-size: 24px;
+}
+
+.summary-card--income strong,
+.positive {
+  color: #2f7d46;
+}
+
+.summary-card--expenses strong,
+.negative {
+  color: #b85c38;
+}
+
+.summary-card--net strong,
+.summary-card--savings strong,
+.summary-card--rate strong {
+  color: #223328;
+}
+
+.chart-card,
+.table-card,
+.transfers-card {
+  padding: 18px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.monthly-chart,
+.line-chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.axis-line {
+  stroke: #bfcdbc;
+  stroke-width: 1.2;
+}
+
+.chart-grid-line {
+  stroke: #e7eee8;
+  stroke-width: 1;
+}
+
+.axis-label {
+  font-size: 10px;
+  fill: #5d6d61;
+  text-anchor: end;
+}
+
+.bar-income {
+  fill: #2f7d46;
+  rx: 4;
+}
+
+.bar-expense {
+  fill: #c96a3a;
+  rx: 4;
+}
+
+.bar-label {
+  font-size: 10px;
+  fill: #5d6d61;
+  text-anchor: middle;
+}
+
+.line-path {
+  fill: none;
+  stroke: #2f7d46;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.line-dot {
+  fill: #ffffff;
+  stroke: #2f7d46;
+  stroke-width: 3;
+}
+
+.pie-layout {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.pie-chart {
+  width: 160px;
+  height: 160px;
+}
+
+.pie-chart-base {
+  fill: none;
+  stroke: #e5ece6;
+  stroke-width: 6;
+}
+
+.pie-chart-hole {
+  fill: white;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.legend-row strong {
+  display: block;
+}
+
+.legend-row span {
+  color: #5b6a60;
+  font-size: 13px;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+.legend-swatch.income {
+  background: #2f7d46;
+}
+
+.legend-swatch.expenses {
+  background: #c96a3a;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #506157;
+  font-size: 13px;
+}
+
+.empty-state,
+.state-message,
+.error-message {
+  margin: 0;
+  padding: 16px 0;
+  color: #5b6b61;
+}
+
+.error-message {
+  color: #b83e3e;
+}
+
+.loading-overlay {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #d7e1d9;
+  box-shadow: 0 12px 32px rgba(35, 60, 43, 0.15);
+  display: grid;
+  place-items: center;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid #d8e4db;
+  border-top-color: #2f7d46;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .pie-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .statistics-container {
+    padding: 18px;
+  }
+
+  .summary-card strong {
+    font-size: 21px;
+  }
+}

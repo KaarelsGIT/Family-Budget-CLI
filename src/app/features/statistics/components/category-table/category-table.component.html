@@ -1,0 +1,59 @@
+<section class="category-table-card">
+  <header class="section-header section-header--tabs">
+    <div>
+      <p class="eyebrow">{{ i18n.translate('statistics.categoryTableTitle') }}</p>
+      <h2>{{ activeTab() === 'income' ? i18n.translate('statistics.categoryTabIncome') : i18n.translate('statistics.categoryTabExpenses') }}</h2>
+    </div>
+
+    <div class="tabs">
+      <button type="button" class="tab-button" [class.active]="activeTab() === 'income'" (click)="setTab('income')">
+        {{ i18n.translate('statistics.categoryTabIncome') }}
+      </button>
+      <button type="button" class="tab-button" [class.active]="activeTab() === 'expenses'" (click)="setTab('expenses')">
+        {{ i18n.translate('statistics.categoryTabExpenses') }}
+      </button>
+    </div>
+  </header>
+
+  <div class="table-scroll" *ngIf="rows().length > 0; else emptyState">
+    <table class="category-grid">
+      <thead>
+        <tr>
+          <th class="category-column">{{ i18n.translate('statistics.categoryParent') }}</th>
+          <th *ngFor="let month of monthLabels(); trackBy: trackByMonthColumn" class="month-column">{{ month.label }}</th>
+          <th class="total-column">{{ i18n.translate('statistics.categoryTotal') }}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let row of rows(); trackBy: trackByRow" [class.parent-row]="row.depth === 0" [class.child-row]="row.depth > 0">
+          <td class="category-cell">
+            <button
+              *ngIf="row.hasChildren"
+              type="button"
+              class="expand-button"
+              (click)="toggleRow(row.key)"
+              [attr.aria-label]="categoryButtonLabel(row.key)"
+              [attr.title]="categoryButtonLabel(row.key)">
+              {{ isExpanded(row.key) ? '−' : '+' }}
+            </button>
+
+            <span class="category-name" [style.paddingLeft.px]="row.depth * 20">
+              {{ row.name }}
+            </span>
+          </td>
+
+          <td *ngFor="let month of monthColumns; trackBy: trackByMonthKey" class="month-cell">
+            {{ monthCellLabel(monthValue(row, month)) }}
+          </td>
+
+          <td class="total-cell">{{ formatAmount(rowTotal(row)) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <p class="empty-state">{{ i18n.translate('statistics.empty') }}</p>
+  </ng-template>
+</section>

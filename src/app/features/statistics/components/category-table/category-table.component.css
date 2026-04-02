@@ -1,0 +1,165 @@
+.category-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.section-header h2 {
+  margin: 4px 0 0;
+}
+
+.section-header--tabs {
+  align-items: center;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: #4b6f53;
+  font-weight: 700;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #eef4ef;
+}
+
+.tab-button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: transparent;
+  color: #4d6454;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background: #2f7d46;
+  color: white;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.category-grid {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1080px;
+}
+
+.category-grid th,
+.category-grid td {
+  border-bottom: 1px solid #e5ece6;
+  padding: 12px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.category-grid tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.category-grid tbody tr:hover {
+  background: #f5faf6;
+}
+
+.category-grid th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5a6b61;
+  background: #f8fbf8;
+}
+
+.category-column {
+  width: 24%;
+}
+
+.total-column {
+  width: 9%;
+}
+
+.month-column {
+  width: 5.5%;
+  text-align: right;
+}
+
+.category-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-name {
+  display: inline-block;
+  font-weight: 600;
+  color: #213029;
+}
+
+.child-row .category-name {
+  font-weight: 500;
+}
+
+.total-cell,
+.month-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.parent-row {
+  background: #eef5ef;
+}
+
+.parent-row .category-name {
+  font-size: 15px;
+}
+
+.child-row {
+  background: #ffffff;
+}
+
+.child-row .category-name {
+  color: #526258;
+}
+
+.expand-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #d7e2da;
+  background: #eef5ef;
+  color: #2f7d46;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.expand-button:hover {
+  background: #e2f0e6;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 16px 0;
+  color: #5b6b61;
+}
+
+@media (max-width: 900px) {
+  .section-header {
+    flex-direction: column;
+  }
+}
