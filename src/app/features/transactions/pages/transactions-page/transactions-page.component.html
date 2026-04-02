@@ -23,16 +23,34 @@
     <div class="filters-grid">
       <label class="field">
         <span>{{ i18n.translate('transactions.filterUser') }}</span>
-        <select [ngModel]="filters().userId ?? ''" (ngModelChange)="onUserChange($event)">
-          <option *ngFor="let user of filterUsers()" [value]="user.id">{{ user.username }}</option>
+        <select [ngModel]="filters().userId" (ngModelChange)="onUserChange($event)">
+          <option *ngFor="let user of filterUsers()" [ngValue]="user.id">{{ user.username }}</option>
         </select>
       </label>
 
       <label class="field">
-        <span>{{ i18n.translate('transactions.category') }}</span>
-        <select [ngModel]="filters().categoryId ?? ''" (ngModelChange)="onCategoryChange($event)">
-          <option value="">{{ i18n.translate('transactions.allCategories') }}</option>
-          <option *ngFor="let category of categoryFilterOptions()" [value]="category.id">{{ category.label }}</option>
+        <span>{{ i18n.translate('transactions.transactionType') }}</span>
+        <select [ngModel]="filters().type" (ngModelChange)="onTypeChange($event)">
+          <option [ngValue]="null">{{ i18n.translate('transactions.allTypes') }}</option>
+          <option [ngValue]="'INCOME'">{{ i18n.translate('transactions.typeIncome') }}</option>
+          <option [ngValue]="'EXPENSE'">{{ i18n.translate('transactions.typeExpense') }}</option>
+          <option [ngValue]="'TRANSFER'">{{ i18n.translate('transactions.typeTransfer') }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.mainCategory') }}</span>
+        <select [ngModel]="filters().mainCategoryId" (ngModelChange)="onMainCategoryChange($event)" [disabled]="filters().type === 'TRANSFER'">
+          <option [ngValue]="null">{{ i18n.translate('transactions.selectMainCategory') }}</option>
+          <option *ngFor="let category of categoryFilterOptions(); trackBy: trackByCategoryId" [ngValue]="category.id">{{ category.label }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.subCategory') }}</span>
+        <select [ngModel]="filters().subCategoryId" (ngModelChange)="onSubCategoryChange($event)" [disabled]="filters().type === 'TRANSFER' || subCategoryFilterOptions().length === 0">
+          <option [ngValue]="null">{{ i18n.translate('transactions.selectSubCategory') }}</option>
+          <option *ngFor="let category of subCategoryFilterOptions(); trackBy: trackByCategoryId" [ngValue]="category.id">{{ category.label }}</option>
         </select>
       </label>
 

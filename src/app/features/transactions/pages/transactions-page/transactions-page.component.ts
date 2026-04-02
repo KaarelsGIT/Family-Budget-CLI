@@ -18,6 +18,7 @@ import { TransactionsService } from '../../services/transactions.service';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 
 type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'createdBy.username' | 'category.name' | 'type';
+type TransactionFilterType = TransactionItem['type'] | null;
 interface CategoryFilterOption {
   id: number;
   label: string;
@@ -55,7 +56,9 @@ export class TransactionsPageComponent {
     sortBy: 'transactionDate' as SortField,
     sortOrder: 'desc' as 'asc' | 'desc',
     userId: this.currentUserId,
-    categoryId: null as number | null,
+    type: null as TransactionFilterType,
+    mainCategoryId: null as number | null,
+    subCategoryId: null as number | null,
     fromDate: '',
     toDate: ''
   });
@@ -63,7 +66,11 @@ export class TransactionsPageComponent {
   readonly filterUsers = computed(() => this.buildUserFilterOptions(this.users()));
 
   readonly categoryFilterOptions = computed<CategoryFilterOption[]>(() =>
-    this.buildCategoryFilterOptions(this.categories())
+    this.buildMainCategoryOptions(this.categories(), this.filters().type)
+  );
+
+  readonly subCategoryFilterOptions = computed<CategoryFilterOption[]>(() =>
+    this.buildSubCategoryOptions(this.categories(), this.filters().type, this.filters().mainCategoryId)
   );
 
   readonly pageCount = computed(() => {
@@ -188,20 +195,41 @@ export class TransactionsPageComponent {
     });
   }
 
-  onUserChange(value: string): void {
+  onUserChange(value: number | null): void {
     this.filters.update((state) => ({
       ...state,
       page: 0,
-      userId: value ? Number(value) : null
+      userId: value
     }));
     this.loadTransactions();
   }
 
-  onCategoryChange(value: string): void {
+  onTypeChange(value: TransactionFilterType): void {
     this.filters.update((state) => ({
       ...state,
       page: 0,
-      categoryId: value ? Number(value) : null
+      type: value,
+      mainCategoryId: null,
+      subCategoryId: null
+    }));
+    this.loadTransactions();
+  }
+
+  onMainCategoryChange(value: number | null): void {
+    this.filters.update((state) => ({
+      ...state,
+      page: 0,
+      mainCategoryId: value,
+      subCategoryId: null
+    }));
+    this.loadTransactions();
+  }
+
+  onSubCategoryChange(value: number | null): void {
+    this.filters.update((state) => ({
+      ...state,
+      page: 0,
+      subCategoryId: value
     }));
     this.loadTransactions();
   }
@@ -222,7 +250,9 @@ export class TransactionsPageComponent {
       sortBy: 'transactionDate',
       sortOrder: 'desc',
       userId: this.currentUserId,
-      categoryId: null,
+      type: null,
+      mainCategoryId: null,
+      subCategoryId: null,
       fromDate: '',
       toDate: ''
     });
@@ -331,6 +361,10 @@ export class TransactionsPageComponent {
     return transaction.id;
   }
 
+  trackByCategoryId(_index: number, category: CategoryFilterOption): number {
+    return category.id;
+  }
+
   canModifyTransaction(transaction: TransactionItem): boolean {
     return transaction.type !== 'TRANSFER' && transaction.createdById === this.currentUserId;
   }
@@ -374,7 +408,9 @@ export class TransactionsPageComponent {
       sortBy: filters.sortBy,
       sortOrder: filters.sortOrder,
       userId: filters.userId ?? this.currentUserId,
-      categoryId: filters.categoryId,
+      type: filters.type,
+      mainCategoryId: filters.mainCategoryId,
+      subCategoryId: filters.subCategoryId,
       from: filters.fromDate || null,
       to: filters.toDate || null
     };
@@ -392,33 +428,44 @@ export class TransactionsPageComponent {
     return users;
   }
 
-  private buildCategoryFilterOptions(categories: TransactionCategory[]): CategoryFilterOption[] {
-    const childrenByParent = new Map<number, TransactionCategory[]>();
-    for (const category of categories) {
-      if (category.parentCategoryId === null) {
-        continue;
-      }
-      const list = childrenByParent.get(category.parentCategoryId) ?? [];
-      list.push(category);
-      childrenByParent.set(category.parentCategoryId, list);
+  private buildMainCategoryOptions(categories: TransactionCategory[], type: TransactionFilterType): CategoryFilterOption[] {
+    if (type === 'TRANSFER') {
+      return [];
     }
 
-    const rootCategories = categories
+    return categories
       .filter((category) => category.parentCategoryId === null)
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((category) => category.type !== 'TRANSFER')
+      .filter((category) => type === null || category.type === type)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((category) => ({
+        id: category.id,
+        label: category.name
+      }));
+  }
 
-    return rootCategories.flatMap((parent) => {
-      const children = childrenByParent.get(parent.id) ?? [];
-      if (children.length === 0) {
-        return [{ id: parent.id, label: parent.name }];
-      }
+  private buildSubCategoryOptions(
+    categories: TransactionCategory[],
+    type: TransactionFilterType,
+    mainCategoryId: number | null
+  ): CategoryFilterOption[] {
+    if (type === 'TRANSFER' || mainCategoryId === null) {
+      return [];
+    }
 
-      return children
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((child) => ({
-          id: child.id,
-          label: `${parent.name} / ${child.name}`
-        }));
-    });
+    const mainCategory = categories.find((category) => category.id === mainCategoryId && category.parentCategoryId === null);
+    if (!mainCategory) {
+      return [];
+    }
+
+    return categories
+      .filter((category) => category.parentCategoryId === mainCategoryId)
+      .filter((category) => category.type !== 'TRANSFER')
+      .filter((category) => type === null || category.type === type)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((category) => ({
+        id: category.id,
+        label: category.name
+      }));
   }
 }

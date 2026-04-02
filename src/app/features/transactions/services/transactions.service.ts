@@ -78,7 +78,16 @@ export class TransactionsService {
     if (query.userId !== null) {
       params = params.set('userId', query.userId);
     }
-    if (query.categoryId !== null) {
+    if (query.type !== null) {
+      params = params.set('type', query.type);
+    }
+    if (query.mainCategoryId !== null) {
+      params = params.set('mainCategoryId', query.mainCategoryId);
+    }
+    if (query.subCategoryId !== null) {
+      params = params.set('subcategoryId', query.subCategoryId);
+    }
+    if (query.categoryId !== null && query.categoryId !== undefined) {
       params = params.set('categoryId', query.categoryId);
     }
     if (query.from) {

@@ -40,7 +40,10 @@ export interface TransactionQuery {
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   userId: number | null;
-  categoryId: number | null;
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER' | null;
+  mainCategoryId: number | null;
+  subCategoryId: number | null;
+  categoryId?: number | null;
   from: string | null;
   to: string | null;
 }
