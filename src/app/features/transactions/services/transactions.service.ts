@@ -48,6 +48,7 @@ interface CategoryApiResponse {
   group: 'FAMILY' | 'CHILD';
   isRecurring: boolean;
   dueDayOfMonth: number | null;
+  recurringAmount: number | null;
 }
 
 interface UserApiResponse {
@@ -95,20 +96,10 @@ export class TransactionsService {
     );
   }
 
-  getCategories(): Observable<TransactionCategory[]> {
-    const params = new HttpParams().set('size', 500);
+  getCategories(size = 500): Observable<TransactionCategory[]> {
+    const params = new HttpParams().set('size', size);
     return this.http.get<ListResponse<CategoryApiResponse[]>>(`${environment.apiUrl}/categories`, { params }).pipe(
-      map((response) => response.data.map((category) => ({
-        id: category.id,
-        userId: category.userId,
-        name: category.name,
-        type: category.type,
-        parentCategoryId: category.parentCategoryId,
-        parentCategoryName: category.parentCategoryName,
-        group: category.group,
-        isRecurring: category.isRecurring,
-        dueDayOfMonth: category.dueDayOfMonth
-      })))
+      map((response) => response.data.map((category) => this.mapCategory(category)))
     );
   }
 
@@ -170,18 +161,40 @@ export class TransactionsService {
     };
 
     return this.http.post<ApiResponse<CategoryApiResponse>>(`${environment.apiUrl}/categories`, body).pipe(
-      map((response) => ({
-        id: response.data.id,
-        userId: response.data.userId,
-        name: response.data.name,
-        type: response.data.type,
-        parentCategoryId: response.data.parentCategoryId,
-        parentCategoryName: response.data.parentCategoryName,
-        group: response.data.group,
-        isRecurring: response.data.isRecurring,
-        dueDayOfMonth: response.data.dueDayOfMonth
-      }))
+      map((response) => this.mapCategory(response.data))
     );
+  }
+
+  updateCategory(id: number, payload: Partial<CreateTransactionCategoryPayload>): Observable<TransactionCategory> {
+    const body = {
+      ...payload,
+      name: payload.name?.trim()
+    };
+
+    return this.http.put<ApiResponse<CategoryApiResponse>>(`${environment.apiUrl}/categories/${id}`, body).pipe(
+      map((response) => this.mapCategory(response.data))
+    );
+  }
+
+  deleteCategory(id: number): Observable<void> {
+    return this.http.delete<ApiResponse<string>>(`${environment.apiUrl}/categories/${id}`).pipe(
+      map(() => void 0)
+    );
+  }
+
+  private mapCategory(category: CategoryApiResponse): TransactionCategory {
+    return {
+      id: category.id,
+      userId: category.userId,
+      name: category.name,
+      type: category.type,
+      parentCategoryId: category.parentCategoryId,
+      parentCategoryName: category.parentCategoryName,
+      group: category.group,
+      isRecurring: category.isRecurring,
+      dueDayOfMonth: category.dueDayOfMonth,
+      recurringAmount: category.recurringAmount
+    };
   }
 
   private mapTransaction(item: TransactionApiResponse): TransactionItem {

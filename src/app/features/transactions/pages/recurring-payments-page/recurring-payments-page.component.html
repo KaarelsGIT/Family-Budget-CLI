@@ -1,0 +1,108 @@
+<section class="recurring-payments-container">
+  <header class="page-header">
+    <div>
+      <h1>{{ i18n.translate('recurringPayments.title') }}</h1>
+      <p class="page-copy">{{ i18n.translate('recurringPayments.copy') }}</p>
+    </div>
+
+    <div class="header-actions">
+      <button
+        type="button"
+        class="primary-action"
+        (click)="openCreateModal()"
+        [disabled]="!hasRecurringCategoryOptions()"
+        [attr.title]="!hasRecurringCategoryOptions() ? i18n.translate('recurringPayments.noEligibleCategories') : null">
+        {{ i18n.translate('recurringPayments.addAction') }}
+      </button>
+
+      <a routerLink="/transactions" class="secondary-action">
+        {{ i18n.translate('transactions.backToTransaction') }}
+      </a>
+    </div>
+  </header>
+
+  <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('recurringPayments.loading') }}</p>
+  <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <section class="table-card" *ngIf="!isLoading() && !errorMessage()">
+    <div class="table-summary">
+      <strong>{{ i18n.translate('recurringPayments.totalItems') }}: {{ totalItems() }}</strong>
+    </div>
+
+    <div class="table-total">
+      <strong>{{ i18n.translate('recurringPayments.totalAmount') }}: {{ formatAmount(totalAmount()) }}</strong>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ i18n.translate('recurringPayments.columnName') }}</th>
+            <th>{{ i18n.translate('recurringPayments.columnAmount') }}</th>
+            <th>{{ i18n.translate('recurringPayments.columnDueDay') }}</th>
+            <th>{{ i18n.translate('recurringPayments.columnStatus') }}</th>
+            <th>{{ i18n.translate('recurringPayments.columnOwner') }}</th>
+            <th>{{ i18n.translate('recurringPayments.columnActive') }}</th>
+            <th>{{ i18n.translate('recurringPayments.columnActions') }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let payment of payments(); trackBy: trackByPaymentId">
+            <td>{{ payment.name }}</td>
+            <td>{{ formatAmount(payment.amount) }}</td>
+            <td>{{ payment.dueDay }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(payment)">
+                {{ formatStatusLabel(payment) }}
+              </span>
+            </td>
+            <td>{{ payment.ownerUsername }}</td>
+            <td>
+              <span class="active-badge" [class.inactive]="!payment.active">
+                {{ payment.active ? i18n.translate('recurringPayments.active') : i18n.translate('recurringPayments.inactive') }}
+              </span>
+            </td>
+            <td class="actions-column">
+              <ng-container *ngIf="canManagePayment(payment); else noActions">
+                <button
+                  type="button"
+                  class="icon-button edit-button"
+                  (click)="openEditModal(payment)"
+                  [attr.aria-label]="i18n.translate('recurringPayments.editAction')"
+                  [attr.title]="i18n.translate('recurringPayments.editAction')">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 17.25V20h2.75L18.81 7.94l-2.75-2.75L4 17.25zm14.71-9.04c.39-.39.39-1.02 0-1.41l-1.5-1.5a1 1 0 0 0-1.41 0l-1.18 1.18 2.75 2.75 1.34-1.02z"></path>
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="secondary action-toggle"
+                  (click)="toggleActive(payment)"
+                  [disabled]="isPending(payment)"
+                  [attr.aria-label]="payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction')"
+                  [attr.title]="payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction')">
+                  {{ payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction') }}
+                </button>
+              </ng-container>
+              <ng-template #noActions>—</ng-template>
+            </td>
+          </tr>
+
+          <tr *ngIf="payments().length === 0">
+            <td colspan="7" class="empty-row">{{ i18n.translate('recurringPayments.empty') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <app-recurring-payment-modal
+    *ngIf="isModalOpen()"
+    [isOpen]="isModalOpen()"
+    [payment]="selectedPayment()"
+    [categories]="categories()"
+    (closed)="closeModal()"
+    (saved)="handlePaymentSaved()" />
+</section>

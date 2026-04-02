@@ -7,12 +7,13 @@ import { LoginModalComponent } from '../../login-modal/login-modal.component';
 import { CalculatorComponent } from '../../tools/calculator/calculator.component';
 import { LanguageCode, TranslationService } from '../../i18n/translation.service';
 import { NotificationItem, NotificationService } from '../../notifications/notification.service';
+import { RecurringRemindersModalComponent } from '../../notifications/components/recurring-reminders-modal/recurring-reminders-modal.component';
 import { TransactionDraftService } from '../../features/transactions/services/transaction-draft.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoginModalComponent, CalculatorComponent],
+  imports: [CommonModule, RouterLink, LoginModalComponent, CalculatorComponent, RecurringRemindersModalComponent],
   templateUrl: './header.html',
   styleUrl: './header.css'
 })
@@ -28,6 +29,8 @@ export class Header {
   isLanguageMenuOpen = false;
   isNotificationsOpen = false;
   isCalculatorVisible = false;
+  isRecurringRemindersModalOpen = false;
+  highlightedReminderId: number | null = null;
   isLoadingNotifications = false;
   unreadNotificationsCount = 0;
   notifications: NotificationItem[] = [];
@@ -153,15 +156,18 @@ export class Header {
   }
 
   handleNotificationAction(notification: NotificationItem): void {
-    if (notification.action !== 'PAY' || notification.relatedCategoryId === null) {
+    if (notification.action !== 'PAY') {
       return;
     }
 
     this.isNotificationsOpen = false;
-    this.transactionDraftService.requestOpen({
-      categoryId: notification.relatedCategoryId
-    });
-    this.router.navigateByUrl('/transactions');
+
+    if (notification.type === 'RECURRING_PAYMENT_DUE' && notification.relatedReminderId !== null) {
+      this.openRecurringRemindersModal(notification.relatedReminderId);
+      return;
+    }
+
+    this.openCategoryPayment(notification);
   }
 
   logout(): void {
@@ -215,5 +221,26 @@ export class Header {
           this.notifications = [];
         }
       });
+  }
+
+  private openCategoryPayment(notification: NotificationItem): void {
+    if (notification.relatedCategoryId === null) {
+      return;
+    }
+
+    this.transactionDraftService.requestOpen({
+      categoryId: notification.relatedCategoryId
+    });
+    this.router.navigateByUrl('/transactions');
+  }
+
+  openRecurringRemindersModal(selectedReminderId: number | null = null): void {
+    this.highlightedReminderId = selectedReminderId;
+    this.isRecurringRemindersModalOpen = true;
+  }
+
+  closeRecurringRemindersModal(): void {
+    this.isRecurringRemindersModalOpen = false;
+    this.highlightedReminderId = null;
   }
 }

@@ -1,0 +1,49 @@
+<ng-container *ngIf="isOpen()">
+  <div class="modal-overlay">
+    <div class="modal-backdrop" (click)="close()"></div>
+
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recurring-reminders-title">
+      <div class="modal-header">
+        <h2 id="recurring-reminders-title">{{ i18n.translate('recurringReminders.title') }}</h2>
+        <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+      </div>
+
+      <p class="helper-copy">{{ i18n.translate('recurringReminders.copy') }}</p>
+
+      <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('recurringReminders.loading') }}</p>
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <ng-container *ngIf="!isLoading() && !errorMessage()">
+        <p class="empty-message" *ngIf="reminders().length === 0">
+          {{ i18n.translate('recurringReminders.empty') }}
+        </p>
+
+        <div class="reminders-list" *ngIf="reminders().length > 0">
+          <article
+            class="reminder-card"
+            *ngFor="let reminder of reminders(); trackBy: trackByReminderId"
+            [class.is-highlighted]="highlightedReminderId() === reminder.id">
+            <div class="reminder-main">
+              <div class="reminder-summary">
+                <strong>{{ reminder.categoryName }}</strong>
+                <span>{{ formatDueDate(reminder.dueDate) }}</span>
+              </div>
+              <div class="reminder-amount">{{ formatAmount(reminder.amount) }}</div>
+            </div>
+
+            <p class="reminder-comment" *ngIf="reminder.comment">{{ reminder.comment }}</p>
+
+            <div class="reminder-actions">
+              <button type="button" class="secondary" (click)="skip(reminder)">
+                {{ i18n.translate('recurringReminders.skip') }}
+              </button>
+              <button type="button" class="primary" (click)="pay(reminder)">
+                {{ i18n.translate('pay.action') }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </ng-container>
+    </section>
+  </div>
+</ng-container>

@@ -1,0 +1,66 @@
+<div class="modal-overlay" *ngIf="isOpen()">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="category-editor-title">
+    <div class="modal-header">
+      <h2 id="category-editor-title">
+        {{ isEditMode() ? i18n.translate('categories.editTitle') : i18n.translate('categories.createTitle') }}
+      </h2>
+      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+      <p class="helper-copy" *ngIf="isCreateSubMode() && parentCategory() as parent">
+        {{ i18n.translate('categories.parentCategory') }}: <strong>{{ parent.name }}</strong>
+      </p>
+
+      <label class="field">
+        <span>{{ i18n.translate('categories.name') }}</span>
+        <input type="text" formControlName="name" />
+      </label>
+
+      <label class="field" *ngIf="isCreateMainMode()">
+        <span>{{ i18n.translate('categories.type') }}</span>
+        <select formControlName="type">
+          <option value="EXPENSE">{{ i18n.translate('transactions.typeExpense') }}</option>
+          <option value="INCOME">{{ i18n.translate('transactions.typeIncome') }}</option>
+        </select>
+      </label>
+
+      <label class="field" *ngIf="isCreateMainMode() && allowGroupSelection()">
+        <span>{{ i18n.translate('categories.group') }}</span>
+        <select formControlName="group">
+          <option value="FAMILY">{{ i18n.translate('categories.groupFamily') }}</option>
+          <option value="CHILD">{{ i18n.translate('categories.groupChild') }}</option>
+        </select>
+      </label>
+
+      <label class="field" *ngIf="supportsRecurring()">
+        <span>{{ i18n.translate('categories.recurring') }}</span>
+        <input type="checkbox" formControlName="isRecurring" />
+      </label>
+
+      <label class="field" *ngIf="supportsRecurring() && form.controls.isRecurring.value">
+        <span>{{ i18n.translate('categories.dueDay') }}</span>
+        <input type="number" min="1" max="31" inputmode="numeric" formControlName="dueDayOfMonth" />
+      </label>
+
+      <label class="field" *ngIf="supportsRecurring() && form.controls.isRecurring.value">
+        <span>{{ i18n.translate('categories.recurringAmount') }}</span>
+        <input type="number" min="0.01" step="0.01" inputmode="decimal" formControlName="recurringAmount" />
+      </label>
+
+      <p class="success-message" *ngIf="successMessage()">{{ successMessage() }}</p>
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting()">
+          {{ isSubmitting()
+            ? (isEditMode() ? i18n.translate('categories.saving') : i18n.translate('categories.creating'))
+            : (isEditMode() ? i18n.translate('categories.save') : i18n.translate('categories.create')) }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

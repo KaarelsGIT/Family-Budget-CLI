@@ -777,7 +777,7 @@ export class AddTransactionModalComponent {
       ? this.categories().find((item) => item.id === category.parentCategoryId) ?? null
       : category;
 
-    const resolvedType = category.type === 'TRANSFER' ? 'EXPENSE' : category.type;
+    const resolvedType = this.normalizeType(request.type ?? category.type);
 
     this.view.set('transaction');
     this.categoryErrorMessage.set('');

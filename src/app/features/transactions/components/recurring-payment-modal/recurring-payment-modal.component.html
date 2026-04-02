@@ -1,0 +1,57 @@
+<div class="modal-overlay" *ngIf="isOpen()">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recurring-payment-title" [style.transform]="getModalTransform()">
+    <div class="modal-header" (pointerdown)="startDrag($event)">
+      <h2 id="recurring-payment-title">
+        {{ isEditMode() ? i18n.translate('recurringPayments.editTitle') : i18n.translate('recurringPayments.createTitle') }}
+      </h2>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>{{ i18n.translate('recurringPayments.formName') }}</span>
+        <input type="text" formControlName="name" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('transactions.category') }}</span>
+        <select formControlName="categoryId">
+          <option [ngValue]="0" disabled hidden>{{ i18n.translate('transactions.selectCategory') }}</option>
+          <option *ngFor="let option of displayedCategoryOptions(); trackBy: trackByCategoryId" [ngValue]="option.id">
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('recurringPayments.columnAmount') }}</span>
+        <input type="number" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('categories.dueDay') }}</span>
+        <input type="number" min="1" max="31" inputmode="numeric" formControlName="dueDay" />
+      </label>
+
+      <label class="field checkbox-field">
+        <span>{{ i18n.translate('recurringPayments.formActive') }}</span>
+        <input type="checkbox" formControlName="active" />
+      </label>
+
+      <p class="helper-copy">{{ i18n.translate('recurringPayments.formHint') }}</p>
+      <p class="state-message" *ngIf="categoryOptions().length === 0">{{ i18n.translate('recurringPayments.noEligibleCategories') }}</p>
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting() || categoryOptions().length === 0">
+          {{ isSubmitting()
+            ? (isEditMode() ? i18n.translate('recurringPayments.saving') : i18n.translate('recurringPayments.creating'))
+            : (isEditMode() ? i18n.translate('recurringPayments.save') : i18n.translate('recurringPayments.create')) }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

@@ -5,9 +5,18 @@
       <p class="page-copy">{{ i18n.translate('transactions.copy') }}</p>
     </div>
 
-    <button type="button" class="primary-action" (click)="openAddTransactionModal()">
-      {{ i18n.translate('transactions.addAction') }}
-    </button>
+    <div class="header-actions">
+      <a routerLink="/transactions/recurring" class="secondary-action">
+        {{ i18n.translate('transactions.recurringPayments') }}
+      </a>
+      <a routerLink="/settings/categories" class="secondary-action">
+        {{ i18n.translate('transactions.manageCategories') }}
+      </a>
+
+      <button type="button" class="primary-action" (click)="openAddTransactionModal()">
+        {{ i18n.translate('transactions.addAction') }}
+      </button>
+    </div>
   </header>
 
   <section class="filters-card">

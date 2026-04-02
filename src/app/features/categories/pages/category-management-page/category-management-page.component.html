@@ -1,0 +1,118 @@
+<section class="categories-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">{{ i18n.translate('categories.eyebrow') }}</p>
+      <h1>{{ i18n.translate('categories.title') }}</h1>
+      <p class="page-copy">{{ i18n.translate('categories.copy') }}</p>
+    </div>
+
+    <a routerLink="/transactions" class="secondary-link">
+      {{ i18n.translate('categories.backToTransactions') }}
+    </a>
+  </header>
+
+  <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('categories.loading') }}</p>
+  <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <ng-container *ngIf="!isLoading() && !errorMessage()">
+    <section class="type-section" *ngFor="let section of categorySections()">
+      <div class="type-header">
+        <div>
+          <h2>{{ section.label }}</h2>
+          <p>{{ section.type === 'EXPENSE' ? i18n.translate('categories.expenseCopy') : i18n.translate('categories.incomeCopy') }}</p>
+        </div>
+
+        <button type="button" class="primary-button" (click)="openCreateMainCategory(section.type)">
+          {{ section.type === 'EXPENSE' ? i18n.translate('categories.addExpense') : i18n.translate('categories.addIncome') }}
+        </button>
+      </div>
+
+      <p class="empty-message" *ngIf="section.nodes.length === 0">
+        {{ i18n.translate('categories.noCategories') }}
+      </p>
+
+      <div class="category-tree" *ngIf="section.nodes.length > 0">
+        <article
+          class="category-node"
+          *ngFor="let node of section.nodes; trackBy: trackByCategoryId"
+          [style.marginLeft.px]="node.depth * 24">
+          <div class="node-main">
+            <div class="node-info">
+              <div class="node-title-row">
+                <strong>{{ node.category.name }}</strong>
+                <span class="badge group-badge">{{ getGroupLabel(node.category.group) }}</span>
+                <span class="badge recurring-badge" *ngIf="node.category.isRecurring">{{ i18n.translate('categories.recurring') }}</span>
+              </div>
+              <div class="node-meta">
+                <span class="badge type-badge">{{ getTypeLabel(node.category.type) }}</span>
+                <span class="badge depth-badge" *ngIf="node.depth > 0">{{ i18n.translate('categories.subcategory') }}</span>
+                <span class="due-day" *ngIf="node.category.isRecurring && node.category.dueDayOfMonth">
+                  {{ i18n.translate('categories.dueDay') }}: {{ node.category.dueDayOfMonth }}
+                </span>
+                <span class="due-day" *ngIf="node.category.isRecurring && node.category.recurringAmount !== null">
+                  {{ i18n.translate('categories.recurringAmount') }}: {{ formatRecurringAmount(node.category.recurringAmount) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="node-actions">
+              <button
+                type="button"
+                class="icon-button edit-button"
+                (click)="openEditCategory(node.category)"
+                [attr.aria-label]="i18n.translate('categories.rename')"
+                [attr.title]="i18n.translate('categories.rename')">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 17.25V20h2.75L18.81 7.94l-2.75-2.75L4 17.25zm14.71-9.04c.39-.39.39-1.02 0-1.41l-1.5-1.5a1 1 0 0 0-1.41 0l-1.18 1.18 2.75 2.75 1.34-1.02z"></path>
+                </svg>
+              </button>
+              <button
+                *ngIf="canAddSubcategory(node)"
+                type="button"
+                class="icon-button add-button"
+                (click)="openCreateSubcategory(node.category)"
+                [attr.aria-label]="i18n.translate('categories.addSubcategory')"
+                [attr.title]="i18n.translate('categories.addSubcategory')">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z"></path>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="icon-button recurring-icon-button"
+                *ngIf="isRecurringEditable(node.category)"
+                [attr.aria-label]="i18n.translate('categories.editRecurring')"
+                [attr.title]="i18n.translate('categories.editRecurring')"
+                (click)="openEditCategory(node.category)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.02-.26 1.98-.73 2.82l1.46 1.46A7.96 7.96 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.02.26-1.98.73-2.82L5.27 7.72A7.96 7.96 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"></path>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="icon-button danger-icon-button"
+                (click)="deleteCategory(node.category)"
+                [attr.aria-label]="i18n.translate('categories.delete')"
+                [attr.title]="i18n.translate('categories.delete')">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v8h-2V9zm4 0h2v8h-2V9zM6 7h12l-1 13H7L6 7z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+
+  <app-category-editor-modal
+    [isOpen]="isModalOpen()"
+    [mode]="modalMode()"
+    [category]="selectedCategory()"
+    [parentCategory]="selectedParentCategory()"
+    [defaultType]="createType()"
+    [defaultGroup]="createGroup()"
+    [allowGroupSelection]="allowGroupSelection()"
+    (closed)="closeModal()"
+    (saved)="onCategorySaved()" />
+</section>

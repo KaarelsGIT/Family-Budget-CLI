@@ -18,6 +18,13 @@
   gap: 16px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .page-copy {
   margin: 0;
   color: #526457;
@@ -169,6 +176,24 @@ button.primary-action {
 
 button.primary-action:hover {
   background: #176017;
+}
+
+.secondary-action {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #c3d3c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f5b35;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.secondary-action:hover {
+  background: #f1f7f3;
 }
 
 .state-message,

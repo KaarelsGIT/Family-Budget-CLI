@@ -9,6 +9,7 @@ export interface NotificationItem {
   message: string;
   action: string | null;
   relatedCategoryId: number | null;
+  relatedReminderId: number | null;
   isRead: boolean;
   createdAt: string;
 }

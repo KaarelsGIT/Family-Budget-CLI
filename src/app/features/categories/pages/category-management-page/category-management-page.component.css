@@ -1,0 +1,268 @@
+.categories-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #1f7a1f 0%, #165f16 100%);
+  color: white;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+.page-copy {
+  margin: 0;
+  max-width: 58ch;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.type-section {
+  border-radius: 24px;
+  padding: 22px;
+  background: linear-gradient(180deg, #fcfffc 0%, #f4fbf4 100%);
+  border: 1px solid rgba(22, 95, 22, 0.1);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+}
+
+.type-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.type-header h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  color: #184d18;
+}
+
+.type-header p {
+  margin: 0;
+  color: #456245;
+}
+
+.primary-button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1f7a1f 0%, #165f16 100%);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(22, 95, 22, 0.2);
+}
+
+.category-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.category-node {
+  border: 1px solid rgba(22, 95, 22, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 14px 16px;
+}
+
+.node-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.node-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.node-title-row,
+.node-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.node-title-row strong {
+  font-size: 17px;
+  color: #17361f;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.group-badge {
+  background: rgba(31, 122, 31, 0.1);
+  color: #1f5b35;
+}
+
+.type-badge {
+  background: rgba(24, 77, 24, 0.1);
+  color: #184d18;
+}
+
+.depth-badge,
+.recurring-badge {
+  background: rgba(34, 139, 34, 0.08);
+  color: #1b5e20;
+}
+
+.due-day {
+  color: #456245;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.node-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.icon-button,
+.text-button,
+.danger-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.icon-button {
+  width: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(22, 95, 22, 0.18);
+  background: white;
+  color: #1b5e20;
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.icon-button:hover {
+  background: #f1f8f2;
+}
+
+.add-button {
+  color: #1f7a1f;
+}
+
+.edit-button {
+  color: #184d18;
+}
+
+.recurring-icon-button {
+  color: #1f7a1f;
+}
+
+.danger-icon-button {
+  border-color: rgba(179, 38, 30, 0.18);
+  color: #8f211a;
+}
+
+.danger-icon-button:hover {
+  background: rgba(179, 38, 30, 0.08);
+}
+
+.text-button {
+  border: 1px solid rgba(22, 95, 22, 0.18);
+  background: white;
+  color: #1b5e20;
+}
+
+.danger-button {
+  border: 1px solid rgba(179, 38, 30, 0.18);
+  background: rgba(179, 38, 30, 0.08);
+  color: #8f211a;
+}
+
+.state-message,
+.error-message,
+.empty-message {
+  margin: 0;
+}
+
+.state-message {
+  color: #456245;
+}
+
+.error-message {
+  color: #b3261e;
+}
+
+.empty-message {
+  color: #456245;
+  padding: 12px 0;
+}
+
+@media (max-width: 900px) {
+  .categories-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .type-header,
+  .node-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .node-actions {
+    justify-content: flex-start;
+  }
+}

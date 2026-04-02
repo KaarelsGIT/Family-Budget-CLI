@@ -25,6 +25,7 @@ export interface TransactionCategory {
   group: 'FAMILY' | 'CHILD';
   isRecurring: boolean;
   dueDayOfMonth: number | null;
+  recurringAmount: number | null;
 }
 
 export interface TransactionUserOption {
@@ -68,9 +69,11 @@ export interface CreateTransactionCategoryPayload {
   group: 'FAMILY' | 'CHILD';
   isRecurring?: boolean;
   dueDayOfMonth?: number | null;
+  recurringAmount?: number | null;
 }
 
 export interface TransactionOpenRequest {
+  type?: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   categoryId: number;
   accountId?: number | null;
   amount?: string | null;
