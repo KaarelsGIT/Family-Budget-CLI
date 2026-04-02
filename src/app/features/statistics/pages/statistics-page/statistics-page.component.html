@@ -14,9 +14,9 @@
 
       <label class="field account-field">
         <span>{{ i18n.translate('statistics.accountFilter') }}</span>
-        <select [ngModel]="selectedAccountId() ?? ''" (ngModelChange)="onAccountChange($event)">
-          <option value="">{{ i18n.translate('statistics.allAccounts') }}</option>
-          <option *ngFor="let account of accountOptions(); trackBy: trackByAccountId" [value]="account.id">
+        <select [ngModel]="selectedAccountId()" (ngModelChange)="onAccountChange($event)">
+          <option [ngValue]="null">{{ i18n.translate('statistics.allAccounts') }}</option>
+          <option *ngFor="let account of accountOptions(); trackBy: trackByAccountId" [ngValue]="account.id">
             {{ formatAccountLabel(account) }}
           </option>
         </select>

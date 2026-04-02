@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService } from '../../../accounts/services/account.service';
@@ -59,11 +60,14 @@ interface ChartTick {
 export class StatisticsPageComponent {
   private readonly statisticsService = inject(StatisticsService);
   private readonly accountService = inject(AccountService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly currentYear = new Date().getFullYear();
+  readonly currentUserId = this.authService.getUserId();
   readonly selectedYear = signal(this.currentYear);
   readonly selectedAccountId = signal<number | null>(null);
+  readonly hasInitializedAccountFilter = signal(false);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);
   readonly isLoadingAccounts = signal(false);
@@ -98,7 +102,6 @@ export class StatisticsPageComponent {
 
   constructor() {
     this.loadAccounts();
-    this.loadStatistics();
   }
 
   onYearChange(value: string): void {
@@ -111,8 +114,8 @@ export class StatisticsPageComponent {
     this.loadStatistics();
   }
 
-  onAccountChange(value: string): void {
-    this.selectedAccountId.set(value ? Number(value) : null);
+  onAccountChange(value: number | string | null): void {
+    this.selectedAccountId.set(value === null || value === '' ? null : Number(value));
     this.loadStatistics();
   }
 
@@ -165,9 +168,18 @@ export class StatisticsPageComponent {
       .subscribe({
         next: (accounts) => {
           this.accounts.set(accounts);
+          if (!this.hasInitializedAccountFilter()) {
+            this.selectedAccountId.set(this.resolveDefaultAccountId(accounts));
+            this.hasInitializedAccountFilter.set(true);
+          }
+          this.loadStatistics();
         },
         error: () => {
           this.accounts.set([]);
+          if (!this.hasInitializedAccountFilter()) {
+            this.hasInitializedAccountFilter.set(true);
+          }
+          this.loadStatistics();
         }
       });
   }
@@ -210,6 +222,17 @@ export class StatisticsPageComponent {
 
   private buildCategoryTableCategories(): CategoryTableNode[] {
     return this.buildCategoryGroups().map((group) => this.mapCategoryNode(group));
+  }
+
+  private resolveDefaultAccountId(accounts: Account[]): number | null {
+    if (this.currentUserId === null) {
+      return null;
+    }
+
+    const ownedAccounts = accounts.filter((account) => account.ownerId === this.currentUserId);
+    const mainAccount = ownedAccounts.find((account) => account.type === 'MAIN');
+
+    return (mainAccount ?? ownedAccounts[0] ?? null)?.id ?? null;
   }
 
   private mapCategoryNode(group: YearlyStatisticsCategoryEntry): CategoryTableNode {
