@@ -361,10 +361,13 @@ export class StatisticsPageComponent {
       }
 
       const sweep = (value / total) * 360;
+      const path = groups.filter((candidate) => Math.max(0, candidate.total) > 0).length === 1
+        ? this.describeFullPieSlice(50, 50, 42)
+        : this.describePieSlice(50, 50, 42, currentAngle, currentAngle + sweep);
       const slice = {
         label: group.parentCategory,
         color: colors[index % colors.length],
-        path: this.describePieSlice(50, 50, 42, currentAngle, currentAngle + sweep),
+        path,
         percent: (value / total) * 100,
         total: value
       };
@@ -417,6 +420,16 @@ export class StatisticsPageComponent {
       `M ${cx} ${cy}`,
       `L ${start.x} ${start.y}`,
       `A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`,
+      'Z'
+    ].join(' ');
+  }
+
+  private describeFullPieSlice(cx: number, cy: number, radius: number): string {
+    return [
+      `M ${cx} ${cy}`,
+      `m 0 -${radius}`,
+      `a ${radius} ${radius} 0 1 1 0 ${radius * 2}`,
+      `a ${radius} ${radius} 0 1 1 0 -${radius * 2}`,
       'Z'
     ].join(' ');
   }
