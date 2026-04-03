@@ -5,6 +5,7 @@ import { TranslationService } from '../../../../i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
 import { AddAccountModalComponent } from '../../components/add-account-modal/add-account-modal.component';
 import { AdjustBalanceModalComponent } from '../../components/adjust-balance-modal/adjust-balance-modal.component';
+import { ShareAccountModalComponent } from '../../components/share-account-modal/share-account-modal.component';
 import { TransferModalComponent } from '../../components/transfer-modal/transfer-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
@@ -13,7 +14,7 @@ import { formatEuroAmount } from '../../../../shared/utils/money-format';
 interface AccountOwnerGroup {
   ownerId: number;
   ownerUsername: string;
-  ownerRole: Account['ownerRole'];
+  ownerRole: Account['ownerRole'] | null;
   accounts: Account[];
 }
 
@@ -32,7 +33,7 @@ interface AccountSection {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, TransferModalComponent],
+  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, TransferModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
@@ -45,25 +46,34 @@ export class AccountsPageComponent {
   readonly isLoading = signal(false);
   readonly isModalOpen = signal(false);
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
+  readonly selectedShareAccount = signal<Account | null>(null);
   readonly selectedTransferAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
   readonly sections = computed<AccountSection[]>(() => {
     const currentUserId = this.authService.getUserId();
+    const currentUserUsername = this.authService.getUsername();
     const accounts = this.accounts();
 
-    const currentUserAccounts = accounts.filter((account) => account.ownerId === currentUserId);
-    const otherFamilyMemberAccounts = accounts.filter((account) => account.ownerId !== currentUserId);
+    if (currentUserId === null || !currentUserUsername) {
+      return [];
+    }
+
+    const groups = this.groupByVisibleUser(accounts, currentUserId, currentUserUsername);
+    const currentUserGroup = groups.get(currentUserId);
+    const otherFamilyMemberGroups = [...groups.values()]
+      .filter((group) => group.ownerId !== currentUserId)
+      .sort((left, right) => left.ownerUsername.localeCompare(right.ownerUsername));
 
     const sections: AccountSection[] = [
       {
         key: 'currentUser',
         titleKey: 'accounts.sectionCurrentUser',
-        groups: this.groupByOwner(currentUserAccounts)
+        groups: currentUserGroup ? [currentUserGroup] : []
       },
       {
         key: 'otherFamilyMembers',
         titleKey: 'accounts.sectionOtherFamilyMembers',
-        groups: this.groupByOwner(otherFamilyMemberAccounts)
+        groups: otherFamilyMemberGroups
       }
     ];
 
@@ -91,6 +101,9 @@ export class AccountsPageComponent {
   }
 
   openAddAccountModal(): void {
+    this.selectedAdjustBalanceAccount.set(null);
+    this.selectedShareAccount.set(null);
+    this.selectedTransferAccount.set(null);
     this.isModalOpen.set(true);
   }
 
@@ -99,7 +112,9 @@ export class AccountsPageComponent {
   }
 
   openTransferModal(account: Account): void {
+    this.isModalOpen.set(false);
     this.selectedAdjustBalanceAccount.set(null);
+    this.selectedShareAccount.set(null);
     this.selectedTransferAccount.set(account);
   }
 
@@ -108,12 +123,25 @@ export class AccountsPageComponent {
   }
 
   openAdjustBalanceModal(account: Account): void {
+    this.isModalOpen.set(false);
     this.selectedTransferAccount.set(null);
+    this.selectedShareAccount.set(null);
     this.selectedAdjustBalanceAccount.set(account);
   }
 
   closeAdjustBalanceModal(): void {
     this.selectedAdjustBalanceAccount.set(null);
+  }
+
+  openShareModal(account: Account): void {
+    this.isModalOpen.set(false);
+    this.selectedAdjustBalanceAccount.set(null);
+    this.selectedTransferAccount.set(null);
+    this.selectedShareAccount.set(account);
+  }
+
+  closeShareModal(): void {
+    this.selectedShareAccount.set(null);
   }
 
   handleAccountsChanged(): void {
@@ -154,41 +182,52 @@ export class AccountsPageComponent {
     return group.ownerId;
   }
 
-  private groupByOwner(accounts: Account[]): AccountOwnerGroup[] {
+  private groupByVisibleUser(accounts: Account[], currentUserId: number, currentUserUsername: string): Map<number, AccountOwnerGroup> {
     const groups = new Map<number, AccountOwnerGroup>();
 
     for (const account of this.sortAccounts(accounts)) {
-      const existingGroup = groups.get(account.ownerId);
-      if (existingGroup) {
-        existingGroup.accounts.push(account);
-        continue;
-      }
+      this.addAccountToGroup(groups, account.ownerId, account.ownerUsername, account.ownerRole, account);
 
-      groups.set(account.ownerId, {
-        ownerId: account.ownerId,
-        ownerUsername: account.ownerUsername,
-        ownerRole: account.ownerRole,
-        accounts: [account]
+      for (const sharedUser of account.sharedUsers ?? []) {
+        this.addAccountToGroup(groups, sharedUser.userId, sharedUser.username, null, account);
+      }
+    }
+
+    if (!groups.has(currentUserId)) {
+      groups.set(currentUserId, {
+        ownerId: currentUserId,
+        ownerUsername: currentUserUsername,
+        ownerRole: null,
+        accounts: []
       });
     }
 
-    return [...groups.values()].sort((left, right) => {
-      if (left.ownerRole !== right.ownerRole) {
-        if (left.ownerRole === 'PARENT') {
-          return -1;
-        }
-        if (right.ownerRole === 'PARENT') {
-          return 1;
-        }
-        if (left.ownerRole === 'ADMIN') {
-          return 1;
-        }
-        if (right.ownerRole === 'ADMIN') {
-          return -1;
-        }
-      }
+    return groups;
+  }
 
-      return left.ownerUsername.localeCompare(right.ownerUsername);
+  private addAccountToGroup(
+    groups: Map<number, AccountOwnerGroup>,
+    userId: number,
+    username: string,
+    role: Account['ownerRole'] | null,
+    account: Account
+  ): void {
+    const existingGroup = groups.get(userId);
+    if (existingGroup) {
+      if (!existingGroup.accounts.some((item) => item.id === account.id)) {
+        existingGroup.accounts.push(account);
+      }
+      if (!existingGroup.ownerRole && role) {
+        existingGroup.ownerRole = role;
+      }
+      return;
+    }
+
+    groups.set(userId, {
+      ownerId: userId,
+      ownerUsername: username,
+      ownerRole: role,
+      accounts: [account]
     });
   }
 

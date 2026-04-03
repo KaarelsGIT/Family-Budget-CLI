@@ -6,8 +6,9 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
-import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
+import { AccountService } from '../../../accounts/services/account.service';
 import { TransferFormComponent, TransferSubmittedEvent } from '../../../accounts/components/transfer-form/transfer-form.component';
+import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { TransactionCategory, TransactionOpenRequest } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
 import { TransactionsService } from '../../services/transactions.service';
@@ -58,7 +59,6 @@ export class AddTransactionModalComponent {
   readonly categoryCreated = output<TransactionCategory>();
 
   readonly accounts = signal<Account[]>([]);
-  readonly selectableUsers = signal<SelectableUser[]>([]);
   readonly addCategoryValue = ADD_CATEGORY_VALUE;
   readonly isLoadingAccounts = signal(false);
   readonly isSubmitting = signal(false);
@@ -139,13 +139,12 @@ export class AddTransactionModalComponent {
   readonly subCategoryPlaceholder = computed(() => this.i18n.translate('transactions.selectSubCategory'));
 
   readonly ownAccounts = computed(() => {
-    const userId = this.authService.getUserId();
-    if (userId === null) {
+    if (this.authService.getUserId() === null) {
       return [];
     }
 
-    return [...this.accounts()]
-      .filter((account) => account.ownerId === userId)
+    const filteredAccounts = [...this.accounts()]
+      .filter((account) => this.canUseAccount(account))
       .sort((left, right) => {
         const typeOrder: Record<Account['type'], number> = {
           MAIN: 0,
@@ -160,6 +159,36 @@ export class AddTransactionModalComponent {
 
         return left.name.localeCompare(right.name);
       });
+    return filteredAccounts;
+  });
+
+  readonly expenseAccounts = computed(() => {
+    const currentUserId = this.authService.getUserId();
+    if (currentUserId === null) {
+      return [];
+    }
+
+    const expenseAccounts = [...this.accounts()]
+      .filter((account) =>
+        account.ownerId === currentUserId ||
+        account.sharedUsers?.some((sharedUser) => sharedUser.userId === currentUserId)
+      )
+      .sort((left, right) => {
+        const typeOrder: Record<Account['type'], number> = {
+          MAIN: 0,
+          GOAL: 1,
+          SAVINGS: 2,
+          CASH: 3
+        };
+
+        if (left.type !== right.type) {
+          return typeOrder[left.type] - typeOrder[right.type];
+        }
+
+        return left.name.localeCompare(right.name);
+      });
+
+    return expenseAccounts;
   });
 
   readonly transferDestinationOptions = computed(() => this.buildTransferDestinationOptions());
@@ -741,6 +770,16 @@ export class AddTransactionModalComponent {
       .subscribe({
         next: (accounts) => {
           this.accounts.set(accounts);
+          console.log('accounts from API:', accounts);
+          const currentUserId = this.authService.getUserId();
+          const expenseAccounts = currentUserId === null
+            ? []
+            : accounts.filter((account) =>
+                account.ownerId === currentUserId ||
+                account.sharedUsers?.some((sharedUser) => sharedUser.userId === currentUserId)
+              );
+          console.log('All accounts:', accounts);
+          console.log('Expense accounts:', expenseAccounts);
           if (this.transactionType() === 'TRANSFER') {
             this.ensureDefaultTransferSelections();
           } else {
@@ -861,7 +900,7 @@ export class AddTransactionModalComponent {
   }
 
   private getSelectedAccountBalance(accountId: number): number {
-    return this.ownAccounts().find((account) => account.id === accountId)?.balance ?? 0;
+    return this.expenseAccounts().find((account) => account.id === accountId)?.balance ?? 0;
   }
 
   private syncIncomeExpenseSelection(): void {
@@ -922,14 +961,14 @@ export class AddTransactionModalComponent {
     }
 
     const currentAccountId = this.parseNumber(this.transactionForm.controls.accountId.getRawValue());
-    if (currentAccountId !== null && this.ownAccounts().some((account) => account.id === currentAccountId)) {
+    if (currentAccountId !== null && this.expenseAccounts().some((account) => account.id === currentAccountId)) {
       return;
     }
 
     const draft = this.draftService.value();
-    const preferredAccount = this.ownAccounts().find((account) => account.id === draft.accountId)
-      ?? this.ownAccounts().find((account) => account.type === 'MAIN')
-      ?? this.ownAccounts()[0];
+    const preferredAccount = this.expenseAccounts().find((account) => account.id === draft.accountId)
+      ?? this.expenseAccounts().find((account) => account.type === 'MAIN')
+      ?? this.expenseAccounts()[0];
 
     if (preferredAccount) {
       this.transactionForm.patchValue({ accountId: String(preferredAccount.id) }, { emitEvent: false });
@@ -1119,26 +1158,25 @@ export class AddTransactionModalComponent {
 
   private buildTransferDestinationOptions(): TransferDestinationOption[] {
     const sourceAccountId = this.selectedTransferFromAccountId();
-    const ownAccountOptions = this.ownAccounts()
-      .filter((account) => account.id !== sourceAccountId)
-      .map((account) => ({
+    const currentUserId = this.authService.getUserId();
+    const destinationOptions = new Map<number, TransferDestinationOption>();
+
+    for (const account of this.ownAccounts().filter((item) => item.id !== sourceAccountId)) {
+      destinationOptions.set(account.id, {
         accountId: account.id,
         value: String(account.id),
-        label: account.name,
-        groupKey: 'accounts.transferOwnAccounts' as const
-      }));
+        label: this.getAccountLabel(account),
+        groupKey: account.ownerId === currentUserId
+          ? 'accounts.transferOwnAccounts'
+          : 'accounts.transferOtherUsers'
+      });
+    }
 
-    const otherUserOptions = this.selectableUsers()
-      .filter((user) => user.id !== this.authService.getUserId())
-      .filter((user) => typeof user.defaultMainAccountId === 'number' && user.defaultMainAccountId > 0)
-      .map((user) => ({
-        accountId: user.defaultMainAccountId as number,
-        value: String(user.defaultMainAccountId),
-        label: user.username,
-        groupKey: 'accounts.transferOtherUsers' as const
-      }));
+    return [...destinationOptions.values()];
+  }
 
-    return [...ownAccountOptions, ...otherUserOptions];
+  private canUseAccount(account: Account): boolean {
+    return canTransactFromAccount(account, this.authService.getUserId(), this.authService.getRole());
   }
 
   private showSuccessMessage(message: string): void {

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Account } from '../models/account.model';
+import { Account, AccountSharedUser } from '../models/account.model';
 
 interface ApiResponse<T> {
   data: T;
@@ -21,6 +21,14 @@ interface AccountApiResponse {
   ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
   balance: number | string | null;
   type: 'MAIN' | 'SAVINGS' | 'GOAL' | 'CASH';
+  accessRole?: 'OWNER' | 'EDITOR' | 'VIEWER' | null;
+  sharedUsers?: AccountSharedUserApiResponse[];
+}
+
+interface AccountSharedUserApiResponse {
+  userId: number;
+  username: string;
+  role: 'EDITOR' | 'VIEWER';
 }
 
 interface SelectableUserApiResponse {
@@ -35,6 +43,10 @@ type UpdateAccountPayload = Pick<Account, 'name'>;
 interface AdjustBalancePayload {
   amount: number;
   comment: string;
+}
+interface ShareAccountPayload {
+  userId: number;
+  role: 'EDITOR' | 'VIEWER';
 }
 interface CreateTransferPayload {
   amount: number;
@@ -77,6 +89,18 @@ export class AccountService {
 
   adjustBalance(id: number, payload: AdjustBalancePayload): Observable<Account> {
     return this.http.patch<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}/adjust-balance`, payload).pipe(
+      map((response) => this.mapAccount(response.data))
+    );
+  }
+
+  shareAccount(id: number, payload: ShareAccountPayload): Observable<Account> {
+    return this.http.post<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}/share`, payload).pipe(
+      map((response) => this.mapAccount(response.data))
+    );
+  }
+
+  revokeAccountShare(id: number, userId: number): Observable<Account> {
+    return this.http.delete<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}/share/${userId}`).pipe(
       map((response) => this.mapAccount(response.data))
     );
   }
@@ -126,7 +150,13 @@ export class AccountService {
       type: account.type,
       ownerId: account.ownerId,
       ownerUsername: account.ownerUsername,
-      ownerRole: account.ownerRole
+      ownerRole: account.ownerRole,
+      accessRole: account.accessRole ?? null,
+      sharedUsers: account.sharedUsers?.map((sharedUser) => ({
+        userId: sharedUser.userId,
+        username: sharedUser.username,
+        role: sharedUser.role
+      })) ?? []
     };
   }
 }

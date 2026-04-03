@@ -6,4 +6,12 @@ export interface Account {
   ownerId: number;
   ownerUsername: string;
   ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
+  accessRole: 'OWNER' | 'EDITOR' | 'VIEWER' | null;
+  sharedUsers?: AccountSharedUser[];
+}
+
+export interface AccountSharedUser {
+  userId: number;
+  username: string;
+  role: 'EDITOR' | 'VIEWER';
 }

@@ -51,7 +51,7 @@
             <span>{{ getAccountFieldLabel() }}</span>
             <select formControlName="accountId">
               <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
-              <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
+              <option *ngFor="let account of expenseAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
                 {{ getAccountLabel(account) }}
               </option>
             </select>

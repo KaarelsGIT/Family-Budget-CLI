@@ -1,7 +1,7 @@
 :host {
   display: block;
-  flex: 0 0 340px;
-  width: 340px;
+  flex: 0 0 390px;
+  width: 390px;
   max-width: 100%;
 }
 
@@ -39,7 +39,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .card-meta {
@@ -113,6 +115,11 @@
   .card-main,
   .card-tools {
     width: 100%;
+  }
+
+  .card-tools {
+    overflow-x: visible;
+    flex-wrap: wrap;
   }
 
   .card-meta {

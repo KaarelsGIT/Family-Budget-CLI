@@ -33,6 +33,18 @@
         <button
           type="button"
           class="header-icon-button"
+          *ngIf="canShareAccount()"
+          (click)="onShare()"
+          [attr.aria-label]="i18n.translate('accounts.shareAccount')"
+          [attr.title]="i18n.translate('accounts.shareAccount')">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M16 11a3 3 0 1 0-2.83-4H11V5h-2v2H7v2h2v2H7v2h2v2h2v-2h2.17A3 3 0 0 0 16 11Zm0-1a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-9 9a4 4 0 1 1 8 0H7Z" fill="currentColor"/>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="header-icon-button"
           *ngIf="canTransfer()"
           (click)="onTransfer()"
           [attr.aria-label]="i18n.translate('accounts.transfer')"

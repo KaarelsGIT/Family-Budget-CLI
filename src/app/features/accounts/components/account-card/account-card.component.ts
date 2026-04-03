@@ -7,6 +7,7 @@ import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { EditAccountInlineComponent } from '../edit-account-inline/edit-account-inline.component';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { canShareAccount as canShareAccountForUser, canTransactFromAccount } from '../../utils/account-access';
 
 @Component({
   selector: 'app-account-card',
@@ -25,6 +26,7 @@ export class AccountCardComponent {
   readonly changed = output<void>();
   readonly transferRequested = output<Account>();
   readonly adjustBalanceRequested = output<Account>();
+  readonly shareRequested = output<Account>();
   readonly editInline = viewChild(EditAccountInlineComponent);
 
   readonly isDeleting = signal(false);
@@ -39,11 +41,15 @@ export class AccountCardComponent {
   }
 
   canTransfer(): boolean {
-    return this.isOwner();
+    return canTransactFromAccount(this.account(), this.authService.getUserId(), this.authService.getRole());
   }
 
   canEditAccount(): boolean {
     return this.isOwner() || this.isAdmin();
+  }
+
+  canShareAccount(): boolean {
+    return canShareAccountForUser(this.account(), this.authService.getUserId(), this.authService.getRole());
   }
 
   canDeleteAccount(): boolean {
@@ -66,6 +72,15 @@ export class AccountCardComponent {
 
     this.errorMessage.set('');
     this.adjustBalanceRequested.emit(this.account());
+  }
+
+  onShare(): void {
+    if (!this.canShareAccount()) {
+      return;
+    }
+
+    this.errorMessage.set('');
+    this.shareRequested.emit(this.account());
   }
 
   startInlineEdit(): void {

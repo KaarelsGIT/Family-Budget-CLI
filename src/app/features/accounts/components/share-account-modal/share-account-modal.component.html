@@ -1,0 +1,67 @@
+<div class="modal-overlay">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="share-account-title">
+    <div class="modal-header">
+      <h2 id="share-account-title">{{ i18n.translate('accounts.shareAccountTitle') }}</h2>
+      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+      <p class="helper-copy">
+        {{ account().name }}
+      </p>
+
+      <label class="field">
+        <span>{{ i18n.translate('accounts.shareWith') }}</span>
+        <select formControlName="userId">
+          <option value="">{{ i18n.translate('accounts.shareSelectUser') }}</option>
+          <option *ngFor="let user of selectableUsers(); trackBy: trackByUserId" [value]="user.id">
+            {{ user.username }}
+          </option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('accounts.shareRole') }}</span>
+        <select formControlName="role">
+          <option *ngFor="let role of roleOptions(); trackBy: trackByRole" [value]="role.value">
+            {{ role.label }}
+          </option>
+        </select>
+      </label>
+
+      <section class="shared-list">
+        <h3>{{ i18n.translate('accounts.sharedWith') }}</h3>
+        <p class="state-message" *ngIf="currentShares().length === 0">
+          {{ i18n.translate('accounts.noSharedUsers') }}
+        </p>
+
+        <div class="shared-item" *ngFor="let sharedUser of currentShares(); trackBy: trackBySharedUserId">
+          <div class="shared-copy">
+            <strong>{{ sharedUser.username }}</strong>
+            <span>{{ sharedUser.role === 'EDITOR' ? i18n.translate('accounts.roleEditor') : i18n.translate('accounts.roleViewer') }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="secondary danger-secondary"
+            (click)="revokeAccess(sharedUser.userId)"
+            [disabled]="isSubmitting()">
+            {{ i18n.translate('accounts.removeAccess') }}
+          </button>
+        </div>
+      </section>
+
+      <p class="state-message" *ngIf="isLoadingUsers()">{{ i18n.translate('accounts.loading') }}</p>
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting() || isLoadingUsers()">
+          {{ isSubmitting() ? i18n.translate('accounts.processing') : i18n.translate('accounts.shareAccountAction') }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

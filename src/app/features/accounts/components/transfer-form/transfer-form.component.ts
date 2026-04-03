@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService, SelectableUser } from '../../services/account.service';
@@ -28,9 +29,10 @@ export interface TransferSubmittedEvent {
   templateUrl: './transfer-form.component.html',
   styleUrl: './transfer-form.component.css'
 })
-export class TransferFormComponent implements OnInit {
+export class TransferFormComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly accountService = inject(AccountService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly sourceAccount = input.required<Account>();
@@ -41,6 +43,32 @@ export class TransferFormComponent implements OnInit {
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
   readonly selectableUsers = signal<SelectableUser[]>([]);
+  readonly ownAccounts = computed(() => {
+    const currentUserId = this.authService.getUserId();
+    if (currentUserId === null) {
+      return [];
+    }
+
+    return [...this.accounts()]
+      .filter((account) =>
+        account.ownerId === currentUserId ||
+        account.sharedUsers?.some((sharedUser) => sharedUser.userId === currentUserId)
+      )
+      .sort((left, right) => {
+        const typeOrder: Record<Account['type'], number> = {
+          MAIN: 0,
+          GOAL: 1,
+          SAVINGS: 2,
+          CASH: 3
+        };
+
+        if (left.type !== right.type) {
+          return typeOrder[left.type] - typeOrder[right.type];
+        }
+
+        return left.name.localeCompare(right.name);
+      });
+  });
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
@@ -63,21 +91,10 @@ export class TransferFormComponent implements OnInit {
     effect(() => {
       this.sourceAccount();
       this.accounts();
-      this.selectableUsers();
       this.ensureDefaultDestinationSelected();
     }, { allowSignalWrites: true });
-  }
 
-  ngOnInit(): void {
-    this.accountService.getSelectableUsers().subscribe({
-      next: (users) => {
-        this.selectableUsers.set(users);
-      },
-      error: (error: { error?: { message?: string } }) => {
-        this.setError(error.error?.message || this.i18n.translate('accounts.loadFailed'));
-        this.selectableUsers.set([]);
-      }
-    });
+    this.loadSelectableUsers();
   }
 
   submit(): void {
@@ -149,27 +166,51 @@ export class TransferFormComponent implements OnInit {
   }
 
   private destinationOptions(): TransferDestinationOption[] {
-    const ownAccountOptions = this.accounts()
-      .filter((account) => account.id !== this.sourceAccount().id)
-      .filter((account) => account.ownerId === this.sourceAccount().ownerId)
-      .map((account) => ({
+    const currentUserId = this.authService.getUserId();
+    const currentUserRole = this.authService.getRole();
+    const destinationOptions = new Map<number, TransferDestinationOption>();
+
+    for (const account of this.ownAccounts()) {
+      if (account.id === this.sourceAccount().id) {
+        continue;
+      }
+
+      destinationOptions.set(account.id, {
         accountId: account.id,
         value: String(account.id),
-        label: account.name,
-        groupKey: 'accounts.transferOwnAccounts' as const
-      }));
+        label: account.ownerId === currentUserId ? account.name : `${account.name} · ${account.ownerUsername}`,
+        groupKey: account.ownerId === currentUserId
+          ? 'accounts.transferOwnAccounts'
+          : 'accounts.transferOtherUsers'
+      });
+    }
 
-    const otherUserOptions = this.selectableUsers()
-      .filter((user) => user.id !== this.sourceAccount().ownerId)
-      .filter((user) => typeof user.defaultMainAccountId === 'number' && user.defaultMainAccountId > 0)
-      .map((user) => ({
-        accountId: user.defaultMainAccountId as number,
+    for (const user of this.selectableUsers()) {
+      if (currentUserId !== null && user.id === currentUserId) {
+        continue;
+      }
+
+      if (currentUserRole !== 'ADMIN' && user.role === 'ADMIN') {
+        continue;
+      }
+
+      if (user.defaultMainAccountId === null || user.defaultMainAccountId === this.sourceAccount().id) {
+        continue;
+      }
+
+      if (destinationOptions.has(user.defaultMainAccountId)) {
+        continue;
+      }
+
+      destinationOptions.set(user.defaultMainAccountId, {
+        accountId: user.defaultMainAccountId,
         value: String(user.defaultMainAccountId),
         label: user.username,
-        groupKey: 'accounts.transferOtherUsers' as const
-      }));
+        groupKey: 'accounts.transferOtherUsers'
+      });
+    }
 
-    return [...ownAccountOptions, ...otherUserOptions];
+    return [...destinationOptions.values()];
   }
 
   private ensureDefaultDestinationSelected(): void {
@@ -213,5 +254,18 @@ export class TransferFormComponent implements OnInit {
     }
 
     return message || this.i18n.translate(fallbackKey);
+  }
+
+  private loadSelectableUsers(): void {
+    this.accountService.getSelectableUsers().subscribe({
+      next: (users) => {
+        this.selectableUsers.set(users);
+        this.ensureDefaultDestinationSelected();
+      },
+      error: () => {
+        this.selectableUsers.set([]);
+        this.ensureDefaultDestinationSelected();
+      }
+    });
   }
 }
