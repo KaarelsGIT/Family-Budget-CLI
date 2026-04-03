@@ -95,6 +95,18 @@ header {
   transform: translateY(-1px);
 }
 
+.help-trigger:hover {
+  background: rgba(255, 239, 213, 0.22);
+  color: peachpuff;
+  transform: translateY(-1px);
+}
+
+.help-trigger.is-active {
+  background: rgba(255, 239, 213, 0.22);
+  color: peachpuff;
+  box-shadow: 0 0 0 3px rgba(255, 239, 213, 0.12);
+}
+
 .notification-trigger.has-unread {
   border-color: rgba(255, 214, 102, 0.78);
   box-shadow: 0 0 0 3px rgba(255, 214, 102, 0.18);

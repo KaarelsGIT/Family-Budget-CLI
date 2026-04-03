@@ -1,0 +1,151 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 20, 10, 0.52);
+  backdrop-filter: blur(4px);
+}
+
+.help-guide-modal {
+  width: min(1080px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #f6fff6 0%, #eef8ee 100%);
+  border: 1px solid rgba(22, 95, 22, 0.15);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  border-radius: 22px;
+  padding: 24px;
+}
+
+.guide-subtitle {
+  margin: 0 0 18px;
+  color: #617266;
+}
+
+.guide-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.guide-toc {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  padding: 14px;
+  border: 1px solid #d9e5dc;
+  border-radius: 16px;
+  background: #f8fbf8;
+}
+
+.guide-toc-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #4f6754;
+}
+
+.guide-toc-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #23412a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guide-toc-item:hover,
+.guide-toc-item.is-active {
+  background: #e7f3e9;
+  border-color: #c9ddce;
+}
+
+.guide-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.guide-section {
+  border: 1px solid #d9e5dc;
+  border-radius: 16px;
+  background: #fbfdfb;
+  padding: 16px 18px;
+  scroll-margin-top: 20px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.guide-section.is-active {
+  border-color: #b8d2be;
+  background: #f6fbf6;
+  box-shadow: 0 0 0 2px rgba(31, 122, 31, 0.06);
+}
+
+.guide-section h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #17361f;
+}
+
+.guide-intro {
+  margin: 0 0 10px;
+  color: #395243;
+}
+
+.guide-points {
+  margin: 0;
+  padding-left: 18px;
+  color: #32473a;
+  display: grid;
+  gap: 8px;
+}
+
+.guide-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.secondary-button {
+  border: 1px solid #c3d3c8;
+  background: #fff;
+  color: #1f5b35;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .guide-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-toc {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .help-guide-modal {
+    width: min(100vw - 24px, 1080px);
+  }
+}

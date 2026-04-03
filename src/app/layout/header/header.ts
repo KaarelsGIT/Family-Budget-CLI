@@ -9,11 +9,12 @@ import { LanguageCode, TranslationService } from '../../i18n/translation.service
 import { NotificationItem, NotificationService } from '../../notifications/notification.service';
 import { RecurringRemindersModalComponent } from '../../notifications/components/recurring-reminders-modal/recurring-reminders-modal.component';
 import { TransactionDraftService } from '../../features/transactions/services/transaction-draft.service';
+import { HelpGuideModalComponent } from '../../help/components/help-guide-modal/help-guide-modal.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoginModalComponent, CalculatorComponent, RecurringRemindersModalComponent],
+  imports: [CommonModule, RouterLink, LoginModalComponent, CalculatorComponent, RecurringRemindersModalComponent, HelpGuideModalComponent],
   templateUrl: './header.html',
   styleUrl: './header.css'
 })
@@ -30,6 +31,7 @@ export class Header {
   isNotificationsOpen = false;
   isCalculatorVisible = false;
   isRecurringRemindersModalOpen = false;
+  isHelpOpen = false;
   highlightedReminderId: number | null = null;
   isLoadingNotifications = false;
   unreadNotificationsCount = 0;
@@ -46,6 +48,7 @@ export class Header {
       this.unreadNotificationsCount = 0;
       this.notifications = [];
       this.isNotificationsOpen = false;
+      this.isHelpOpen = false;
     });
   }
 
@@ -64,6 +67,9 @@ export class Header {
     if (!target?.closest('.notifications-menu')) {
       this.isNotificationsOpen = false;
     }
+    if (!target?.closest('.help-menu') && !target?.closest('.help-guide-modal')) {
+      this.isHelpOpen = false;
+    }
   }
 
   openLoginModal(): void {
@@ -71,6 +77,7 @@ export class Header {
     this.isUserMenuOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
     this.isLoginModalOpen = true;
   }
 
@@ -82,6 +89,7 @@ export class Header {
     this.isUserMenuOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
     this.isToolsOpen = !this.isToolsOpen;
   }
 
@@ -89,6 +97,7 @@ export class Header {
     this.isToolsOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
     this.isUserMenuOpen = !this.isUserMenuOpen;
   }
 
@@ -100,7 +109,20 @@ export class Header {
     this.isToolsOpen = false;
     this.isUserMenuOpen = false;
     this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
     this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
+  }
+
+  toggleHelpGuide(): void {
+    this.isToolsOpen = false;
+    this.isUserMenuOpen = false;
+    this.isLanguageMenuOpen = false;
+    this.isNotificationsOpen = false;
+    this.isHelpOpen = !this.isHelpOpen;
+  }
+
+  closeHelpGuide(): void {
+    this.isHelpOpen = false;
   }
 
   setLanguage(language: LanguageCode): void {
@@ -125,6 +147,7 @@ export class Header {
     this.isToolsOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
   }
 
   closeCalculator(): void {
@@ -135,6 +158,7 @@ export class Header {
     this.isToolsOpen = false;
     this.isUserMenuOpen = false;
     this.isLanguageMenuOpen = false;
+    this.isHelpOpen = false;
 
     const nextState = !this.isNotificationsOpen;
     this.isNotificationsOpen = nextState;
@@ -175,6 +199,7 @@ export class Header {
     this.isToolsOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
     this.isCalculatorVisible = false;
     this.isLoginModalOpen = false;
     this.unreadNotificationsCount = 0;
