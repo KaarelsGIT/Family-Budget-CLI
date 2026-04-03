@@ -167,7 +167,6 @@ export class TransferFormComponent {
 
   private destinationOptions(): TransferDestinationOption[] {
     const currentUserId = this.authService.getUserId();
-    const currentUserRole = this.authService.getRole();
     const destinationOptions = new Map<number, TransferDestinationOption>();
 
     for (const account of this.ownAccounts()) {
@@ -187,10 +186,6 @@ export class TransferFormComponent {
 
     for (const user of this.selectableUsers()) {
       if (currentUserId !== null && user.id === currentUserId) {
-        continue;
-      }
-
-      if (currentUserRole !== 'ADMIN' && user.role === 'ADMIN') {
         continue;
       }
 
