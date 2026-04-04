@@ -67,7 +67,7 @@ export class Header {
     if (!target?.closest('.notifications-menu')) {
       this.isNotificationsOpen = false;
     }
-    if (!target?.closest('.help-menu') && !target?.closest('.help-guide-modal')) {
+    if (!target?.closest('.help-open-trigger') && !target?.closest('.help-guide-modal')) {
       this.isHelpOpen = false;
     }
   }
@@ -113,16 +113,16 @@ export class Header {
     this.isLanguageMenuOpen = !this.isLanguageMenuOpen;
   }
 
-  toggleHelpGuide(): void {
-    this.isToolsOpen = false;
-    this.isUserMenuOpen = false;
-    this.isLanguageMenuOpen = false;
-    this.isNotificationsOpen = false;
-    this.isHelpOpen = !this.isHelpOpen;
-  }
-
   closeHelpGuide(): void {
     this.isHelpOpen = false;
+  }
+
+  openHelpGuide(): void {
+    this.isToolsOpen = false;
+    this.isLanguageMenuOpen = false;
+    this.isNotificationsOpen = false;
+    this.isUserMenuOpen = false;
+    this.isHelpOpen = true;
   }
 
   setLanguage(language: LanguageCode): void {
