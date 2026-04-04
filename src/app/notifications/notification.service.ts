@@ -46,4 +46,10 @@ export class NotificationService {
       map(() => void 0)
     );
   }
+
+  deleteAll(): Observable<void> {
+    return this.http.delete<ApiResponse<string>>(`${environment.apiUrl}/notifications`).pipe(
+      map(() => void 0)
+    );
+  }
 }

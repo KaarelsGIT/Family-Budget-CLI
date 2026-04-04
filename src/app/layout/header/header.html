@@ -41,6 +41,20 @@
           <div class="tools-dropdown notifications-dropdown" *ngIf="isNotificationsOpen">
             <p class="notifications-empty" *ngIf="isLoadingNotifications">{{ i18n.translate('header.notificationsLoading') }}</p>
 
+            <div class="notifications-actions" *ngIf="!isLoadingNotifications && notifications.length > 0">
+              <button
+                type="button"
+                class="notification-clear-button"
+                (click)="clearNotifications()"
+                [attr.aria-label]="i18n.translate('header.notificationsClear')"
+                [attr.title]="i18n.translate('header.notificationsClear')">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v8h-2V9Zm4 0h2v8h-2V9ZM6 7h12l-1 13H7L6 7Z" fill="currentColor" />
+                </svg>
+                <span>{{ i18n.translate('header.notificationsClear') }}</span>
+              </button>
+            </div>
+
             <ng-container *ngIf="!isLoadingNotifications && notifications.length > 0">
               <div class="notification-item" *ngFor="let notification of notifications">
                 <p>{{ notification.message }}</p>

@@ -194,6 +194,27 @@ export class Header {
     this.openCategoryPayment(notification);
   }
 
+  clearNotifications(): void {
+    if (this.isLoadingNotifications) {
+      return;
+    }
+
+    this.isLoadingNotifications = true;
+    this.notificationService.deleteAll()
+      .pipe(finalize(() => {
+        this.isLoadingNotifications = false;
+      }))
+      .subscribe({
+        next: () => {
+          this.notifications = [];
+          this.unreadNotificationsCount = 0;
+        },
+        error: () => {
+          this.loadNotifications();
+        }
+      });
+  }
+
   logout(): void {
     this.isUserMenuOpen = false;
     this.isToolsOpen = false;
