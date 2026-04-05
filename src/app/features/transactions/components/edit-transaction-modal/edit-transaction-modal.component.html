@@ -15,7 +15,7 @@
         </label>
 
         <label class="field">
-          <span>{{ i18n.translate('transactions.columnAccount') }}</span>
+          <span>{{ isTransfer() ? i18n.translate('accounts.transferFrom') : i18n.translate('transactions.columnAccount') }}</span>
           <div class="readonly-field">{{ getAccountLabel() }}</div>
         </label>
 
@@ -24,6 +24,43 @@
           <div class="readonly-field">{{ formatCurrentAmount() }}</div>
         </label>
       </div>
+
+      <ng-container *ngIf="isTransfer(); else regularTransactionFields">
+        <div class="transfer-edit-grid">
+          <label class="field">
+            <span>{{ i18n.translate('accounts.transferFrom') }}</span>
+            <select formControlName="fromAccountId">
+              <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
+              <option *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId" [value]="'' + account.id">
+                {{ account.name }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>{{ i18n.translate('accounts.transferTo') }}</span>
+            <select formControlName="toAccountId">
+              <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
+              <optgroup *ngIf="transferOwnDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOwnAccounts')">
+                <option *ngFor="let option of transferOwnDestinationOptions(); trackBy: trackByTransferOption" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </optgroup>
+              <optgroup *ngIf="transferOtherDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOtherUsers')">
+                <option *ngFor="let option of transferOtherDestinationOptions(); trackBy: trackByTransferOption" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </optgroup>
+            </select>
+          </label>
+        </div>
+
+        <p class="state-message" *ngIf="isLoadingAccounts()">{{ i18n.translate('transactions.loadingAccounts') }}</p>
+      </ng-container>
+
+      <ng-template #regularTransactionFields>
+        <p class="field-hint">{{ getAccountLabel() }}</p>
+      </ng-template>
 
       <label class="field">
         <span>{{ i18n.translate('transactions.columnDate') }}</span>
@@ -44,7 +81,7 @@
 
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
-        <button type="submit" class="primary" [disabled]="isSubmitting()">
+        <button type="submit" class="primary" [disabled]="isSubmitting() || (isTransfer() && isLoadingAccounts())">
           {{ isSubmitting() ? i18n.translate('transactions.editing') : i18n.translate('transactions.saveChanges') }}
         </button>
       </div>

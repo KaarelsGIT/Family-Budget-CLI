@@ -10,6 +10,8 @@ export interface NotificationItem {
   action: string | null;
   relatedCategoryId: number | null;
   relatedReminderId: number | null;
+  relatedTransactionId: number | null;
+  relatedAccountId: number | null;
   isRead: boolean;
   createdAt: string;
 }

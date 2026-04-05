@@ -5,6 +5,9 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
+import { Account } from '../../../accounts/models/account.model';
+import { AccountService } from '../../../accounts/services/account.service';
+import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../../components/edit-transaction-modal/edit-transaction-modal.component';
 import {
@@ -34,6 +37,7 @@ interface CategoryFilterOption {
 export class TransactionsPageComponent {
   private readonly transactionsService = inject(TransactionsService);
   private readonly transactionDraftService = inject(TransactionDraftService);
+  private readonly accountService = inject(AccountService);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
@@ -43,10 +47,13 @@ export class TransactionsPageComponent {
   readonly transactions = signal<TransactionItem[]>([]);
   readonly categories = signal<TransactionCategory[]>([]);
   readonly users = signal<TransactionUserOption[]>([]);
+  readonly accounts = signal<Account[]>([]);
   readonly isLoading = signal(false);
   readonly isLoadingFilters = signal(false);
   readonly isAddTransactionModalOpen = signal(false);
   readonly selectedTransactionToEdit = signal<TransactionItem | null>(null);
+  readonly pendingDeleteTransaction = signal<TransactionItem | null>(null);
+  readonly isDeleting = signal(false);
   readonly errorMessage = signal('');
   readonly totalItems = signal(0);
 
@@ -83,6 +90,7 @@ export class TransactionsPageComponent {
 
   constructor() {
     this.loadFilterOptions();
+    this.loadAccounts();
     this.loadTransactions();
     effect(() => {
       if (this.transactionDraftService.openTransactionRequest()) {
@@ -176,13 +184,26 @@ export class TransactionsPageComponent {
       return;
     }
 
-    const confirmed = window.confirm(this.i18n.translate('transactions.deleteConfirm'));
-    if (!confirmed) {
+    this.pendingDeleteTransaction.set(transaction);
+  }
+
+  closeDeleteConfirmation(): void {
+    this.pendingDeleteTransaction.set(null);
+  }
+
+  confirmDeleteTransaction(): void {
+    const transaction = this.pendingDeleteTransaction();
+    if (!transaction || this.isDeleting()) {
       return;
     }
 
-    this.transactionsService.deleteTransaction(transaction.id).subscribe({
+    this.isDeleting.set(true);
+
+    this.transactionsService.deleteTransaction(transaction.id).pipe(
+      finalize(() => this.isDeleting.set(false))
+    ).subscribe({
       next: () => {
+        this.closeDeleteConfirmation();
         this.filters.update((state) => ({
           ...state,
           page: 0
@@ -191,6 +212,7 @@ export class TransactionsPageComponent {
       },
       error: (error: { error?: { message?: string } }) => {
         this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.deleteFailed'));
+        this.closeDeleteConfirmation();
       }
     });
   }
@@ -366,7 +388,30 @@ export class TransactionsPageComponent {
   }
 
   canModifyTransaction(transaction: TransactionItem): boolean {
-    return transaction.type !== 'TRANSFER' && transaction.createdById === this.currentUserId;
+    if (this.currentUserRole === 'ADMIN') {
+      return true;
+    }
+
+    if (transaction.type !== 'TRANSFER') {
+      return transaction.createdById === this.currentUserId;
+    }
+
+    if (transaction.createdById === this.currentUserId) {
+      return true;
+    }
+
+    const sourceAccount = this.accounts().find((account) => account.id === transaction.fromAccountId);
+    if (!sourceAccount) {
+      return false;
+    }
+
+    return canTransactFromAccount(sourceAccount, this.currentUserId, this.currentUserRole);
+  }
+
+  getDeleteConfirmationMessage(transaction: TransactionItem): string {
+    return transaction.type === 'TRANSFER'
+      ? this.i18n.translate('transactions.deleteTransferConfirm')
+      : this.i18n.translate('transactions.deleteConfirm');
   }
 
   private loadFilterOptions(): void {
@@ -395,6 +440,17 @@ export class TransactionsPageComponent {
       },
       error: () => {
         this.categories.set([]);
+      }
+    });
+  }
+
+  private loadAccounts(): void {
+    this.accountService.getAccounts().subscribe({
+      next: (accounts) => {
+        this.accounts.set(accounts);
+      },
+      error: () => {
+        this.accounts.set([]);
       }
     });
   }

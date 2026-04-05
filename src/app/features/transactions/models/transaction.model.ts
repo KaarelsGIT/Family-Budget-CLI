@@ -1,6 +1,7 @@
 export interface TransactionItem {
   id: number;
   amount: number;
+  transferId: string | null;
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   fromAccountId: number | null;
   fromAccountName: string | null;
@@ -95,4 +96,12 @@ export interface TransactionDraft {
   transactionDate: string;
   amount: string;
   comment: string;
+}
+
+export interface UpdateTransactionPayload {
+  amount: number;
+  fromAccountId?: number | null;
+  toAccountId?: number | null;
+  transactionDate: string;
+  comment?: string | null;
 }

@@ -58,6 +58,9 @@
             <ng-container *ngIf="!isLoadingNotifications && notifications.length > 0">
               <div class="notification-item" *ngFor="let notification of notifications">
                 <p>{{ notification.message }}</p>
+                <span class="notification-reference" *ngIf="notification.relatedTransactionId !== null">
+                  #{{ notification.relatedTransactionId }}
+                </span>
                 <span>{{ formatNotificationDate(notification.createdAt) }}</span>
                 <button
                   *ngIf="notification.action === 'PAY'"

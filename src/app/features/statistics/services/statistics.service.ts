@@ -72,10 +72,13 @@ export interface YearlyStatisticsTransferMonthEntry {
 export class StatisticsService {
   private readonly http = inject(HttpClient);
 
-  getYearly(year: number, accountId: number | null): Observable<YearlyStatisticsResponse> {
+  getYearly(year: number, userId: number | null, accountId: number | null): Observable<YearlyStatisticsResponse> {
     let params = new HttpParams().set('year', year);
+    if (userId !== null) {
+      params = params.set('user_id', userId);
+    }
     if (accountId !== null) {
-      params = params.set('accountId', accountId);
+      params = params.set('account_id', accountId);
     }
 
     return this.http.get<YearlyStatisticsResponse>(`${environment.apiUrl}/statistics/yearly`, { params });

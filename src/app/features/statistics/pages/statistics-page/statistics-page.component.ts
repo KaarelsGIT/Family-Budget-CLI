@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
-import { AccountService } from '../../../accounts/services/account.service';
+import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 import { CategoryTableComponent, CategoryTableNode } from '../../components/category-table/category-table.component';
 import {
@@ -66,18 +66,32 @@ export class StatisticsPageComponent {
   readonly currentYear = new Date().getFullYear();
   readonly currentUserId = this.authService.getUserId();
   readonly selectedYear = signal(this.currentYear);
+  readonly selectedUserId = signal<number | null>(this.currentUserId);
   readonly selectedAccountId = signal<number | null>(null);
-  readonly hasInitializedAccountFilter = signal(false);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);
   readonly isLoadingAccounts = signal(false);
+  readonly isLoadingUsers = signal(false);
   readonly errorMessage = signal('');
   readonly statistics = signal<YearlyStatisticsResponse | null>(null);
   readonly accounts = signal<Account[]>([]);
+  readonly selectableUsers = signal<SelectableUser[]>([]);
+
+  readonly yearOptions = computed(() => {
+    const years: number[] = [];
+    for (let year = 2100; year >= 1900; year--) {
+      years.push(year);
+    }
+    return years;
+  });
+
+  readonly userOptions = computed(() => this.selectableUsers());
 
   readonly accountOptions = computed(() => {
     return [...this.accounts()].sort((left, right) => left.name.localeCompare(right.name));
   });
+
+  readonly showUserFilter = computed(() => this.userOptions().length > 1);
 
   readonly monthlyBars = computed(() => this.buildMonthlyBars());
   readonly monthlyChartTicks = computed(() => this.buildMonthlyTicks());
@@ -101,16 +115,23 @@ export class StatisticsPageComponent {
   });
 
   constructor() {
-    this.loadAccounts();
+    this.loadFilterOptions();
+    this.loadStatistics();
   }
 
-  onYearChange(value: string): void {
+  onYearChange(value: number | string): void {
     const parsed = Number(value);
     if (!Number.isInteger(parsed) || parsed < 1900 || parsed > 2100) {
       return;
     }
 
     this.selectedYear.set(parsed);
+    this.loadStatistics();
+  }
+
+  onUserChange(value: number | string | null): void {
+    const parsed = value === null || value === '' ? null : Number(value);
+    this.selectedUserId.set(parsed);
     this.loadStatistics();
   }
 
@@ -139,6 +160,12 @@ export class StatisticsPageComponent {
     return `${account.ownerUsername} · ${account.name}`;
   }
 
+  formatUserLabel(user: SelectableUser): string {
+    return user.id === this.currentUserId
+      ? `${user.username} (${this.i18n.translate('statistics.currentUser')})`
+      : user.username;
+  }
+
   trackByAccountId(_index: number, account: Account): number {
     return account.id;
   }
@@ -159,36 +186,33 @@ export class StatisticsPageComponent {
     return tick.value;
   }
 
-  private loadAccounts(): void {
+  private loadFilterOptions(): void {
     this.isLoadingAccounts.set(true);
-    this.accountService.getAccounts()
-      .pipe(finalize(() => {
-        this.isLoadingAccounts.set(false);
-      }))
-      .subscribe({
-        next: (accounts) => {
-          this.accounts.set(accounts);
-          if (!this.hasInitializedAccountFilter()) {
-            this.selectedAccountId.set(this.resolveDefaultAccountId(accounts));
-            this.hasInitializedAccountFilter.set(true);
-          }
-          this.loadStatistics();
-        },
-        error: () => {
-          this.accounts.set([]);
-          if (!this.hasInitializedAccountFilter()) {
-            this.hasInitializedAccountFilter.set(true);
-          }
-          this.loadStatistics();
-        }
-      });
+    this.isLoadingUsers.set(true);
+
+    forkJoin({
+      accounts: this.accountService.getAccounts(),
+      users: this.accountService.getSelectableUsers()
+    }).pipe(finalize(() => {
+      this.isLoadingAccounts.set(false);
+      this.isLoadingUsers.set(false);
+    })).subscribe({
+      next: ({ accounts, users }) => {
+        this.accounts.set(accounts);
+        this.selectableUsers.set(users);
+      },
+      error: () => {
+        this.accounts.set([]);
+        this.selectableUsers.set([]);
+      }
+    });
   }
 
   private loadStatistics(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.statisticsService.getYearly(this.selectedYear(), this.selectedAccountId())
+    this.statisticsService.getYearly(this.selectedYear(), this.selectedUserId(), this.selectedAccountId())
       .pipe(finalize(() => {
         this.isLoading.set(false);
       }))
@@ -222,17 +246,6 @@ export class StatisticsPageComponent {
 
   private buildCategoryTableCategories(): CategoryTableNode[] {
     return this.buildCategoryGroups().map((group) => this.mapCategoryNode(group));
-  }
-
-  private resolveDefaultAccountId(accounts: Account[]): number | null {
-    if (this.currentUserId === null) {
-      return null;
-    }
-
-    const ownedAccounts = accounts.filter((account) => account.ownerId === this.currentUserId);
-    const mainAccount = ownedAccounts.find((account) => account.type === 'MAIN');
-
-    return (mainAccount ?? ownedAccounts[0] ?? null)?.id ?? null;
   }
 
   private mapCategoryNode(group: YearlyStatisticsCategoryEntry): CategoryTableNode {

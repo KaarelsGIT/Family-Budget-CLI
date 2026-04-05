@@ -9,7 +9,8 @@ import {
   TransactionItem,
   TransactionListResult,
   TransactionQuery,
-  TransactionUserOption
+  TransactionUserOption,
+  UpdateTransactionPayload
 } from '../models/transaction.model';
 
 interface ListResponse<T> {
@@ -24,6 +25,7 @@ interface ApiResponse<T> {
 interface TransactionApiResponse {
   id: number;
   amount: number | string | null;
+  transferId: string | null;
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   fromAccountId: number | null;
   fromAccountName: string | null;
@@ -55,12 +57,6 @@ interface UserApiResponse {
   id: number;
   username: string;
   role: 'ADMIN' | 'PARENT' | 'CHILD';
-}
-
-interface UpdateTransactionPayload {
-  amount: number;
-  transactionDate: string;
-  comment?: string | null;
 }
 
 @Injectable({
@@ -146,6 +142,8 @@ export class TransactionsService {
   updateTransaction(id: number, payload: UpdateTransactionPayload): Observable<TransactionItem> {
     const body = {
       amount: payload.amount,
+      fromAccountId: payload.fromAccountId ?? null,
+      toAccountId: payload.toAccountId ?? null,
       transactionDate: payload.transactionDate,
       comment: payload.comment || null
     };
@@ -212,6 +210,7 @@ export class TransactionsService {
     return {
       id: item.id,
       amount: Number.isNaN(amount) ? 0 : amount,
+      transferId: item.transferId,
       type: item.type,
       fromAccountId: item.fromAccountId,
       fromAccountName: item.fromAccountName,

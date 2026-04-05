@@ -147,7 +147,7 @@ const helpContent: Record<HelpLanguage, HelpContent> = {
         points: [
           'Income and expense are allowed only for accounts where you have OWNER or EDITOR rights.',
           'Transfers use your own source account and a valid target account; the recipient always lands on their default main account.',
-          'Only the creator can edit or delete a transaction, and transfers stay immutable.'
+          'Transfers can be edited or deleted when you have access to the source account or you created the transaction.'
         ]
       },
       {
@@ -156,7 +156,7 @@ const helpContent: Record<HelpLanguage, HelpContent> = {
         intro: 'A shared account gives another user access without changing ownership.',
         points: [
           'You can share an account with editor or viewer access.',
-          'If someone makes a transaction on a shared account, the owner gets a notification.',
+          'If someone makes a transaction on a shared account, every other user with access gets a notification.',
           'Sharing can be removed any time from the same account view.'
         ]
       },

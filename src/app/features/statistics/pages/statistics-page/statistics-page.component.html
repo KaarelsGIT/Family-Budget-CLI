@@ -9,7 +9,19 @@
     <div class="filters-bar">
       <label class="field">
         <span>{{ i18n.translate('statistics.year') }}</span>
-        <input type="number" [ngModel]="selectedYear()" (change)="onYearChange($any($event.target).value)" min="1900" max="2100" />
+        <select [ngModel]="selectedYear()" (ngModelChange)="onYearChange($event)">
+          <option *ngFor="let year of yearOptions()" [ngValue]="year">{{ year }}</option>
+        </select>
+      </label>
+
+      <label class="field" *ngIf="showUserFilter()">
+        <span>{{ i18n.translate('statistics.userFilter') }}</span>
+        <select [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
+          <option [ngValue]="null">{{ i18n.translate('statistics.allUsers') }}</option>
+          <option *ngFor="let user of userOptions()" [ngValue]="user.id">
+            {{ formatUserLabel(user) }}
+          </option>
+        </select>
       </label>
 
       <label class="field account-field">
@@ -24,6 +36,7 @@
     </div>
   </header>
 
+  <p class="state-message" *ngIf="isLoadingAccounts() || isLoadingUsers()">{{ i18n.translate('statistics.loadingFilters') }}</p>
   <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('statistics.loading') }}</p>
   <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 

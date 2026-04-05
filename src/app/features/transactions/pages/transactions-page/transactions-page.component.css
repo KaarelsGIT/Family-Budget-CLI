@@ -260,6 +260,50 @@ tbody tr.transfer-row {
   background: inherit;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 20, 0.5);
+}
+
+.modal-card.confirm-modal {
+  position: relative;
+  z-index: 1;
+  width: min(460px, calc(100vw - 32px));
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+}
+
+.confirm-copy {
+  margin: 0 0 8px;
+  color: #17361f;
+  font-weight: 700;
+}
+
+.confirm-meta {
+  margin: 0 0 16px;
+  color: #526457;
+}
+
+.danger-action {
+  background: #a53a2b !important;
+}
+
+.danger-action:hover:not(:disabled) {
+  background: #8f2f21 !important;
+}
+
 tbody tr.income-row:hover {
   background: #def1e3;
 }

@@ -252,6 +252,13 @@ header {
   font-weight: 600;
 }
 
+.notification-item .notification-reference {
+  color: #5a725a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .notification-item span {
   color: #5a725a;
   font-size: 12px;
