@@ -212,9 +212,13 @@
 
                   <div class="other-groups" *ngIf="filteredTransferOtherUsers().length > 0">
                     <section class="user-group" *ngFor="let group of filteredTransferOtherUsers(); trackBy: trackByTransferUser">
-                      <button type="button" class="group-toggle" (click)="toggleTransferGroup(group.userId)">
-                        <span>{{ group.username }}</span>
-                        <span class="group-state">{{ isTransferGroupExpanded(group.userId) ? '−' : '+' }}</span>
+                      <button
+                        type="button"
+                        class="group-toggle"
+                        (click)="toggleTransferGroup(group.userId)"
+                        [attr.aria-expanded]="isTransferGroupExpanded(group.userId)">
+                        <span class="group-toggle-label">{{ group.username }}</span>
+                        <span class="group-state" [class.open]="isTransferGroupExpanded(group.userId)">›</span>
                       </button>
 
                       <div class="group-accounts" *ngIf="isTransferGroupExpanded(group.userId)">

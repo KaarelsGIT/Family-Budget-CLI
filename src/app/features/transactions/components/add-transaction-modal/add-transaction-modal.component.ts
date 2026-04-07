@@ -76,7 +76,7 @@ export class AddTransactionModalComponent {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly selectedTransferFromAccountId = signal<number | null>(null);
   readonly selectedTransferToAccountId = signal<number | null>(null);
-  readonly expandedTransferUserIds = signal<Set<number>>(new Set());
+  readonly activeTransferUserId = signal<number | null>(null);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
 
@@ -236,14 +236,6 @@ export class AddTransactionModalComponent {
     this.syncTransactionControlsForType(this.transactionType());
     this.ensureDefaultIncomeExpenseAccount();
     this.syncRecurringControls();
-    effect(() => {
-      if (!this.filteredTransferOtherUsers().some((group) => this.expandedTransferUserIds().has(group.userId))) {
-        const firstGroup = this.filteredTransferOtherUsers()[0];
-        if (firstGroup) {
-          this.expandedTransferUserIds.set(new Set([firstGroup.userId]));
-        }
-      }
-    }, { allowSignalWrites: true });
     effect(() => {
       this.categories();
       if (this.view() === 'transaction') {
@@ -760,19 +752,11 @@ export class AddTransactionModalComponent {
   }
 
   isTransferGroupExpanded(userId: number): boolean {
-    return this.expandedTransferUserIds().has(userId);
+    return this.activeTransferUserId() === userId;
   }
 
   toggleTransferGroup(userId: number): void {
-    this.expandedTransferUserIds.update((current) => {
-      const next = new Set(current);
-      if (next.has(userId)) {
-        next.delete(userId);
-      } else {
-        next.add(userId);
-      }
-      return next;
-    });
+    this.activeTransferUserId.update((current) => (current === userId ? null : userId));
   }
 
   private resolveErrorMessage(
