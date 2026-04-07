@@ -13,7 +13,7 @@
         {{ i18n.translate('transactions.manageCategories') }}
       </a>
 
-      <button type="button" class="primary-action" (click)="openAddTransactionModal()">
+      <button type="button" class="primary-action" (click)="openTransactionModal({ type: 'EXPENSE' })">
         {{ i18n.translate('transactions.addAction') }}
       </button>
     </div>

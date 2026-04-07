@@ -53,7 +53,7 @@
               [account]="account"
               [accentColor]="getAccountColor(group.accounts, account)"
               (changed)="handleAccountsChanged()"
-              (transferRequested)="openTransferModal($event)"
+              (transferRequested)="openTransactionModal({ type: 'TRANSFER', preselectedFromAccount: $event.id })"
               (adjustBalanceRequested)="openAdjustBalanceModal($event)"
               (shareRequested)="openShareModal($event)" />
           </div>
@@ -84,11 +84,4 @@
     [account]="selectedShareAccount()!"
     (closed)="closeShareModal()"
     (shared)="handleAccountsChanged()" />
-
-  <app-transfer-modal
-    *ngIf="selectedTransferAccount()"
-    [sourceAccount]="selectedTransferAccount()!"
-    [accounts]="accounts()"
-    (closed)="closeTransferModal()"
-    (transferred)="handleAccountsChanged()" />
 </section>

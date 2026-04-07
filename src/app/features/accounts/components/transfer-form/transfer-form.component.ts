@@ -5,7 +5,7 @@ import { finalize } from 'rxjs';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
-import { AccountService, TransferTargetUserGroup, TransferTargets } from '../../services/account.service';
+import { AccountService, SelectableUser } from '../../services/account.service';
 
 export interface TransferSubmittedEvent {
   amount: number;
@@ -33,11 +33,8 @@ export class TransferFormComponent {
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
-  readonly transferTargets = signal<TransferTargets>({ myAccounts: [], otherUsers: [] });
-  readonly expandedUserIds = signal<Set<number>>(new Set());
-  readonly hasTransferTargets = computed(() =>
-    this.filteredMyAccounts().length > 0 || this.filteredOtherUsers().length > 0
-  );
+  readonly transferTargets = signal<SelectableUser[]>([]);
+  readonly hasTransferTargets = computed(() => this.transferTargets().length > 0);
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
@@ -46,32 +43,10 @@ export class TransferFormComponent {
     toAccountId: ['', Validators.required]
   });
 
-  readonly filteredMyAccounts = computed(() =>
-    this.transferTargets().myAccounts.filter((account) => account.id !== this.sourceAccount().id)
-  );
-
-  readonly filteredOtherUsers = computed(() =>
-    this.transferTargets().otherUsers
-      .map((group) => ({
-        ...group,
-        accounts: group.accounts.filter((account) => account.id !== this.sourceAccount().id)
-      }))
-      .filter((group) => group.accounts.length > 0)
-  );
-
   constructor() {
     effect(() => {
       this.sourceAccount();
       this.ensureDefaultTargetAccountSelected();
-    }, { allowSignalWrites: true });
-
-    effect(() => {
-      if (!this.filteredOtherUsers().some((group) => this.expandedUserIds().has(group.userId))) {
-        const firstGroup = this.filteredOtherUsers()[0];
-        if (firstGroup) {
-          this.expandedUserIds.set(new Set([firstGroup.userId]));
-        }
-      }
     }, { allowSignalWrites: true });
 
     this.loadTransferTargetAccounts();
@@ -111,7 +86,7 @@ export class TransferFormComponent {
     this.accountService.createTransfer({
       amount,
       fromAccountId: this.sourceAccount().id,
-      toAccountId: parsedToAccountId,
+      targetUserId: parsedToAccountId,
       transactionDate,
       comment
     }).pipe(
@@ -136,24 +111,8 @@ export class TransferFormComponent {
     return account.id;
   }
 
-  trackByTransferTargetUser(_index: number, user: TransferTargetUserGroup): number {
-    return user.userId;
-  }
-
-  isGroupExpanded(userId: number): boolean {
-    return this.expandedUserIds().has(userId);
-  }
-
-  toggleGroup(userId: number): void {
-    this.expandedUserIds.update((current) => {
-      const next = new Set(current);
-      if (next.has(userId)) {
-        next.delete(userId);
-      } else {
-        next.add(userId);
-      }
-      return next;
-    });
+  trackByTransferTargetUser(_index: number, user: SelectableUser): number {
+    return user.id;
   }
 
   isAmountWithinBalance(): boolean {
@@ -174,7 +133,7 @@ export class TransferFormComponent {
   }
 
   private ensureDefaultTargetAccountSelected(): void {
-    const options = [...this.filteredMyAccounts(), ...this.filteredOtherUsers().flatMap((group) => group.accounts)];
+    const options = this.transferTargets();
     if (options.length === 0) {
       return;
     }
@@ -222,11 +181,11 @@ export class TransferFormComponent {
   private loadTransferTargetAccounts(): void {
     this.accountService.getTransferTargets().subscribe({
       next: (targets) => {
-        this.transferTargets.set(targets);
+        this.transferTargets.set(targets.users);
         this.ensureDefaultTargetAccountSelected();
       },
       error: () => {
-        this.transferTargets.set({ myAccounts: [], otherUsers: [] });
+        this.transferTargets.set([]);
         this.ensureDefaultTargetAccountSelected();
       }
     });

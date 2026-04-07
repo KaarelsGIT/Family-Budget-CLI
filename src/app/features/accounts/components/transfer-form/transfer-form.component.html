@@ -5,49 +5,19 @@
 
   <div class="target-section">
     <div class="section-header">
-      <span>{{ i18n.translate('accounts.transferOwnAccounts') }}</span>
+      <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
     </div>
 
-    <div class="account-list" *ngIf="filteredMyAccounts().length > 0; else noMyAccounts">
-      <label class="account-option" *ngFor="let account of filteredMyAccounts(); trackBy: trackByAccountId">
-        <input type="radio" formControlName="toAccountId" [value]="account.id" />
+    <div class="account-list" *ngIf="transferTargets().length > 0; else noAccounts">
+      <label class="account-option" *ngFor="let user of transferTargets(); trackBy: trackByTransferTargetUser">
+        <input type="radio" formControlName="toAccountId" [value]="user.id" />
         <span class="account-label">
-          <span class="account-name">{{ getAccountLabel(account) }}</span>
-          <span class="account-meta">{{ getAccountDetails(account) }}</span>
+          <span class="account-name">{{ user.username }}</span>
         </span>
       </label>
     </div>
 
-    <ng-template #noMyAccounts>
-      <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
-    </ng-template>
-  </div>
-
-  <div class="target-section">
-    <div class="section-header">
-      <span>{{ i18n.translate('accounts.transferOtherUsers') }}</span>
-    </div>
-
-    <div class="other-groups" *ngIf="filteredOtherUsers().length > 0; else noOtherAccounts">
-      <section class="user-group" *ngFor="let group of filteredOtherUsers(); trackBy: trackByTransferTargetUser">
-        <button type="button" class="group-toggle" (click)="toggleGroup(group.userId)">
-          <span>{{ group.username }}</span>
-          <span class="group-state">{{ isGroupExpanded(group.userId) ? '−' : '+' }}</span>
-        </button>
-
-        <div class="group-accounts" *ngIf="isGroupExpanded(group.userId)">
-          <label class="account-option" *ngFor="let account of group.accounts; trackBy: trackByAccountId">
-            <input type="radio" formControlName="toAccountId" [value]="account.id" />
-            <span class="account-label">
-              <span class="account-name">{{ getAccountLabel(account) }}</span>
-              <span class="account-meta">{{ getAccountDetails(account) }}</span>
-            </span>
-          </label>
-        </div>
-      </section>
-    </div>
-
-    <ng-template #noOtherAccounts>
+    <ng-template #noAccounts>
       <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
     </ng-template>
   </div>

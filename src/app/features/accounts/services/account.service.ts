@@ -38,29 +38,7 @@ interface SelectableUserApiResponse {
   defaultMainAccountId?: number | null;
 }
 
-interface TransferTargetAccountApiResponse {
-  id: number;
-  name: string;
-  ownerId: number;
-  ownerUsername: string;
-  ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
-  balance: number | string | null;
-  type: 'MAIN' | 'SAVINGS' | 'GOAL' | 'CASH';
-  accessRole?: 'OWNER' | 'EDITOR' | 'VIEWER' | null;
-  sharedUsers?: AccountSharedUserApiResponse[];
-}
-
-interface TransferTargetUserGroupApiResponse {
-  userId: number;
-  username: string;
-  role: 'ADMIN' | 'PARENT' | 'CHILD';
-  accounts: TransferTargetAccountApiResponse[];
-}
-
-interface TransferTargetsApiResponse {
-  myAccounts: TransferTargetAccountApiResponse[];
-  otherUsers: TransferTargetUserGroupApiResponse[];
-}
+type TransferTargetsApiResponse = SelectableUserApiResponse[];
 
 type AccountPayload = Pick<Account, 'name' | 'type'>;
 type UpdateAccountPayload = Pick<Account, 'name'>;
@@ -75,7 +53,8 @@ interface ShareAccountPayload {
 interface CreateTransferPayload {
   amount: number;
   fromAccountId: number;
-  toAccountId: number;
+  toAccountId?: number;
+  targetUserId?: number;
   transactionDate?: string | null;
   comment?: string;
 }
@@ -87,16 +66,8 @@ export interface SelectableUser {
   defaultMainAccountId: number | null;
 }
 
-export interface TransferTargetUserGroup {
-  userId: number;
-  username: string;
-  role: 'ADMIN' | 'PARENT' | 'CHILD';
-  accounts: Account[];
-}
-
 export interface TransferTargets {
-  myAccounts: Account[];
-  otherUsers: TransferTargetUserGroup[];
+  users: SelectableUser[];
 }
 
 @Injectable({
@@ -148,11 +119,13 @@ export class AccountService {
   }
 
   createTransfer(payload: CreateTransferPayload): Observable<void> {
+    const targetUserId = payload.targetUserId ?? payload.toAccountId ?? null;
     return this.http.post<ApiResponse<unknown>>(`${environment.apiUrl}/transactions`, {
       amount: payload.amount,
       type: 'TRANSFER',
       fromAccountId: payload.fromAccountId,
-      toAccountId: payload.toAccountId,
+      targetUserId,
+      toAccountId: targetUserId,
       categoryId: null,
       transactionDate: payload.transactionDate || null,
       comment: payload.comment || null
@@ -190,12 +163,13 @@ export class AccountService {
   getTransferTargets(): Observable<TransferTargets> {
     return this.http.get<ApiResponse<TransferTargetsApiResponse>>(`${environment.apiUrl}/transfers/targets`).pipe(
       map((response) => ({
-        myAccounts: response.data.myAccounts.map((account) => this.mapAccount(account)),
-        otherUsers: response.data.otherUsers.map((user) => ({
-          userId: user.userId,
+        users: response.data.map((user) => ({
+          id: user.id,
           username: user.username,
           role: user.role,
-          accounts: user.accounts.map((account) => this.mapAccount(account))
+          defaultMainAccountId: typeof user.defaultMainAccountId === 'number'
+            ? user.defaultMainAccountId
+            : null
         }))
       }))
     );

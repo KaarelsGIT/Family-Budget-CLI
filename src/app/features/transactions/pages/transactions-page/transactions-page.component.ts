@@ -99,16 +99,10 @@ export class TransactionsPageComponent {
     });
   }
 
-  openAddTransactionModal(): void {
-    console.log('[TransactionsPage] openAddTransactionModal() clicked');
-
-    try {
-      this.selectedTransactionToEdit.set(null);
-      this.isAddTransactionModalOpen.set(true);
-      console.log('[TransactionsPage] AddTransactionModal open state set to true');
-    } catch (error) {
-      console.error('[TransactionsPage] Failed to open AddTransactionModal', error);
-    }
+  openTransactionModal(request: { type: 'INCOME' | 'EXPENSE' | 'TRANSFER'; preselectedFromAccount?: number | null }): void {
+    this.selectedTransactionToEdit.set(null);
+    this.transactionDraftService.openTransactionModal(request);
+    this.isAddTransactionModalOpen.set(true);
   }
 
   closeAddTransactionModal(): void {

@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
 import { AddAccountModalComponent } from '../../components/add-account-modal/add-account-modal.component';
 import { AdjustBalanceModalComponent } from '../../components/adjust-balance-modal/adjust-balance-modal.component';
 import { ShareAccountModalComponent } from '../../components/share-account-modal/share-account-modal.component';
-import { TransferModalComponent } from '../../components/transfer-modal/transfer-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
+import { TransactionDraftService } from '../../../transactions/services/transaction-draft.service';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 
 interface AccountOwnerGroup {
@@ -33,12 +34,14 @@ interface AccountSection {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, TransferModalComponent],
+  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
 export class AccountsPageComponent {
   private readonly accountService = inject(AccountService);
+  private readonly transactionDraftService = inject(TransactionDraftService);
+  private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
@@ -47,7 +50,6 @@ export class AccountsPageComponent {
   readonly isModalOpen = signal(false);
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedShareAccount = signal<Account | null>(null);
-  readonly selectedTransferAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
   readonly sections = computed<AccountSection[]>(() => {
     const currentUserId = this.authService.getUserId();
@@ -103,7 +105,6 @@ export class AccountsPageComponent {
   openAddAccountModal(): void {
     this.selectedAdjustBalanceAccount.set(null);
     this.selectedShareAccount.set(null);
-    this.selectedTransferAccount.set(null);
     this.isModalOpen.set(true);
   }
 
@@ -111,20 +112,13 @@ export class AccountsPageComponent {
     this.isModalOpen.set(false);
   }
 
-  openTransferModal(account: Account): void {
-    this.isModalOpen.set(false);
-    this.selectedAdjustBalanceAccount.set(null);
-    this.selectedShareAccount.set(null);
-    this.selectedTransferAccount.set(account);
-  }
-
-  closeTransferModal(): void {
-    this.selectedTransferAccount.set(null);
+  openTransactionModal(request: { type: 'INCOME' | 'EXPENSE' | 'TRANSFER'; preselectedFromAccount?: number | null }): void {
+    this.transactionDraftService.openTransactionModal(request);
+    this.router.navigateByUrl('/transactions');
   }
 
   openAdjustBalanceModal(account: Account): void {
     this.isModalOpen.set(false);
-    this.selectedTransferAccount.set(null);
     this.selectedShareAccount.set(null);
     this.selectedAdjustBalanceAccount.set(account);
   }
@@ -136,7 +130,6 @@ export class AccountsPageComponent {
   openShareModal(account: Account): void {
     this.isModalOpen.set(false);
     this.selectedAdjustBalanceAccount.set(null);
-    this.selectedTransferAccount.set(null);
     this.selectedShareAccount.set(account);
   }
 

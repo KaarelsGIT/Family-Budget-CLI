@@ -144,6 +144,7 @@ export class TransactionsService {
       amount: payload.amount,
       fromAccountId: payload.fromAccountId ?? null,
       toAccountId: payload.toAccountId ?? null,
+      targetUserId: payload.targetUserId ?? null,
       transactionDate: payload.transactionDate,
       comment: payload.comment || null
     };

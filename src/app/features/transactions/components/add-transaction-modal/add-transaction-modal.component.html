@@ -183,57 +183,20 @@
 
               <article class="transfer-column">
                 <div class="section-header">
-                  <span>{{ i18n.translate('accounts.transferTo') }}</span>
+                  <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
                 </div>
 
                 <div class="account-scroll" *ngIf="hasTransferDestinationTargets(); else noTransferTargets">
-                  <div class="target-section compact">
-                    <div class="section-header section-header-muted">
-                      <span>{{ i18n.translate('accounts.transferOwnAccounts') }}</span>
-                    </div>
-
-                    <div class="account-list" *ngIf="filteredTransferMyAccounts().length > 0; else noMyTransferAccounts">
-                      <label
-                        class="account-option"
-                        *ngFor="let account of filteredTransferMyAccounts(); trackBy: trackByAccountId"
-                        [class.selected]="isTransferDestinationSelected(account)">
-                        <input type="radio" formControlName="transferToAccountId" [value]="account.id" />
-                        <span class="account-label">
-                          <span class="account-name">{{ getAccountLabel(account) }}</span>
-                          <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
-                        </span>
-                      </label>
-                    </div>
-
-                    <ng-template #noMyTransferAccounts>
-                      <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
-                    </ng-template>
-                  </div>
-
-                  <div class="other-groups" *ngIf="filteredTransferOtherUsers().length > 0">
-                    <section class="user-group" *ngFor="let group of filteredTransferOtherUsers(); trackBy: trackByTransferUser">
-                      <button
-                        type="button"
-                        class="group-toggle"
-                        (click)="toggleTransferGroup(group.userId)"
-                        [attr.aria-expanded]="isTransferGroupExpanded(group.userId)">
-                        <span class="group-toggle-label">{{ group.username }}</span>
-                        <span class="group-state" [class.open]="isTransferGroupExpanded(group.userId)">›</span>
-                      </button>
-
-                      <div class="group-accounts" *ngIf="isTransferGroupExpanded(group.userId)">
-                        <label
-                          class="account-option"
-                          *ngFor="let account of group.accounts; trackBy: trackByAccountId"
-                          [class.selected]="isTransferDestinationSelected(account)">
-                          <input type="radio" formControlName="transferToAccountId" [value]="account.id" />
-                          <span class="account-label">
-                            <span class="account-name">{{ getAccountLabel(account) }}</span>
-                            <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
-                          </span>
-                        </label>
-                      </div>
-                    </section>
+                  <div class="user-list" *ngIf="transferTargetUsers().length > 0; else noTransferTargets">
+                    <label
+                      class="account-option"
+                      *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferUser"
+                      [class.selected]="isTransferDestinationSelected(user)">
+                      <input type="radio" formControlName="transferToAccountId" [value]="user.id" />
+                      <span class="account-label">
+                        <span class="account-name">{{ user.username }}</span>
+                      </span>
+                    </label>
                   </div>
                 </div>
 

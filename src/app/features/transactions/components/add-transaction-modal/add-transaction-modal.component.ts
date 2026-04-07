@@ -7,7 +7,7 @@ import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 import { Account } from '../../../accounts/models/account.model';
-import { AccountService, TransferTargetUserGroup, TransferTargets } from '../../../accounts/services/account.service';
+import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { TransactionCategory, TransactionOpenRequest } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
@@ -59,7 +59,7 @@ export class AddTransactionModalComponent {
   readonly categoryCreated = output<TransactionCategory>();
 
   readonly accounts = signal<Account[]>([]);
-  readonly transferTargets = signal<TransferTargets>({ myAccounts: [], otherUsers: [] });
+  readonly transferTargets = signal<SelectableUser[]>([]);
   readonly addCategoryValue = ADD_CATEGORY_VALUE;
   readonly isLoadingAccounts = signal(false);
   readonly isLoadingTransferTargets = signal(false);
@@ -76,7 +76,6 @@ export class AddTransactionModalComponent {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly selectedTransferFromAccountId = signal<number | null>(null);
   readonly selectedTransferToAccountId = signal<number | null>(null);
-  readonly activeTransferUserId = signal<number | null>(null);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
 
@@ -194,29 +193,9 @@ export class AddTransactionModalComponent {
     return expenseAccounts;
   });
 
-  readonly transferDestinationOptions = computed(() => this.buildTransferDestinationOptions());
-  readonly transferOwnDestinationOptions = computed(() =>
-    this.transferDestinationOptions().filter((option) => option.groupKey === 'accounts.transferOwnAccounts')
-  );
-  readonly transferOtherDestinationOptions = computed(() =>
-    this.transferDestinationOptions().filter((option) => option.groupKey === 'accounts.transferOtherUsers')
-  );
-  readonly hasTransferDestinations = computed(() => this.transferDestinationOptions().length > 0);
   readonly transferSourceAccounts = computed(() => this.ownAccounts());
-  readonly filteredTransferMyAccounts = computed(() =>
-    this.transferTargets().myAccounts.filter((account) => account.id !== this.selectedTransferFromAccountId())
-  );
-  readonly filteredTransferOtherUsers = computed(() =>
-    this.transferTargets().otherUsers
-      .map((group) => ({
-        ...group,
-        accounts: group.accounts.filter((account) => account.id !== this.selectedTransferFromAccountId())
-      }))
-      .filter((group) => group.accounts.length > 0)
-  );
-  readonly hasTransferDestinationTargets = computed(() =>
-    this.filteredTransferMyAccounts().length > 0 || this.filteredTransferOtherUsers().length > 0
-  );
+  readonly transferTargetUsers = computed(() => this.transferTargets());
+  readonly hasTransferDestinationTargets = computed(() => this.transferTargetUsers().length > 0);
   readonly selectedTransferSourceAccount = computed(() => {
     const sourceAccountId = this.selectedTransferFromAccountId();
     if (sourceAccountId === null) {
@@ -457,7 +436,7 @@ export class AddTransactionModalComponent {
       this.accountService.createTransfer({
         amount: parsedAmount,
         fromAccountId: parsedFromAccountId,
-        toAccountId: parsedToAccountId,
+        targetUserId: parsedToAccountId,
         transactionDate,
         comment: trimmedComment
       }).pipe(
@@ -699,8 +678,8 @@ export class AddTransactionModalComponent {
     return option.accountId;
   }
 
-  trackByTransferUser(_index: number, user: TransferTargetUserGroup): number {
-    return user.userId;
+  trackByTransferUser(_index: number, user: SelectableUser): number {
+    return user.id;
   }
 
   trackByAccountId(_index: number, account: Account): number {
@@ -747,16 +726,8 @@ export class AddTransactionModalComponent {
     return this.selectedTransferFromAccountId() === account.id;
   }
 
-  isTransferDestinationSelected(account: Account): boolean {
-    return this.selectedTransferToAccountId() === account.id;
-  }
-
-  isTransferGroupExpanded(userId: number): boolean {
-    return this.activeTransferUserId() === userId;
-  }
-
-  toggleTransferGroup(userId: number): void {
-    this.activeTransferUserId.update((current) => (current === userId ? null : userId));
+  isTransferDestinationSelected(user: SelectableUser): boolean {
+    return this.selectedTransferToAccountId() === user.id;
   }
 
   private resolveErrorMessage(
@@ -897,17 +868,51 @@ export class AddTransactionModalComponent {
       .pipe(finalize(() => this.isLoadingTransferTargets.set(false)))
       .subscribe({
         next: (targets) => {
-          this.transferTargets.set(targets);
+          this.transferTargets.set(targets.users);
           this.ensureDefaultTransferSelections();
         },
         error: () => {
-          this.transferTargets.set({ myAccounts: [], otherUsers: [] });
+          this.transferTargets.set([]);
           this.ensureDefaultTransferSelections();
         }
       });
   }
 
   private applyOpenRequest(request: TransactionOpenRequest): boolean {
+    if (request.categoryId === null || request.categoryId === undefined) {
+      const resolvedType = this.normalizeType(request.type ?? this.transactionType());
+      this.view.set('transaction');
+      this.categoryErrorMessage.set('');
+      this.errorMessage.set('');
+      this.successMessage.set('');
+
+      this.transactionType.set(resolvedType);
+      this.categoryFormType.set(resolvedType === 'TRANSFER' ? 'EXPENSE' : resolvedType);
+      this.syncTransactionControlsForType(resolvedType);
+
+      if (resolvedType === 'TRANSFER') {
+        const preselectedFromAccount = request.preselectedFromAccount ?? request.accountId ?? null;
+        if (preselectedFromAccount !== null) {
+          this.transactionForm.patchValue({
+            transferFromAccountId: String(preselectedFromAccount)
+          }, { emitEvent: false });
+          this.selectedTransferFromAccountId.set(preselectedFromAccount);
+        }
+        this.ensureDefaultTransferSelections();
+      } else {
+        const preselectedAccount = request.preselectedFromAccount ?? request.accountId ?? null;
+        if (preselectedAccount !== null) {
+          this.transactionForm.patchValue({
+            accountId: String(preselectedAccount)
+          }, { emitEvent: false });
+        }
+        this.ensureDefaultIncomeExpenseAccount();
+      }
+
+      this.persistDraft();
+      return true;
+    }
+
     const category = this.categories().find((item) => item.id === request.categoryId);
     if (!category) {
       return false;
@@ -1089,7 +1094,7 @@ export class AddTransactionModalComponent {
     }
 
     const currentDestinationAccountId = this.parseNumber(this.transactionForm.controls.transferToAccountId.getRawValue());
-    if (currentDestinationAccountId !== null && this.transferDestinationOptions().some((option) => option.accountId === currentDestinationAccountId)) {
+    if (currentDestinationAccountId !== null && this.transferTargetUsers().some((user) => user.id === currentDestinationAccountId)) {
       this.selectedTransferToAccountId.set(currentDestinationAccountId);
     }
 
@@ -1123,9 +1128,8 @@ export class AddTransactionModalComponent {
       return;
     }
 
-    const sourceAccountId = this.selectedTransferFromAccountId();
-    const destinationOptions = this.getTransferDestinationAccounts();
-    if (destinationOptions.length === 0) {
+    const destinationUsers = this.transferTargetUsers();
+    if (destinationUsers.length === 0) {
       this.selectedTransferToAccountId.set(null);
       return;
     }
@@ -1133,9 +1137,9 @@ export class AddTransactionModalComponent {
     const draft = this.draftService.value();
     const preferredAccountId = draft.transferToAccountId ?? draft.toAccountId;
     const preferredOption = preferredAccountId !== null
-      ? destinationOptions.find((option) => option.id === preferredAccountId && option.id !== sourceAccountId)
+      ? destinationUsers.find((option) => option.id === preferredAccountId)
       : null;
-    const fallbackOption = destinationOptions.find((option) => option.id !== sourceAccountId) ?? destinationOptions[0];
+    const fallbackOption = destinationUsers[0];
     const selectedOption = preferredOption ?? fallbackOption;
 
     if (selectedOption) {
@@ -1292,45 +1296,6 @@ export class AddTransactionModalComponent {
       type: child.type,
       parentCategoryId: child.parentCategoryId
     }));
-  }
-
-  private buildTransferDestinationOptions(): TransferDestinationOption[] {
-    const sourceAccountId = this.selectedTransferFromAccountId();
-    const currentUserId = this.authService.getUserId();
-    const destinationOptions = new Map<number, TransferDestinationOption>();
-
-    for (const account of this.transferTargets().myAccounts.filter((item) => item.id !== sourceAccountId)) {
-      destinationOptions.set(account.id, {
-        accountId: account.id,
-        value: String(account.id),
-        label: this.getAccountLabel(account),
-        groupKey: account.ownerId === currentUserId
-          ? 'accounts.transferOwnAccounts'
-          : 'accounts.transferOtherUsers'
-      });
-    }
-
-    for (const userGroup of this.transferTargets().otherUsers) {
-      for (const account of userGroup.accounts.filter((item) => item.id !== sourceAccountId)) {
-        destinationOptions.set(account.id, {
-          accountId: account.id,
-          value: String(account.id),
-          label: this.getAccountLabel(account),
-          groupKey: account.ownerId === currentUserId
-            ? 'accounts.transferOwnAccounts'
-            : 'accounts.transferOtherUsers'
-        });
-      }
-    }
-
-    return [...destinationOptions.values()];
-  }
-
-  private getTransferDestinationAccounts(): Account[] {
-    return [
-      ...this.filteredTransferMyAccounts(),
-      ...this.filteredTransferOtherUsers().flatMap((group) => group.accounts)
-    ];
   }
 
   private canUseAccount(account: Account): boolean {

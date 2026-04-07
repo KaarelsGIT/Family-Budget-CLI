@@ -78,8 +78,9 @@ export interface CreateTransactionCategoryPayload {
 
 export interface TransactionOpenRequest {
   type?: 'INCOME' | 'EXPENSE' | 'TRANSFER';
-  categoryId: number;
+  categoryId?: number | null;
   accountId?: number | null;
+  preselectedFromAccount?: number | null;
   amount?: string | null;
   transactionDate?: string | null;
   comment?: string | null;
@@ -102,6 +103,7 @@ export interface UpdateTransactionPayload {
   amount: number;
   fromAccountId?: number | null;
   toAccountId?: number | null;
+  targetUserId?: number | null;
   transactionDate: string;
   comment?: string | null;
 }

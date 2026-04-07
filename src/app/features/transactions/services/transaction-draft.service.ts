@@ -40,6 +40,20 @@ export class TransactionDraftService {
     });
   }
 
+  openTransactionModal(request: {
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+    preselectedFromAccount?: number | null;
+  }): void {
+    this.openRequest.set({
+      type: request.type,
+      categoryId: null,
+      preselectedFromAccount: request.preselectedFromAccount ?? null,
+      amount: null,
+      transactionDate: this.getTodayDate(),
+      comment: ''
+    });
+  }
+
   clearOpenRequest(): void {
     this.openRequest.set(null);
   }
