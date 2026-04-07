@@ -38,6 +38,30 @@ interface SelectableUserApiResponse {
   defaultMainAccountId?: number | null;
 }
 
+interface TransferTargetAccountApiResponse {
+  id: number;
+  name: string;
+  ownerId: number;
+  ownerUsername: string;
+  ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
+  balance: number | string | null;
+  type: 'MAIN' | 'SAVINGS' | 'GOAL' | 'CASH';
+  accessRole?: 'OWNER' | 'EDITOR' | 'VIEWER' | null;
+  sharedUsers?: AccountSharedUserApiResponse[];
+}
+
+interface TransferTargetUserGroupApiResponse {
+  userId: number;
+  username: string;
+  role: 'ADMIN' | 'PARENT' | 'CHILD';
+  accounts: TransferTargetAccountApiResponse[];
+}
+
+interface TransferTargetsApiResponse {
+  myAccounts: TransferTargetAccountApiResponse[];
+  otherUsers: TransferTargetUserGroupApiResponse[];
+}
+
 type AccountPayload = Pick<Account, 'name' | 'type'>;
 type UpdateAccountPayload = Pick<Account, 'name'>;
 interface AdjustBalancePayload {
@@ -61,6 +85,18 @@ export interface SelectableUser {
   username: string;
   role: 'ADMIN' | 'PARENT' | 'CHILD';
   defaultMainAccountId: number | null;
+}
+
+export interface TransferTargetUserGroup {
+  userId: number;
+  username: string;
+  role: 'ADMIN' | 'PARENT' | 'CHILD';
+  accounts: Account[];
+}
+
+export interface TransferTargets {
+  myAccounts: Account[];
+  otherUsers: TransferTargetUserGroup[];
 }
 
 @Injectable({
@@ -135,6 +171,33 @@ export class AccountService {
           ? user.defaultMainAccountId
           : null
       })))
+    );
+  }
+
+  getFilterUsers(): Observable<SelectableUser[]> {
+    return this.http.get<ApiResponse<SelectableUserApiResponse[]>>(`${environment.apiUrl}/filters/users`).pipe(
+      map((response) => response.data.map((user) => ({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        defaultMainAccountId: typeof user.defaultMainAccountId === 'number'
+          ? user.defaultMainAccountId
+          : null
+      })))
+    );
+  }
+
+  getTransferTargets(): Observable<TransferTargets> {
+    return this.http.get<ApiResponse<TransferTargetsApiResponse>>(`${environment.apiUrl}/transfers/targets`).pipe(
+      map((response) => ({
+        myAccounts: response.data.myAccounts.map((account) => this.mapAccount(account)),
+        otherUsers: response.data.otherUsers.map((user) => ({
+          userId: user.userId,
+          username: user.username,
+          role: user.role,
+          accounts: user.accounts.map((account) => this.mapAccount(account))
+        }))
+      }))
     );
   }
 

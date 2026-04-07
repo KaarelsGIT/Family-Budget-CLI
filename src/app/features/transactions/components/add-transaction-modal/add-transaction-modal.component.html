@@ -32,7 +32,6 @@
           <ng-container *ngIf="selectedTransferSourceAccount() as transferSourceAccount; else transferSourceMissing">
             <app-transfer-form
               [sourceAccount]="transferSourceAccount"
-              [accounts]="accounts()"
               (transferred)="onTransferCreated($event)" />
           </ng-container>
 

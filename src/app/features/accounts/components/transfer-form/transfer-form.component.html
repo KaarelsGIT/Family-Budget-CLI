@@ -1,20 +1,56 @@
 <form [formGroup]="form" class="transfer-form" (ngSubmit)="submit()">
-  <label class="field">
-    <span>{{ i18n.translate('accounts.transferTo') }}</span>
-    <select formControlName="transferToAccountId">
-      <option value="" disabled hidden>{{ i18n.translate('accounts.transferTo') }}</option>
-      <optgroup *ngIf="ownDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOwnAccounts')">
-        <option *ngFor="let option of ownDestinationOptions(); trackBy: trackByTransferOption" [attr.value]="option.value">
-          {{ option.label }}
-        </option>
-      </optgroup>
-      <optgroup *ngIf="otherUserDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOtherUsers')">
-        <option *ngFor="let option of otherUserDestinationOptions(); trackBy: trackByTransferOption" [attr.value]="option.value">
-          {{ option.label }}
-        </option>
-      </optgroup>
-    </select>
-  </label>
+  <p class="helper-copy">
+    {{ i18n.translate('accounts.transferAccountHint') }}
+  </p>
+
+  <div class="target-section">
+    <div class="section-header">
+      <span>{{ i18n.translate('accounts.transferOwnAccounts') }}</span>
+    </div>
+
+    <div class="account-list" *ngIf="filteredMyAccounts().length > 0; else noMyAccounts">
+      <label class="account-option" *ngFor="let account of filteredMyAccounts(); trackBy: trackByAccountId">
+        <input type="radio" formControlName="toAccountId" [value]="account.id" />
+        <span class="account-label">
+          <span class="account-name">{{ getAccountLabel(account) }}</span>
+          <span class="account-meta">{{ getAccountDetails(account) }}</span>
+        </span>
+      </label>
+    </div>
+
+    <ng-template #noMyAccounts>
+      <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
+    </ng-template>
+  </div>
+
+  <div class="target-section">
+    <div class="section-header">
+      <span>{{ i18n.translate('accounts.transferOtherUsers') }}</span>
+    </div>
+
+    <div class="other-groups" *ngIf="filteredOtherUsers().length > 0; else noOtherAccounts">
+      <section class="user-group" *ngFor="let group of filteredOtherUsers(); trackBy: trackByTransferTargetUser">
+        <button type="button" class="group-toggle" (click)="toggleGroup(group.userId)">
+          <span>{{ group.username }}</span>
+          <span class="group-state">{{ isGroupExpanded(group.userId) ? '−' : '+' }}</span>
+        </button>
+
+        <div class="group-accounts" *ngIf="isGroupExpanded(group.userId)">
+          <label class="account-option" *ngFor="let account of group.accounts; trackBy: trackByAccountId">
+            <input type="radio" formControlName="toAccountId" [value]="account.id" />
+            <span class="account-label">
+              <span class="account-name">{{ getAccountLabel(account) }}</span>
+              <span class="account-meta">{{ getAccountDetails(account) }}</span>
+            </span>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <ng-template #noOtherAccounts>
+      <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
+    </ng-template>
+  </div>
 
   <label class="field">
     <span>{{ i18n.translate('accounts.transferAmount') }}</span>
@@ -35,11 +71,11 @@
     <textarea rows="3" formControlName="comment"></textarea>
   </label>
 
-  <p class="error-message" *ngIf="!hasDestinations()">{{ i18n.translate('accounts.noSectionAccounts') }}</p>
+  <p class="error-message" *ngIf="!hasTransferTargets()">{{ i18n.translate('accounts.noTransferTargets') }}</p>
   <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
   <div class="modal-actions">
-    <button type="submit" class="primary" [disabled]="isSubmitting() || !hasDestinations() || !isAmountWithinBalance()">
+    <button type="submit" class="primary" [disabled]="isSubmitting() || !hasTransferTargets() || !isAmountWithinBalance()">
       {{ isSubmitting() ? i18n.translate('accounts.processing') : i18n.translate('accounts.transferCreate') }}
     </button>
   </div>

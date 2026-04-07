@@ -109,7 +109,7 @@ export class TransactionsService {
   }
 
   getUsers(): Observable<TransactionUserOption[]> {
-    return this.http.get<ApiResponse<UserApiResponse[]>>(`${environment.apiUrl}/users?selectable=true`).pipe(
+    return this.http.get<ApiResponse<UserApiResponse[]>>(`${environment.apiUrl}/filters/users`).pipe(
       map((response) => response.data.map((user) => ({
         id: user.id,
         username: user.username,

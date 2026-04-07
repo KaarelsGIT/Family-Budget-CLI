@@ -17,7 +17,7 @@
       <label class="field" *ngIf="showUserFilter()">
         <span>{{ i18n.translate('statistics.userFilter') }}</span>
         <select [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
-          <option [ngValue]="null">{{ i18n.translate('statistics.allUsers') }}</option>
+          <option [ngValue]="null" *ngIf="currentUserRole !== 'CHILD'">{{ i18n.translate('statistics.allUsers') }}</option>
           <option *ngFor="let user of userOptions()" [ngValue]="user.id">
             {{ formatUserLabel(user) }}
           </option>

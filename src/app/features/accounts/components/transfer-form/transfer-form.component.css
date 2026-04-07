@@ -15,6 +15,106 @@
   font-weight: 600;
 }
 
+.helper-copy {
+  margin: 0;
+  color: #5b6960;
+  font-size: 13px;
+}
+
+.target-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #dbe5de;
+  border-radius: 12px;
+  background: #f8fbf9;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: #23432f;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.account-list,
+.group-accounts,
+.other-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #cfd8d3;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.account-option input {
+  margin-top: 3px;
+}
+
+.account-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #17361f;
+}
+
+.account-meta {
+  font-size: 12px;
+  color: #5b6960;
+}
+
+.user-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #cfd8d3;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  color: #17361f;
+  cursor: pointer;
+}
+
+.group-state {
+  font-size: 18px;
+  line-height: 1;
+  color: #5b6960;
+}
+
+.empty-message {
+  margin: 0;
+  padding: 10px 0 0;
+  color: #5b6960;
+  font-size: 13px;
+}
+
 .field input,
 .field select,
 .field textarea,

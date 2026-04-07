@@ -489,7 +489,6 @@ export class AddTransactionModalComponent {
       accountId: event.fromAccountId,
       transferFromAccountId: event.fromAccountId,
       transferToAccountId: event.toAccountId,
-      toAccountId: event.toAccountId,
       transactionDate: event.transactionDate,
       amount: String(event.amount),
       comment: event.comment

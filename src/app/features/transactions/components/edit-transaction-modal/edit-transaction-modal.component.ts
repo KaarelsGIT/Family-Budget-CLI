@@ -5,18 +5,11 @@ import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
-import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
+import { AccountService, TransferTargetUserGroup, TransferTargets } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 import { TransactionItem, UpdateTransactionPayload } from '../../models/transaction.model';
 import { TransactionsService } from '../../services/transactions.service';
-
-interface TransferDestinationOption {
-  accountId: number;
-  value: string;
-  label: string;
-  groupKey: 'accounts.transferOwnAccounts' | 'accounts.transferOtherUsers';
-}
 
 @Component({
   selector: 'app-edit-transaction-modal',
@@ -41,7 +34,8 @@ export class EditTransactionModalComponent {
   readonly isLoadingAccounts = signal(false);
   readonly errorMessage = signal('');
   readonly accounts = signal<Account[]>([]);
-  readonly selectableUsers = signal<SelectableUser[]>([]);
+  readonly transferTargets = signal<TransferTargets>({ myAccounts: [], otherUsers: [] });
+  readonly expandedUserIds = signal<Set<number>>(new Set());
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
 
@@ -93,6 +87,19 @@ export class EditTransactionModalComponent {
 
   readonly transferSourceOptions = computed(() => this.ownAccounts());
 
+  readonly filteredMyAccounts = computed(() =>
+    this.transferTargets().myAccounts.filter((account) => account.id !== this.selectedSourceAccountId())
+  );
+
+  readonly filteredOtherUsers = computed(() =>
+    this.transferTargets().otherUsers
+      .map((group) => ({
+        ...group,
+        accounts: group.accounts.filter((account) => account.id !== this.selectedSourceAccountId())
+      }))
+      .filter((group) => group.accounts.length > 0)
+  );
+
   readonly selectedTransferSourceAccount = computed(() => {
     const sourceAccountId = this.parseNumber(this.form.controls.fromAccountId.getRawValue()) ?? this.transaction().fromAccountId;
     if (sourceAccountId === null) {
@@ -102,12 +109,8 @@ export class EditTransactionModalComponent {
     return this.transferSourceOptions().find((account) => account.id === sourceAccountId) ?? null;
   });
 
-  readonly transferDestinationOptions = computed(() => this.buildTransferDestinationOptions());
-  readonly transferOwnDestinationOptions = computed(() =>
-    this.transferDestinationOptions().filter((option) => option.groupKey === 'accounts.transferOwnAccounts')
-  );
-  readonly transferOtherDestinationOptions = computed(() =>
-    this.transferDestinationOptions().filter((option) => option.groupKey === 'accounts.transferOtherUsers')
+  readonly hasTransferTargets = computed(() =>
+    this.filteredMyAccounts().length > 0 || this.filteredOtherUsers().length > 0
   );
 
   constructor() {
@@ -118,7 +121,9 @@ export class EditTransactionModalComponent {
       this.form.patchValue({
         amount: transaction.amount,
         fromAccountId: transaction.type === 'TRANSFER' ? String(transaction.fromAccountId ?? '') : '',
-        toAccountId: transaction.type === 'TRANSFER' ? String(transaction.toAccountId ?? '') : '',
+        toAccountId: transaction.type === 'TRANSFER'
+          ? String(transaction.toAccountId ?? '')
+          : '',
         transactionDate: transaction.transactionDate,
         comment: transaction.comment ?? ''
       }, { emitEvent: false });
@@ -202,11 +207,6 @@ export class EditTransactionModalComponent {
         return;
       }
 
-      if (parsedFromAccountId === parsedToAccountId) {
-        this.errorMessage.set(this.i18n.translate('transactions.transferSameAccount'));
-        return;
-      }
-
       if (!this.isTransferAmountWithinBalance(parsedFromAccountId, parsedAmount)) {
         this.errorMessage.set(this.i18n.translate('transactions.balanceWouldGoNegative'));
         return;
@@ -259,8 +259,7 @@ export class EditTransactionModalComponent {
   }
 
   getCurrentTransferDestinationLabel(): string {
-    const target = this.getTransferDestinationLabel(this.parseNumber(this.form.controls.toAccountId.getRawValue()) ?? this.transaction().toAccountId);
-    return target ?? this.transaction().toAccountName ?? '—';
+    return this.getSelectedTransferDestinationAccount()?.name ?? this.transaction().toAccountName ?? '—';
   }
 
   formatCurrentAmount(): string {
@@ -275,8 +274,24 @@ export class EditTransactionModalComponent {
     return account.id;
   }
 
-  trackByTransferOption(_index: number, option: TransferDestinationOption): number {
-    return option.accountId;
+  trackByTransferTargetUser(_index: number, user: TransferTargetUserGroup): number {
+    return user.userId;
+  }
+
+  isGroupExpanded(userId: number): boolean {
+    return this.expandedUserIds().has(userId);
+  }
+
+  toggleGroup(userId: number): void {
+    this.expandedUserIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
   }
 
   private loadAccounts(): void {
@@ -284,71 +299,28 @@ export class EditTransactionModalComponent {
 
     forkJoin({
       accounts: this.accountService.getAccounts(),
-      users: this.accountService.getSelectableUsers()
+      transferTargets: this.accountService.getTransferTargets()
     }).pipe(
       finalize(() => this.isLoadingAccounts.set(false))
     ).subscribe({
-      next: ({ accounts, users }) => {
+      next: ({ accounts, transferTargets }) => {
         this.accounts.set(accounts);
-        this.selectableUsers.set(users);
+        this.transferTargets.set(transferTargets);
+        this.ensureValidTransferSelection();
       },
       error: () => {
         this.accounts.set([]);
-        this.selectableUsers.set([]);
+        this.transferTargets.set({ myAccounts: [], otherUsers: [] });
       }
     });
   }
 
-  private buildTransferDestinationOptions(): TransferDestinationOption[] {
-    if (!this.isTransfer()) {
-      return [];
-    }
-
-    const currentUserId = this.currentUserId;
-    const sourceAccountId = this.parseNumber(this.form.controls.fromAccountId.getRawValue()) ?? this.transaction().fromAccountId;
-    const destinationOptions = new Map<number, TransferDestinationOption>();
-
-    for (const account of this.ownAccounts()) {
-      if (account.id === sourceAccountId) {
-        continue;
-      }
-
-      destinationOptions.set(account.id, {
-        accountId: account.id,
-        value: String(account.id),
-        label: account.ownerId === currentUserId ? account.name : `${account.name} · ${account.ownerUsername}`,
-        groupKey: account.ownerId === currentUserId
-          ? 'accounts.transferOwnAccounts'
-          : 'accounts.transferOtherUsers'
-      });
-    }
-
-    for (const user of this.selectableUsers()) {
-      if (currentUserId !== null && user.id === currentUserId) {
-        continue;
-      }
-
-      if (user.defaultMainAccountId === null || user.defaultMainAccountId === sourceAccountId) {
-        continue;
-      }
-
-      if (destinationOptions.has(user.defaultMainAccountId)) {
-        continue;
-      }
-
-      destinationOptions.set(user.defaultMainAccountId, {
-        accountId: user.defaultMainAccountId,
-        value: String(user.defaultMainAccountId),
-        label: user.username,
-        groupKey: 'accounts.transferOtherUsers'
-      });
-    }
-
-    return [...destinationOptions.values()];
-  }
-
   private ensureValidTransferSelection(): void {
-    const options = this.transferDestinationOptions();
+    if (!this.isTransfer()) {
+      return;
+    }
+
+    const options = [...this.filteredMyAccounts(), ...this.filteredOtherUsers().flatMap((group) => group.accounts)];
     if (options.length === 0) {
       return;
     }
@@ -361,7 +333,7 @@ export class EditTransactionModalComponent {
 
     const currentToAccountId = this.parseNumber(this.form.controls.toAccountId.getRawValue()) ?? this.transaction().toAccountId;
     const validSource = this.transferSourceOptions().some((account) => account.id === currentFromAccountId);
-    const validDestination = options.some((option) => option.accountId === currentToAccountId);
+    const validDestination = currentToAccountId !== null && options.some((option) => option.id === currentToAccountId);
 
     if (!validSource) {
       const sourceAccount = this.transferSourceOptions().find((account) => account.id === this.transaction().fromAccountId)
@@ -374,7 +346,7 @@ export class EditTransactionModalComponent {
     if (!validDestination) {
       const destination = options[0];
       if (destination) {
-        this.form.patchValue({ toAccountId: destination.value }, { emitEvent: false });
+        this.form.patchValue({ toAccountId: String(destination.id) }, { emitEvent: false });
       }
     }
   }
@@ -396,18 +368,18 @@ export class EditTransactionModalComponent {
     return amount <= sourceAccount.balance && canTransactFromAccount(sourceAccount, this.currentUserId, this.currentUserRole);
   }
 
-  private getTransferDestinationLabel(accountId: number | null): string | null {
-    if (accountId === null) {
+  private selectedSourceAccountId(): number | null {
+    return this.parseNumber(this.form.controls.fromAccountId.getRawValue()) ?? this.transaction().fromAccountId;
+  }
+
+  private getSelectedTransferDestinationAccount(): Account | null {
+    const selectedAccountId = this.parseNumber(this.form.controls.toAccountId.getRawValue()) ?? this.transaction().toAccountId;
+    if (selectedAccountId === null) {
       return null;
     }
 
-    const option = this.transferDestinationOptions().find((candidate) => candidate.accountId === accountId);
-    if (option) {
-      return option.label;
-    }
-
-    const account = this.accounts().find((candidate) => candidate.id === accountId);
-    return account ? account.name : null;
+    return [...this.filteredMyAccounts(), ...this.filteredOtherUsers().flatMap((group) => group.accounts)]
+      .find((account) => account.id === selectedAccountId) ?? null;
   }
 
   private resolveErrorMessage(error: { error?: { message?: string } }): string {

@@ -37,25 +37,60 @@
             </select>
           </label>
 
-          <label class="field">
+          <div class="field">
             <span>{{ i18n.translate('accounts.transferTo') }}</span>
-            <select formControlName="toAccountId">
-              <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
-              <optgroup *ngIf="transferOwnDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOwnAccounts')">
-                <option *ngFor="let option of transferOwnDestinationOptions(); trackBy: trackByTransferOption" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </optgroup>
-              <optgroup *ngIf="transferOtherDestinationOptions().length > 0" [label]="i18n.translate('accounts.transferOtherUsers')">
-                <option *ngFor="let option of transferOtherDestinationOptions(); trackBy: trackByTransferOption" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </optgroup>
-            </select>
-          </label>
+
+            <div class="target-section">
+              <div class="section-header">
+                <span>{{ i18n.translate('accounts.transferOwnAccounts') }}</span>
+              </div>
+              <div class="account-list" *ngIf="filteredMyAccounts().length > 0; else noMyTransferAccounts">
+                <label class="account-option" *ngFor="let account of filteredMyAccounts(); trackBy: trackByAccountId">
+                  <input type="radio" formControlName="toAccountId" [value]="account.id" />
+                  <span class="account-label">
+                    <span class="account-name">{{ account.name }}</span>
+                    <span class="account-meta">{{ account.ownerUsername }}</span>
+                  </span>
+                </label>
+              </div>
+              <ng-template #noMyTransferAccounts>
+                <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
+              </ng-template>
+            </div>
+
+            <div class="target-section">
+              <div class="section-header">
+                <span>{{ i18n.translate('accounts.transferOtherUsers') }}</span>
+              </div>
+              <div class="other-groups" *ngIf="filteredOtherUsers().length > 0; else noOtherTransferAccounts">
+                <section class="user-group" *ngFor="let group of filteredOtherUsers(); trackBy: trackByTransferTargetUser">
+                  <button type="button" class="group-toggle" (click)="toggleGroup(group.userId)">
+                    <span>{{ group.username }}</span>
+                    <span class="group-state">{{ isGroupExpanded(group.userId) ? '−' : '+' }}</span>
+                  </button>
+
+                  <div class="group-accounts" *ngIf="isGroupExpanded(group.userId)">
+                    <label class="account-option" *ngFor="let account of group.accounts; trackBy: trackByAccountId">
+                      <input type="radio" formControlName="toAccountId" [value]="account.id" />
+                      <span class="account-label">
+                        <span class="account-name">{{ account.name }}</span>
+                        <span class="account-meta">{{ account.ownerUsername }}</span>
+                      </span>
+                    </label>
+                  </div>
+                </section>
+              </div>
+              <ng-template #noOtherTransferAccounts>
+                <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
+              </ng-template>
+            </div>
+          </div>
         </div>
 
         <p class="state-message" *ngIf="isLoadingAccounts()">{{ i18n.translate('transactions.loadingAccounts') }}</p>
+        <p class="error-message" *ngIf="!hasTransferTargets()">
+          {{ i18n.translate('accounts.noTransferTargets') }}
+        </p>
       </ng-container>
 
       <ng-template #regularTransactionFields>
@@ -81,7 +116,7 @@
 
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
-        <button type="submit" class="primary" [disabled]="isSubmitting() || (isTransfer() && isLoadingAccounts())">
+        <button type="submit" class="primary" [disabled]="isSubmitting() || (isTransfer() && (isLoadingAccounts() || !hasTransferTargets()))">
           {{ isSubmitting() ? i18n.translate('transactions.editing') : i18n.translate('transactions.saveChanges') }}
         </button>
       </div>

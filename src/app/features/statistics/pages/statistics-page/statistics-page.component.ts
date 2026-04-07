@@ -65,6 +65,7 @@ export class StatisticsPageComponent {
 
   readonly currentYear = new Date().getFullYear();
   readonly currentUserId = this.authService.getUserId();
+  readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
   readonly selectedUserId = signal<number | null>(this.currentUserId);
   readonly selectedAccountId = signal<number | null>(null);
@@ -91,7 +92,7 @@ export class StatisticsPageComponent {
     return [...this.accounts()].sort((left, right) => left.name.localeCompare(right.name));
   });
 
-  readonly showUserFilter = computed(() => this.userOptions().length > 1);
+  readonly showUserFilter = computed(() => this.userOptions().length > 0);
 
   readonly monthlyBars = computed(() => this.buildMonthlyBars());
   readonly monthlyChartTicks = computed(() => this.buildMonthlyTicks());
@@ -192,7 +193,7 @@ export class StatisticsPageComponent {
 
     forkJoin({
       accounts: this.accountService.getAccounts(),
-      users: this.accountService.getSelectableUsers()
+      users: this.accountService.getFilterUsers()
     }).pipe(finalize(() => {
       this.isLoadingAccounts.set(false);
       this.isLoadingUsers.set(false);
