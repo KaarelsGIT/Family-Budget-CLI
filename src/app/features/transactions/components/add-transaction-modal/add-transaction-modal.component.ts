@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney, parseMoneyInput } from '../../../../shared/utils/money-format';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
@@ -421,7 +421,7 @@ export class AddTransactionModalComponent {
 
     if (this.transactionType() === 'TRANSFER') {
       const { transferFromAccountId, transferToAccountId, transactionDate, amount, comment } = this.transactionForm.getRawValue();
-      const parsedAmount = Number(amount);
+      const parsedAmount = parseMoneyInput(amount);
       const trimmedComment = (comment || '').trim();
       const parsedFromAccountId = this.parseNumber(transferFromAccountId);
       const parsedToAccountId = this.parseNumber(transferToAccountId);
@@ -495,7 +495,7 @@ export class AddTransactionModalComponent {
       amount,
       comment
     } = this.transactionForm.getRawValue();
-    const parsedAmount = Number(amount);
+    const parsedAmount = parseMoneyInput(amount);
     const trimmedComment = (comment || '').trim();
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
@@ -715,7 +715,7 @@ export class AddTransactionModalComponent {
     }
 
     const selectedAccountId = this.parseNumber(this.transactionForm.controls.accountId.getRawValue());
-    const amount = Number(this.transactionForm.controls.amount.getRawValue());
+    const amount = parseMoneyInput(this.transactionForm.controls.amount.getRawValue());
     if (selectedAccountId === null || !Number.isFinite(amount) || amount <= 0) {
       return true;
     }
@@ -729,7 +729,7 @@ export class AddTransactionModalComponent {
     }
 
     const selectedAccountId = this.parseNumber(this.transactionForm.controls.transferFromAccountId.getRawValue());
-    const amount = Number(this.transactionForm.controls.amount.getRawValue());
+    const amount = parseMoneyInput(this.transactionForm.controls.amount.getRawValue());
     if (selectedAccountId === null || !Number.isFinite(amount) || amount <= 0) {
       return true;
     }
@@ -742,7 +742,19 @@ export class AddTransactionModalComponent {
   }
 
   getTransferAccountDetails(account: Account): string {
-    return `${account.ownerUsername} · ${formatEuroAmount(account.balance, this.i18n.language())}`;
+    return `${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
   }
 
   isTransferSourceSelected(account: Account): boolean {

@@ -87,6 +87,8 @@
 
 .summary-card strong {
   font-size: 24px;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .summary-card--income strong,

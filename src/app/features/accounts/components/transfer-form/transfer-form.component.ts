@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, output, signal } from '@ang
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney, parseMoneyInput } from '../../../../shared/utils/money-format';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService, SelectableUser } from '../../services/account.service';
@@ -77,11 +77,18 @@ export class TransferFormComponent {
     }
 
     const { amount, comment, transactionDate, toAccountId } = this.form.getRawValue();
+    const parsedAmount = parseMoneyInput(amount);
     const parsedToAccountId = Number.parseInt(toAccountId, 10);
     const selectedCurrentUser = this.transferTargetUsers().find((user) => user.isCurrentUser) ?? null;
     const selectedOwnAccount = selectedCurrentUser?.accounts.find((account) => account.id === parsedToAccountId) ?? null;
 
     if (!Number.isFinite(parsedToAccountId) || parsedToAccountId < 1) {
+      this.setError(this.i18n.translate('accounts.transferTo'));
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    if (!Number.isFinite(parsedAmount)) {
       this.setError(this.i18n.translate('accounts.transferTo'));
       this.form.markAllAsTouched();
       return;
@@ -97,7 +104,7 @@ export class TransferFormComponent {
     this.isSubmitting.set(true);
 
     this.accountService.createTransfer({
-      amount,
+      amount: parsedAmount,
       fromAccountId: this.sourceAccount().id,
       targetUserId: selectedOwnAccount ? null : parsedToAccountId,
       toAccountId: selectedOwnAccount ? parsedToAccountId : null,
@@ -108,7 +115,7 @@ export class TransferFormComponent {
     ).subscribe({
       next: () => {
         this.transferred.emit({
-          amount,
+          amount: parsedAmount,
           transactionDate,
           comment,
           fromAccountId: this.sourceAccount().id,
@@ -154,7 +161,7 @@ export class TransferFormComponent {
   }
 
   isAmountWithinBalance(): boolean {
-    const amount = Number(this.form.controls.amount.value);
+    const amount = parseMoneyInput(this.form.controls.amount.value);
     if (!Number.isFinite(amount) || amount <= 0) {
       return false;
     }
@@ -167,7 +174,19 @@ export class TransferFormComponent {
   }
 
   getAccountDetails(account: Account): string {
-    return `${account.ownerUsername} · ${formatEuroAmount(account.balance, this.i18n.language())}`;
+    return `${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
   }
 
   private ensureDefaultTargetAccountSelected(): void {

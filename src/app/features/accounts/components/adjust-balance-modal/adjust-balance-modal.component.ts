@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
+import { formatMoney, parseMoneyInput } from '../../../../shared/utils/money-format';
 
 @Component({
   selector: 'app-adjust-balance-modal',
@@ -34,6 +35,10 @@ export class AdjustBalanceModalComponent {
     this.closed.emit();
   }
 
+  formatBalance(value: number): string {
+    return formatMoney(value);
+  }
+
   submit(): void {
     if (this.form.invalid || this.isSubmitting()) {
       this.form.markAllAsTouched();
@@ -41,8 +46,9 @@ export class AdjustBalanceModalComponent {
     }
 
     const { amount, comment } = this.form.getRawValue();
+    const parsedAmount = parseMoneyInput(amount);
     const trimmedComment = comment.trim();
-    if (!Number.isFinite(amount) || amount === 0) {
+    if (!Number.isFinite(parsedAmount) || parsedAmount === 0) {
       this.errorMessage.set(this.i18n.translate('accounts.adjustBalanceInvalid'));
       this.form.markAllAsTouched();
       return;
@@ -58,7 +64,7 @@ export class AdjustBalanceModalComponent {
     this.isSubmitting.set(true);
 
     this.accountService.adjustBalance(this.account().id, {
-      amount,
+      amount: parsedAmount,
       comment: trimmedComment
     }).pipe(
       finalize(() => this.isSubmitting.set(false))
@@ -71,5 +77,17 @@ export class AdjustBalanceModalComponent {
         this.errorMessage.set(error.error?.message || this.i18n.translate('accounts.adjustBalanceFailed'));
       }
     });
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
   }
 }

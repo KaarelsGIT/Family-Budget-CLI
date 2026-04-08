@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { TranslationService } from '../../../../i18n/translation.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 
 type CategoryTab = 'income' | 'expenses';
 
@@ -71,7 +71,7 @@ export class CategoryTableComponent {
   }
 
   formatAmount(value: number): string {
-    return formatEuroAmount(value, this.i18n.language());
+    return formatMoney(value);
   }
 
   rowTotal(row: CategoryTableRow): number {

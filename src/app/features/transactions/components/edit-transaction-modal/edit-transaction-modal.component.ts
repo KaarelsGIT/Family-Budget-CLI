@@ -8,7 +8,7 @@ import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { buildTransferTargetUsers, shouldShowMyAccountsSection, TransferTargetUser } from '../../../accounts/utils/transfer-targets';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney, parseMoneyInput } from '../../../../shared/utils/money-format';
 import { TransactionItem, UpdateTransactionPayload } from '../../models/transaction.model';
 import { TransactionsService } from '../../services/transactions.service';
 
@@ -176,7 +176,7 @@ export class EditTransactionModalComponent {
     }
 
     const { amount, fromAccountId, toAccountId, transactionDate, comment } = this.form.getRawValue();
-    const parsedAmount = Number(amount);
+    const parsedAmount = parseMoneyInput(amount);
     const trimmedComment = (comment || '').trim();
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
@@ -257,7 +257,19 @@ export class EditTransactionModalComponent {
   }
 
   formatCurrentAmount(): string {
-    return formatEuroAmount(this.transaction().amount, this.i18n.language());
+    return formatMoney(this.transaction().amount);
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
   }
 
   getModalTransform(): string {

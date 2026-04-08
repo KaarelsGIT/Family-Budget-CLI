@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 import { TransactionCategory } from '../../models/transaction.model';
 import { RecurringPaymentModalComponent } from '../../components/recurring-payment-modal/recurring-payment-modal.component';
 import { RecurringPaymentItem, RecurringPaymentService } from '../../services/recurring-payment.service';
@@ -96,7 +96,7 @@ export class RecurringPaymentsPageComponent {
   }
 
   formatAmount(amount: number): string {
-    return formatEuroAmount(amount, this.i18n.language());
+    return formatMoney(amount);
   }
 
   formatStatusLabel(payment: RecurringPaymentItem): string {

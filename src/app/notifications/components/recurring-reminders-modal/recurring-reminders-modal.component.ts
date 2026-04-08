@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { TranslationService } from '../../../i18n/translation.service';
-import { formatEuroAmount } from '../../../shared/utils/money-format';
+import { formatMoney } from '../../../shared/utils/money-format';
 import { RecurringReminderItem, RecurringReminderService } from '../../recurring-reminder.service';
 import { TransactionDraftService } from '../../../features/transactions/services/transaction-draft.service';
 import { Router } from '@angular/router';
@@ -60,7 +60,7 @@ export class RecurringRemindersModalComponent {
       return this.i18n.translate('recurringReminders.amountUnknown');
     }
 
-    return formatEuroAmount(value, this.i18n.language());
+    return formatMoney(value);
   }
 
   pay(reminder: RecurringReminderItem): void {

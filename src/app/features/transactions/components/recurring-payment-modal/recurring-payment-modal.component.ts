@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { RecurringPaymentItem, RecurringPaymentPayload, RecurringPaymentService } from '../../services/recurring-payment.service';
 import { TransactionCategory } from '../../models/transaction.model';
+import { parseMoneyInput } from '../../../../shared/utils/money-format';
 
 @Component({
   selector: 'app-recurring-payment-modal',
@@ -142,7 +143,7 @@ export class RecurringPaymentModalComponent {
     const { name, categoryId, amount, dueDay, active } = this.form.getRawValue();
     const trimmedName = name.trim();
     const parsedCategoryId = Number(categoryId);
-    const parsedAmount = Number(amount);
+    const parsedAmount = parseMoneyInput(amount);
     const parsedDueDay = Number(dueDay);
 
     if (!trimmedName) {
@@ -188,6 +189,18 @@ export class RecurringPaymentModalComponent {
           this.errorMessage.set(this.resolveErrorMessage(error));
         }
       });
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
   }
 
   isEditMode(): boolean {

@@ -35,7 +35,7 @@
               (click)="toggleRow(row.key)"
               [attr.aria-label]="categoryButtonLabel(row.key)"
               [attr.title]="categoryButtonLabel(row.key)">
-              {{ isExpanded(row.key) ? '−' : '+' }}
+              {{ isExpanded(row.key) ? '▼' : '▶' }}
             </button>
 
             <span class="category-name" [style.paddingLeft.px]="row.depth * 20">

@@ -6,7 +6,7 @@ import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 import { CategoryTableComponent, CategoryTableNode } from '../../components/category-table/category-table.component';
 import {
   StatisticsService,
@@ -146,7 +146,7 @@ export class StatisticsPageComponent {
   }
 
   formatAmount(value: number): string {
-    return formatEuroAmount(value, this.i18n.language());
+    return formatMoney(value);
   }
 
   formatPercent(value: number): string {

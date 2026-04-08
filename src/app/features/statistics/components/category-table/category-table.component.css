@@ -52,19 +52,20 @@
 }
 
 .table-scroll {
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .category-grid {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1080px;
+  table-layout: fixed;
+  font-size: 0.9rem;
 }
 
 .category-grid th,
 .category-grid td {
   border-bottom: 1px solid #e5ece6;
-  padding: 12px 10px;
+  padding: 10px 8px;
   text-align: left;
   vertical-align: middle;
 }
@@ -86,15 +87,19 @@
 }
 
 .category-column {
-  width: 24%;
+  width: 170px;
+  max-width: 170px;
+  min-width: 160px;
 }
 
 .total-column {
-  width: 9%;
+  width: 100px;
+  min-width: 100px;
 }
 
 .month-column {
-  width: 5.5%;
+  width: 5.7%;
+  min-width: 0;
   text-align: right;
 }
 
@@ -102,15 +107,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .category-name {
   display: inline-block;
+  min-width: 0;
+  max-width: 100%;
   font-weight: 600;
   color: #213029;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .child-row .category-name {
+  font-size: 0.85rem;
+  opacity: 0.78;
   font-weight: 500;
 }
 
@@ -118,6 +131,14 @@
 .month-cell {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.month-cell {
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .parent-row {

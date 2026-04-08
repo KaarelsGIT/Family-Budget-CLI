@@ -65,7 +65,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-                <input type="number" min="0.01" step="0.01" formControlName="amount" />
+                <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
                 <p class="error-message" *ngIf="transactionType() === 'EXPENSE' && !isExpenseAmountWithinBalance() && transactionForm.controls.amount.value">
                   {{ i18n.translate('transactions.balanceWouldGoNegative') }}
                 </p>
@@ -123,7 +123,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-                <input type="number" min="0.01" step="0.01" formControlName="amount" />
+                <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
               </label>
 
               <label class="field">
@@ -231,7 +231,7 @@
             <div class="form-grid transfer-details-grid">
               <label class="field">
                 <span>{{ i18n.translate('accounts.transferAmount') }}</span>
-                <input type="number" min="0.01" step="0.01" formControlName="amount" />
+                <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
               </label>
 
               <label class="field">

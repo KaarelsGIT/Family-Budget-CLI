@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 import { TransactionCategory } from '../../../transactions/models/transaction.model';
 import { TransactionsService } from '../../../transactions/services/transactions.service';
 import { CategoryEditorModalComponent } from '../../components/category-editor-modal/category-editor-modal.component';
@@ -161,7 +161,7 @@ export class CategoryManagementPageComponent {
       return '—';
     }
 
-    return formatEuroAmount(amount, this.i18n.language());
+    return formatMoney(amount);
   }
 
   isRecurringEditable(category: TransactionCategory): boolean {

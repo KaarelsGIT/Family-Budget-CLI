@@ -8,6 +8,7 @@ import {
   TransactionCategory
 } from '../../../transactions/models/transaction.model';
 import { TransactionsService } from '../../../transactions/services/transactions.service';
+import { parseMoneyInput } from '../../../../shared/utils/money-format';
 
 type TransactionType = 'INCOME' | 'EXPENSE';
 type CategoryGroup = 'FAMILY' | 'CHILD';
@@ -107,7 +108,7 @@ export class CategoryEditorModalComponent {
 
     let parsedRecurringAmount: number | null = null;
     if (recurringEnabled) {
-      const candidate = Number.parseFloat(String(this.form.controls.recurringAmount.value ?? ''));
+      const candidate = parseMoneyInput(this.form.controls.recurringAmount.value);
       if (!Number.isFinite(candidate) || candidate <= 0) {
         this.errorMessage.set(this.i18n.translate('categories.recurringAmountInvalid'));
         this.form.markAllAsTouched();
@@ -272,6 +273,18 @@ export class CategoryEditorModalComponent {
     }
     this.form.controls.recurringAmount.updateValueAndValidity({ emitEvent: false });
     dueDayControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
   }
 
   private getFallbackError(mode: EditorMode): string {

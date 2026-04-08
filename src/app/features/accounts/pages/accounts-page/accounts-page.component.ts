@@ -10,7 +10,7 @@ import { ShareAccountModalComponent } from '../../components/share-account-modal
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { TransactionDraftService } from '../../../transactions/services/transaction-draft.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 
 interface AccountOwnerGroup {
   ownerId: number;
@@ -146,7 +146,7 @@ export class AccountsPageComponent {
   }
 
   formatBalance(value: number): string {
-    return formatEuroAmount(value, this.i18n.language());
+    return formatMoney(value);
   }
 
   getGroupTotal(accounts: Account[]): number {

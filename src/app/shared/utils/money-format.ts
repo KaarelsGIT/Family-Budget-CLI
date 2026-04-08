@@ -1,14 +1,9 @@
 import { LanguageCode } from '../../i18n/translation.service';
 
-const LOCALE_BY_LANGUAGE: Record<LanguageCode, string> = {
-  et: 'et-EE',
-  en: 'en-GB',
-  fi: 'fi-FI'
-};
+const MONEY_LOCALE = 'et-EE';
 
-export function formatEuroAmount(value: number, language: LanguageCode): string {
-  const locale = LOCALE_BY_LANGUAGE[language] ?? LOCALE_BY_LANGUAGE.et;
-  const formattedNumber = new Intl.NumberFormat(locale, {
+export function formatMoney(value: number): string {
+  return new Intl.NumberFormat(MONEY_LOCALE, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true
@@ -17,6 +12,25 @@ export function formatEuroAmount(value: number, language: LanguageCode): string 
     .map((part) => (part.type === 'group' ? ' ' : part.value))
     .join('')
     .replace(/\s+/g, ' ');
+}
 
-  return `${formattedNumber} €`;
+export function parseMoneyInput(value: string | number | null | undefined): number {
+  if (value === null || value === undefined) {
+    return Number.NaN;
+  }
+
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  const normalized = value.trim().replace(/,/g, '.');
+  if (normalized === '') {
+    return Number.NaN;
+  }
+
+  return Number.parseFloat(normalized);
+}
+
+export function formatEuroAmount(value: number, language: LanguageCode): string {
+  return `${formatMoney(value)} €`;
 }

@@ -18,7 +18,7 @@ import {
 } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
 import { TransactionsService } from '../../services/transactions.service';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 
 type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'createdBy.username' | 'category.name' | 'type';
 type TransactionFilterType = TransactionItem['type'] | null;
@@ -308,7 +308,7 @@ export class TransactionsPageComponent {
   }
 
   formatAmount(value: number): string {
-    return formatEuroAmount(value, this.i18n.language());
+    return formatMoney(value);
   }
 
   formatDate(value: string): string {

@@ -6,7 +6,7 @@ import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { EditAccountInlineComponent } from '../edit-account-inline/edit-account-inline.component';
-import { formatEuroAmount } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../../shared/utils/money-format';
 import { canShareAccount as canShareAccountForUser, canTransactFromAccount } from '../../utils/account-access';
 
 @Component({
@@ -115,7 +115,7 @@ export class AccountCardComponent {
   }
 
   formatBalance(balance: number): string {
-    return formatEuroAmount(balance, this.i18n.language());
+    return formatMoney(balance);
   }
 
   hasAccentColor(): boolean {
