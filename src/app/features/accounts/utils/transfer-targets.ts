@@ -40,7 +40,10 @@ export function buildTransferTargetUsers(
   const currentUserAccounts = currentUserId === null
     ? []
     : [...accounts]
-        .filter((account) => account.ownerId === currentUserId)
+        .filter((account) =>
+          account.ownerId === currentUserId ||
+          account.sharedUsers?.some((sharedUser) => sharedUser.userId === currentUserId)
+        )
         .sort((left, right) => {
           if (left.type !== right.type) {
             return accountTypeOrder[left.type] - accountTypeOrder[right.type];
