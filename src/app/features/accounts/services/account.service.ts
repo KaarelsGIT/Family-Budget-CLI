@@ -53,8 +53,9 @@ interface ShareAccountPayload {
 interface CreateTransferPayload {
   amount: number;
   fromAccountId: number;
-  toAccountId?: number;
-  targetUserId?: number;
+  toAccountId?: number | null;
+  targetAccountId?: number | null;
+  targetUserId?: number | null;
   transactionDate?: string | null;
   comment?: string;
 }
@@ -119,13 +120,12 @@ export class AccountService {
   }
 
   createTransfer(payload: CreateTransferPayload): Observable<void> {
-    const targetUserId = payload.targetUserId ?? payload.toAccountId ?? null;
     return this.http.post<ApiResponse<unknown>>(`${environment.apiUrl}/transactions`, {
       amount: payload.amount,
       type: 'TRANSFER',
       fromAccountId: payload.fromAccountId,
-      targetUserId,
-      toAccountId: targetUserId,
+      targetUserId: payload.targetUserId ?? null,
+      toAccountId: payload.targetAccountId ?? payload.toAccountId ?? null,
       categoryId: null,
       transactionDate: payload.transactionDate || null,
       comment: payload.comment || null

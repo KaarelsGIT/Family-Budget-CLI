@@ -41,13 +41,43 @@
             <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
 
             <div class="target-section">
-              <div class="account-list" *ngIf="transferTargetUsers().length > 0; else noTransferAccounts">
-                <label class="account-option" *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
-                  <input type="radio" formControlName="toAccountId" [value]="user.id" />
-                  <span class="account-label">
-                    <span class="account-name">{{ user.username }}</span>
-                  </span>
-                </label>
+              <div class="account-list" *ngIf="hasTransferTargets(); else noTransferAccounts">
+                <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
+                  <ng-container *ngIf="!user.isCurrentUser; else currentUserTransferTarget">
+                    <label
+                      class="account-option"
+                      [class.selected]="form.controls.toAccountId.value === '' + user.id">
+                      <input type="radio" formControlName="toAccountId" [value]="user.id" (change)="selectTransferTarget(user.id)" />
+                      <span class="account-label">
+                        <span class="account-name">{{ user.username }}</span>
+                      </span>
+                    </label>
+                  </ng-container>
+
+                  <ng-template #currentUserTransferTarget>
+                    <div class="user-group current-user-group" *ngIf="shouldShowMyAccountsSection(user); else hiddenCurrentUserTarget">
+                      <button type="button" class="group-toggle" (click)="toggleTransferTargetExpansion(user)">
+                        <span>{{ i18n.translate('accounts.myAccounts') }}</span>
+                        <span class="group-state">{{ isExpandedTransferTarget(user) ? '▾' : '▸' }}</span>
+                      </button>
+
+                      <div class="group-accounts" *ngIf="isExpandedTransferTarget(user)">
+                        <label
+                          class="account-option"
+                          *ngFor="let account of user.accounts; trackBy: trackByAccountId"
+                          [class.selected]="form.controls.toAccountId.value === '' + account.id">
+                          <input type="radio" formControlName="toAccountId" [value]="account.id" (change)="selectTransferTarget(account.id)" />
+                          <span class="account-label">
+                            <span class="account-name">{{ account.name }}</span>
+                            <span class="account-meta">{{ account.ownerUsername }}</span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </ng-template>
+
+                  <ng-template #hiddenCurrentUserTarget></ng-template>
+                </ng-container>
               </div>
               <ng-template #noTransferAccounts>
                 <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>

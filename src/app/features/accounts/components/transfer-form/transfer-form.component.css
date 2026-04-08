@@ -88,6 +88,11 @@
   gap: 8px;
 }
 
+.current-user-group .group-toggle {
+  background: #f1f8f3;
+  border-color: #cfe0d3;
+}
+
 .group-toggle {
   display: flex;
   align-items: center;
@@ -176,4 +181,5 @@ button.primary:disabled {
   .modal-actions button {
     width: 100%;
   }
+
 }

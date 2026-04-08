@@ -2,10 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../../auth/auth.service';
 import { formatEuroAmount } from '../../../../shared/utils/money-format';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService, SelectableUser } from '../../services/account.service';
+import { buildTransferTargetUsers, shouldShowMyAccountsSection, TransferTargetUser } from '../../utils/transfer-targets';
 
 export interface TransferSubmittedEvent {
   amount: number;
@@ -25,16 +27,24 @@ export interface TransferSubmittedEvent {
 export class TransferFormComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly accountService = inject(AccountService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly sourceAccount = input.required<Account>();
+  readonly accounts = input<Account[] | null>(null);
   readonly transferred = output<TransferSubmittedEvent>();
   readonly error = output<string>();
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
   readonly transferTargets = signal<SelectableUser[]>([]);
-  readonly hasTransferTargets = computed(() => this.transferTargets().length > 0);
+  readonly expandedTargetUserId = signal<number | null>(null);
+  readonly transferTargetUsers = computed<TransferTargetUser[]>(() =>
+    buildTransferTargetUsers(this.transferTargets(), this.accounts() ?? [], this.sourceAccount().ownerId)
+  );
+  readonly hasTransferTargets = computed(() =>
+    this.transferTargetUsers().some((user) => !user.isCurrentUser || this.shouldShowMyAccountsSection(user))
+  );
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
@@ -46,6 +56,7 @@ export class TransferFormComponent {
   constructor() {
     effect(() => {
       this.sourceAccount();
+      this.accounts();
       this.ensureDefaultTargetAccountSelected();
     }, { allowSignalWrites: true });
 
@@ -67,6 +78,8 @@ export class TransferFormComponent {
 
     const { amount, comment, transactionDate, toAccountId } = this.form.getRawValue();
     const parsedToAccountId = Number.parseInt(toAccountId, 10);
+    const selectedCurrentUser = this.transferTargetUsers().find((user) => user.isCurrentUser) ?? null;
+    const selectedOwnAccount = selectedCurrentUser?.accounts.find((account) => account.id === parsedToAccountId) ?? null;
 
     if (!Number.isFinite(parsedToAccountId) || parsedToAccountId < 1) {
       this.setError(this.i18n.translate('accounts.transferTo'));
@@ -86,7 +99,8 @@ export class TransferFormComponent {
     this.accountService.createTransfer({
       amount,
       fromAccountId: this.sourceAccount().id,
-      targetUserId: parsedToAccountId,
+      targetUserId: selectedOwnAccount ? null : parsedToAccountId,
+      toAccountId: selectedOwnAccount ? parsedToAccountId : null,
       transactionDate,
       comment
     }).pipe(
@@ -115,6 +129,30 @@ export class TransferFormComponent {
     return user.id;
   }
 
+  isCurrentUserTarget(user: TransferTargetUser): boolean {
+    return user.isCurrentUser;
+  }
+
+  shouldShowMyAccountsSection(user: TransferTargetUser): boolean {
+    return shouldShowMyAccountsSection(user, this.accounts() ?? [], this.authService.getUserId());
+  }
+
+  isExpandedTarget(user: TransferTargetUser): boolean {
+    return this.expandedTargetUserId() === user.id;
+  }
+
+  toggleTargetExpansion(user: TransferTargetUser): void {
+    if (!user.isCurrentUser || !this.shouldShowMyAccountsSection(user)) {
+      return;
+    }
+
+    this.expandedTargetUserId.set(this.isExpandedTarget(user) ? null : user.id);
+  }
+
+  selectTransferTarget(value: number): void {
+    this.form.patchValue({ toAccountId: String(value) });
+  }
+
   isAmountWithinBalance(): boolean {
     const amount = Number(this.form.controls.amount.value);
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -133,21 +171,45 @@ export class TransferFormComponent {
   }
 
   private ensureDefaultTargetAccountSelected(): void {
-    const options = this.transferTargets();
+    const options = this.transferTargetUsers();
     if (options.length === 0) {
       return;
     }
 
     const currentValue = this.form.controls.toAccountId.value;
-    const isCurrentValueValid = options.some((option) => String(option.id) === currentValue);
+    const isCurrentValueValid = options.some((option) =>
+      option.isCurrentUser
+        ? option.accounts.some((account) => String(account.id) === currentValue)
+        : String(option.id) === currentValue
+    );
     if (isCurrentValueValid) {
       return;
     }
 
-    const fallback = options[0];
+    const fallback = this.findFallbackTarget(options);
     if (fallback) {
-      this.form.patchValue({ toAccountId: String(fallback.id) });
+      this.form.patchValue({ toAccountId: String(fallback) });
     }
+  }
+
+  private findFallbackTarget(options: TransferTargetUser[]): number | null {
+    const currentUserTarget = options.find((option) => option.isCurrentUser);
+    const showMyAccounts = currentUserTarget !== undefined && this.shouldShowMyAccountsSection(currentUserTarget);
+
+    if (!showMyAccounts) {
+      return options.find((option) => !option.isCurrentUser)?.id ?? null;
+    }
+
+    if (currentUserTarget?.accounts.length) {
+      const sourceAccountId = this.sourceAccount().id;
+      const preferredOwnAccount = currentUserTarget.accounts.find((account) => account.id !== sourceAccountId)
+        ?? currentUserTarget.accounts[0];
+      if (preferredOwnAccount) {
+        return preferredOwnAccount.id;
+      }
+    }
+
+    return options.find((option) => !option.isCurrentUser)?.id ?? null;
   }
 
   private getTodayDate(): string {

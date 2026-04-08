@@ -67,6 +67,12 @@
   gap: 14px;
 }
 
+.account-section + .account-section {
+  margin-top: 8px;
+  padding-top: 18px;
+  border-top: 1px solid #dde9e0;
+}
+
 .section-header h2 {
   margin: 0;
   font-size: 22px;
@@ -99,6 +105,10 @@
 .owner-group.current-user-group {
   border-color: #b9e1c5;
   box-shadow: 0 12px 28px rgba(17, 43, 24, 0.08);
+}
+
+.account-section:first-child .owner-group.current-user-group {
+  margin-left: 8px;
 }
 
 .owner-group-header {
@@ -206,6 +216,15 @@ button.primary {
     flex-basis: 100%;
     width: 100%;
     padding: 16px;
+  }
+
+  .account-section:first-child .owner-group.current-user-group {
+    margin-left: 0;
+  }
+
+  .account-section + .account-section {
+    margin-top: 6px;
+    padding-top: 14px;
   }
 
   .owner-accounts {

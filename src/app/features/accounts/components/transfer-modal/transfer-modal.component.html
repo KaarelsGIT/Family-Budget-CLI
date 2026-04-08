@@ -9,6 +9,7 @@
 
     <app-transfer-form
       [sourceAccount]="sourceAccount()"
+      [accounts]="accounts()"
       (transferred)="onTransferred($event)"
       (error)="onError($event)" />
   </section>
