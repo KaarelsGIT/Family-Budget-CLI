@@ -38,8 +38,7 @@ export interface TransactionUserOption {
 export interface TransactionQuery {
   page: number;
   size: number;
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  sort: string;
   userId: number | null;
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER' | null;
   mainCategoryId: number | null;

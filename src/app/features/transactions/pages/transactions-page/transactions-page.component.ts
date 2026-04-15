@@ -20,7 +20,12 @@ import { TransactionDraftService } from '../../services/transaction-draft.servic
 import { TransactionsService } from '../../services/transactions.service';
 import { formatMoney } from '../../../../shared/utils/money-format';
 
-type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'createdBy.username' | 'category.name' | 'type';
+type SortField = 'transactionDate' | 'amount' | 'category.name' | 'fromAccount.name' | 'createdBy.username' | 'comment' | 'id';
+type SortDirection = 'asc' | 'desc';
+interface SortConfigItem {
+  field: SortField;
+  direction: SortDirection;
+}
 type TransactionFilterType = TransactionItem['type'] | null;
 interface CategoryFilterOption {
   id: number;
@@ -56,12 +61,11 @@ export class TransactionsPageComponent {
   readonly isDeleting = signal(false);
   readonly errorMessage = signal('');
   readonly totalItems = signal(0);
+  readonly sortConfig = signal<SortConfigItem[]>(this.loadSortConfig());
 
   readonly filters = signal({
     page: 0,
     size: 10,
-    sortBy: 'transactionDate' as SortField,
-    sortOrder: 'desc' as 'asc' | 'desc',
     userId: this.currentUserId,
     type: null as TransactionFilterType,
     mainCategoryId: null as number | null,
@@ -84,6 +88,18 @@ export class TransactionsPageComponent {
     const size = this.filters().size;
     return size > 0 ? Math.max(1, Math.ceil(this.totalItems() / size)) : 1;
   });
+
+  readonly periodNetBalance = computed(() =>
+    this.transactions().reduce((sum, transaction) => {
+      if (transaction.type === 'INCOME') {
+        return sum + transaction.amount;
+      }
+      if (transaction.type === 'EXPENSE') {
+        return sum - transaction.amount;
+      }
+      return sum;
+    }, 0)
+  );
 
   readonly hasPreviousPage = computed(() => this.filters().page > 0);
   readonly hasNextPage = computed(() => this.filters().page + 1 < this.pageCount());
@@ -263,8 +279,6 @@ export class TransactionsPageComponent {
     this.filters.set({
       page: 0,
       size: 10,
-      sortBy: 'transactionDate',
-      sortOrder: 'desc',
       userId: this.currentUserId,
       type: null,
       mainCategoryId: null,
@@ -272,15 +286,17 @@ export class TransactionsPageComponent {
       fromDate: '',
       toDate: ''
     });
+    this.sortConfig.set(this.loadSortConfig(true));
     this.loadTransactions();
   }
 
-  setSort(field: SortField): void {
+  setSort(field: SortField, event?: MouseEvent): void {
+    const isShift = !!event?.shiftKey;
+    this.sortConfig.update((current) => this.updateSortConfig(current, field, isShift));
+    this.persistSortConfig();
     this.filters.update((state) => ({
       ...state,
-      page: 0,
-      sortBy: field,
-      sortOrder: state.sortBy === field && state.sortOrder === 'asc' ? 'desc' : 'asc'
+      page: 0
     }));
     this.loadTransactions();
   }
@@ -370,7 +386,24 @@ export class TransactionsPageComponent {
   }
 
   isSortedBy(field: SortField): boolean {
-    return this.filters().sortBy === field;
+    return this.sortConfig().some((item) => item.field === field);
+  }
+
+  getSortMeta(field: SortField): { direction: SortDirection; priority: number } | null {
+    const index = this.sortConfig().findIndex((item) => item.field === field);
+    if (index < 0) {
+      return null;
+    }
+
+    const item = this.sortConfig()[index];
+    return {
+      direction: item.direction,
+      priority: index + 1
+    };
+  }
+
+  getSortClass(field: SortField): string {
+    return this.isSortedBy(field) ? 'sorted' : '';
   }
 
   trackByTransactionId(_index: number, transaction: TransactionItem): number {
@@ -451,12 +484,12 @@ export class TransactionsPageComponent {
 
   private buildQuery(): TransactionQuery {
     const filters = this.filters();
+    const sort = this.sortConfig().map((item) => `${item.field}:${item.direction}`).join(',');
 
     return {
       page: filters.page,
       size: filters.size,
-      sortBy: filters.sortBy,
-      sortOrder: filters.sortOrder,
+      sort,
       userId: filters.userId ?? this.currentUserId,
       type: filters.type,
       mainCategoryId: filters.mainCategoryId,
@@ -464,6 +497,82 @@ export class TransactionsPageComponent {
       from: filters.fromDate || null,
       to: filters.toDate || null
     };
+  }
+
+  private updateSortConfig(current: SortConfigItem[], field: SortField, isShift: boolean): SortConfigItem[] {
+    const existingIndex = current.findIndex((item) => item.field === field);
+    const existing = existingIndex >= 0 ? current[existingIndex] : null;
+
+    if (!isShift) {
+      if (!existing) {
+        return [{ field, direction: 'asc' }];
+      }
+
+      return [{ field, direction: existing.direction === 'asc' ? 'desc' : 'asc' }];
+    }
+
+    const next = [...current];
+    if (!existing) {
+      next.push({ field, direction: 'asc' });
+      return next;
+    }
+
+    if (existing.direction === 'asc') {
+      next[existingIndex] = { field, direction: 'desc' };
+      return next;
+    }
+
+    next.splice(existingIndex, 1);
+    return next;
+  }
+
+  private loadSortConfig(resetToDefault = false): SortConfigItem[] {
+    if (resetToDefault) {
+      return [
+        { field: 'transactionDate', direction: 'desc' },
+        { field: 'id', direction: 'desc' }
+      ];
+    }
+
+    const raw = localStorage.getItem('budget_sort_pref');
+    if (!raw) {
+      return [
+        { field: 'transactionDate', direction: 'desc' },
+        { field: 'id', direction: 'desc' }
+      ];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) {
+        throw new Error('Invalid sort config');
+      }
+
+      const allowedFields: SortField[] = ['transactionDate', 'amount', 'category.name', 'fromAccount.name', 'createdBy.username', 'comment', 'id'];
+      const config = parsed
+        .filter((item): item is SortConfigItem => {
+          return !!item && typeof item === 'object'
+            && 'field' in item && 'direction' in item
+            && allowedFields.includes((item as SortConfigItem).field)
+            && (((item as SortConfigItem).direction === 'asc') || ((item as SortConfigItem).direction === 'desc'));
+        })
+        .slice(0, 4);
+
+      if (config.length === 0) {
+        throw new Error('Empty sort config');
+      }
+
+      return config;
+    } catch {
+      return [
+        { field: 'transactionDate', direction: 'desc' },
+        { field: 'id', direction: 'desc' }
+      ];
+    }
+  }
+
+  private persistSortConfig(): void {
+    localStorage.setItem('budget_sort_pref', JSON.stringify(this.sortConfig()));
   }
 
   private buildUserFilterOptions(users: TransactionUserOption[]): TransactionUserOption[] {

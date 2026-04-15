@@ -85,32 +85,29 @@
         <thead>
           <tr>
             <th>#</th>
-            <th class="sortable" (click)="setSort('createdBy.username')">
+            <th class="sortable" (click)="setSort('createdBy.username', $event)">
               {{ i18n.translate('transactions.columnUser') }}
-              <span *ngIf="isSortedBy('createdBy.username')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+              <span class="sort-meta" *ngIf="getSortMeta('createdBy.username') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th class="sortable" (click)="setSort('type')">
-              {{ i18n.translate('transactions.columnType') }}
-              <span *ngIf="isSortedBy('type')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
-            </th>
-            <th class="sortable" (click)="setSort('transactionDate')">
+            <th>{{ i18n.translate('transactions.columnType') }}</th>
+            <th class="sortable" (click)="setSort('transactionDate', $event)">
               {{ i18n.translate('transactions.columnDate') }}
-              <span *ngIf="isSortedBy('transactionDate')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+              <span class="sort-meta" *ngIf="getSortMeta('transactionDate') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
             <th>{{ i18n.translate('transactions.columnAccount') }}</th>
-            <th class="sortable" (click)="setSort('category.name')">
+            <th class="sortable" (click)="setSort('category.name', $event)">
               {{ i18n.translate('transactions.columnCategory') }}
-              <span *ngIf="isSortedBy('category.name')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+              <span class="sort-meta" *ngIf="getSortMeta('category.name') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th class="sortable amount-column" (click)="setSort('amount')">
+            <th class="sortable amount-column" (click)="setSort('amount', $event)">
               {{ i18n.translate('transactions.columnAmount') }}
-              <span *ngIf="isSortedBy('amount')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+              <span class="sort-meta" *ngIf="getSortMeta('amount') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th class="sortable" (click)="setSort('createdAt')">
-              {{ i18n.translate('transactions.columnCreated') }}
-              <span *ngIf="isSortedBy('createdAt')">{{ filters().sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            <th>{{ i18n.translate('transactions.columnCreated') }}</th>
+            <th class="sortable" (click)="setSort('comment', $event)">
+              {{ i18n.translate('transactions.columnComment') }}
+              <span class="sort-meta" *ngIf="getSortMeta('comment') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th>{{ i18n.translate('transactions.columnComment') }}</th>
             <th>{{ i18n.translate('transactions.actions') }}</th>
           </tr>
         </thead>
@@ -131,7 +128,7 @@
             <td>{{ formatDate(transaction.transactionDate) }}</td>
             <td>{{ getAccountFlow(transaction) }}</td>
             <td>{{ getCategoryLabel(transaction) }}</td>
-            <td class="amount-column">{{ formatAmount(transaction.amount) }}</td>
+            <td class="amount-column" [class.income-amount]="transaction.type === 'INCOME'" [class.expense-amount]="transaction.type === 'EXPENSE'">{{ formatAmount(transaction.amount) }}</td>
             <td>{{ formatCreatedAt(transaction.createdAt) }}</td>
             <td>{{ transaction.comment || '—' }}</td>
             <td class="actions-column">
@@ -166,6 +163,10 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="table-footer-summary">
+      <strong>Perioodi Netosaldo: {{ formatAmount(periodNetBalance()) }}</strong>
     </div>
   </section>
 

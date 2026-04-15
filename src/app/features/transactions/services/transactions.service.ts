@@ -66,7 +66,7 @@ export class TransactionsService {
     let params = new HttpParams()
       .set('page', query.page)
       .set('size', query.size)
-      .set('sort', `${query.sortBy},${query.sortOrder}`);
+      .set('sort', query.sort);
 
     if (query.userId !== null) {
       params = params.set('userId', query.userId);
