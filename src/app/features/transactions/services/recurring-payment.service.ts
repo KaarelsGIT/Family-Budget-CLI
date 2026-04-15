@@ -8,6 +8,7 @@ export interface RecurringPaymentStatus {
   year: number;
   month: number;
   paid: boolean;
+  urgent: boolean;
 }
 
 export interface RecurringPaymentItem {
@@ -116,7 +117,8 @@ export class RecurringPaymentService {
         id: 0,
         year: new Date().getFullYear(),
         month: new Date().getMonth() + 1,
-        paid: false
+        paid: false,
+        urgent: false
       }
     };
   }

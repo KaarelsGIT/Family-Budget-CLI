@@ -64,6 +64,7 @@ export interface CreateTransactionPayload {
   categoryId: number | null;
   transactionDate: string;
   comment?: string | null;
+  reminderId?: number | null;
 }
 
 export interface CreateTransactionCategoryPayload {
@@ -71,9 +72,6 @@ export interface CreateTransactionCategoryPayload {
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   parentCategoryId: number | null;
   group: 'FAMILY' | 'CHILD';
-  isRecurring?: boolean;
-  dueDayOfMonth?: number | null;
-  recurringAmount?: number | null;
 }
 
 export interface TransactionOpenRequest {
@@ -84,6 +82,7 @@ export interface TransactionOpenRequest {
   amount?: string | null;
   transactionDate?: string | null;
   comment?: string | null;
+  reminderId?: number | null;
 }
 
 export interface TransactionDraft {

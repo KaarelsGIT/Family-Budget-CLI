@@ -100,6 +100,7 @@ export class AddTransactionModalComponent {
     accountId: [''],
     transferFromAccountId: [''],
     transferToAccountId: [''],
+    reminderId: [''],
     mainCategoryId: ['', Validators.required],
     categoryId: ['', Validators.required],
     transactionDate: ['', Validators.required],
@@ -110,9 +111,7 @@ export class AddTransactionModalComponent {
   readonly categoryForm = this.formBuilder.nonNullable.group({
     type: ['EXPENSE' as TransactionType, Validators.required],
     name: ['', [Validators.required, Validators.maxLength(120)]],
-    parentCategoryId: [''],
-    isRecurring: [false],
-    dueDayOfMonth: ['']
+    parentCategoryId: ['']
   });
 
   readonly mainCategoryOptions = computed(() =>
@@ -218,9 +217,7 @@ export class AddTransactionModalComponent {
     this.setupOpenRequestEffect();
     this.loadAccounts();
     this.loadTransferTargets();
-    this.syncTransactionControlsForType(this.transactionType());
     this.ensureDefaultIncomeExpenseAccount();
-    this.syncRecurringControls();
     effect(() => {
       this.categories();
       if (this.view() === 'transaction') {
@@ -285,11 +282,8 @@ export class AddTransactionModalComponent {
     this.categoryForm.patchValue({
       type: fallbackType,
       name: '',
-      parentCategoryId: '',
-      isRecurring: false,
-      dueDayOfMonth: ''
+      parentCategoryId: ''
     }, { emitEvent: false });
-    this.syncRecurringControls();
 
     this.view.set('category');
   }
@@ -306,11 +300,8 @@ export class AddTransactionModalComponent {
     this.categoryForm.patchValue({
       type: selectedMainCategory?.type ?? fallbackType,
       name: '',
-      parentCategoryId: selectedMainCategory ? String(selectedMainCategory.id) : '',
-      isRecurring: false,
-      dueDayOfMonth: ''
+      parentCategoryId: selectedMainCategory ? String(selectedMainCategory.id) : ''
     }, { emitEvent: false });
-    this.syncRecurringControls();
 
     this.view.set('category');
   }
@@ -321,7 +312,6 @@ export class AddTransactionModalComponent {
     this.transactionType.set(normalizedType);
     this.categoryFormType.set(normalizedType === 'TRANSFER' ? 'EXPENSE' : normalizedType);
     this.errorMessage.set('');
-    this.syncRecurringControls();
     this.syncTransactionControlsForType(normalizedType);
 
     if (normalizedType === 'TRANSFER') {
@@ -457,7 +447,8 @@ export class AddTransactionModalComponent {
         targetUserId: selectedTargetIsOwnAccount ? null : parsedToAccountId,
         toAccountId: selectedTargetIsOwnAccount ? parsedToAccountId : null,
         transactionDate,
-        comment: trimmedComment
+        comment: trimmedComment,
+        reminderId: null
       }).pipe(
         finalize(() => this.isSubmitting.set(false))
       ).subscribe({
@@ -475,7 +466,8 @@ export class AddTransactionModalComponent {
           this.draftService.clearTransientFields();
           this.transactionForm.patchValue({
             amount: '',
-            comment: ''
+            comment: '',
+            reminderId: ''
           }, { emitEvent: false });
           this.created.emit();
         },
@@ -491,12 +483,14 @@ export class AddTransactionModalComponent {
       accountId,
       mainCategoryId,
       categoryId,
+      reminderId,
       transactionDate,
       amount,
       comment
     } = this.transactionForm.getRawValue();
     const parsedAmount = parseMoneyInput(amount);
     const trimmedComment = (comment || '').trim();
+    const parsedReminderId = this.parseNumber(reminderId);
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
@@ -525,14 +519,17 @@ export class AddTransactionModalComponent {
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
-    this.transactionsService.createTransaction({
+    const createTransaction = () => this.transactionsService.createTransaction({
       amount: parsedAmount,
       type,
       accountId: selectedAccountId,
       categoryId: parsedCategoryId,
       transactionDate,
-      comment: trimmedComment
-    }).pipe(
+      comment: trimmedComment,
+      reminderId: parsedReminderId
+    });
+
+    createTransaction().pipe(
       finalize(() => this.isSubmitting.set(false))
     ).subscribe({
       next: () => {
@@ -547,7 +544,8 @@ export class AddTransactionModalComponent {
         this.draftService.clearTransientFields();
         this.transactionForm.patchValue({
           amount: null as unknown as string,
-          comment: ''
+          comment: '',
+          reminderId: ''
         }, { emitEvent: false });
         this.created.emit();
       },
@@ -560,12 +558,7 @@ export class AddTransactionModalComponent {
   submitCategory(): void {
     if (this.categoryForm.invalid || this.isSubmittingCategory()) {
       this.categoryForm.markAllAsTouched();
-      const dueDayControl = this.categoryForm.controls.dueDayOfMonth;
-      if (this.shouldAllowRecurring() && this.categoryForm.controls.isRecurring.value && dueDayControl.invalid) {
-        this.categoryErrorMessage.set(this.i18n.translate('recurring.dueDateInvalid'));
-      } else {
-        this.categoryErrorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
-      }
+      this.categoryErrorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
       return;
     }
 
@@ -573,8 +566,6 @@ export class AddTransactionModalComponent {
     const trimmedName = name.trim();
     const categoryType = this.normalizeType(this.categoryForm.controls.type.getRawValue());
     const parsedParentCategoryId = this.categoryMode() === 'sub' ? this.parseNumber(parentCategoryId) : null;
-    const isRecurring = this.shouldAllowRecurring() && this.categoryForm.controls.isRecurring.value;
-    const dueDayOfMonth = this.getRecurringDueDay();
 
     if (!trimmedName) {
       this.categoryErrorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
@@ -586,11 +577,6 @@ export class AddTransactionModalComponent {
       return;
     }
 
-    if (isRecurring && dueDayOfMonth === null) {
-      this.categoryErrorMessage.set(this.i18n.translate('recurring.dueDateInvalid'));
-      return;
-    }
-
     this.categoryErrorMessage.set('');
     this.isSubmittingCategory.set(true);
 
@@ -598,9 +584,7 @@ export class AddTransactionModalComponent {
       name: trimmedName,
       type: categoryType,
       parentCategoryId: parsedParentCategoryId,
-      group: this.authService.getRole() === 'CHILD' ? 'CHILD' : 'FAMILY',
-      isRecurring,
-      dueDayOfMonth
+      group: this.authService.getRole() === 'CHILD' ? 'CHILD' : 'FAMILY'
     }).pipe(
       finalize(() => this.isSubmittingCategory.set(false))
     ).subscribe({
@@ -862,20 +846,8 @@ export class AddTransactionModalComponent {
         const normalizedType = this.normalizeType(type);
         this.categoryFormType.set(normalizedType);
         this.categoryForm.patchValue({
-          parentCategoryId: '',
-          isRecurring: false,
-          dueDayOfMonth: ''
+          parentCategoryId: ''
         }, { emitEvent: false });
-        this.syncRecurringControls();
-      });
-
-    this.categoryForm.controls.isRecurring.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((isRecurring) => {
-        if (!isRecurring) {
-          this.categoryForm.patchValue({ dueDayOfMonth: '' }, { emitEvent: false });
-        }
-        this.syncRecurringControls();
       });
   }
 
@@ -990,6 +962,7 @@ export class AddTransactionModalComponent {
       accountId: request.accountId === null || request.accountId === undefined ? '' : String(request.accountId),
       transferFromAccountId: '',
       transferToAccountId: '',
+      reminderId: request.reminderId === null || request.reminderId === undefined ? '' : String(request.reminderId),
       mainCategoryId: mainCategory ? String(mainCategory.id) : '',
       categoryId: String(category.id),
       transactionDate: request.transactionDate ?? this.getTodayDate(),
@@ -1002,52 +975,10 @@ export class AddTransactionModalComponent {
     this.selectedTransferFromAccountId.set(null);
     this.selectedTransferToAccountId.set(null);
 
-    this.syncRecurringControls();
     this.syncTransactionControlsForType(resolvedType);
     this.ensureDefaultIncomeExpenseAccount();
     this.persistDraft();
     return true;
-  }
-
-  private syncRecurringControls(): void {
-    const allowRecurring = this.shouldAllowRecurring();
-    const recurringControl = this.categoryForm.controls.isRecurring;
-    const dueDayControl = this.categoryForm.controls.dueDayOfMonth;
-
-    if (!allowRecurring) {
-      if (recurringControl.value) {
-        recurringControl.setValue(false, { emitEvent: false });
-      }
-
-      dueDayControl.clearValidators();
-      if (dueDayControl.value) {
-        dueDayControl.setValue('', { emitEvent: false });
-      }
-      dueDayControl.updateValueAndValidity({ emitEvent: false });
-      return;
-    }
-
-    dueDayControl.setValidators(recurringControl.value
-      ? [Validators.required, Validators.min(1), Validators.max(31)]
-      : [Validators.min(1), Validators.max(31)]);
-    dueDayControl.updateValueAndValidity({ emitEvent: false });
-  }
-
-  shouldAllowRecurring(): boolean {
-    return this.categoryMode() === 'sub' && this.categoryFormType() === 'EXPENSE';
-  }
-
-  private getRecurringDueDay(): number | null {
-    if (!this.shouldAllowRecurring() || !this.categoryForm.controls.isRecurring.value) {
-      return null;
-    }
-
-    const dueDay = this.parseNumber(this.categoryForm.controls.dueDayOfMonth.getRawValue());
-    if (dueDay === null || dueDay < 1 || dueDay > 31) {
-      return null;
-    }
-
-    return dueDay;
   }
 
   private getTodayDate(): string {
@@ -1269,6 +1200,7 @@ export class AddTransactionModalComponent {
       accountId: draft.accountId === null ? '' : String(draft.accountId),
       transferFromAccountId: draft.transferFromAccountId === null ? '' : String(draft.transferFromAccountId),
       transferToAccountId: draft.transferToAccountId === null ? '' : String(draft.transferToAccountId),
+      reminderId: '',
       mainCategoryId: draft.mainCategoryId === null ? '' : String(draft.mainCategoryId),
       categoryId: draft.categoryId === null ? '' : String(draft.categoryId),
       transactionDate: draft.transactionDate,

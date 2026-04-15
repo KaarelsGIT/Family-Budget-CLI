@@ -4,8 +4,6 @@ import { finalize } from 'rxjs';
 import { TranslationService } from '../../../i18n/translation.service';
 import { formatMoney } from '../../../shared/utils/money-format';
 import { RecurringReminderItem, RecurringReminderService } from '../../recurring-reminder.service';
-import { TransactionDraftService } from '../../../features/transactions/services/transaction-draft.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-recurring-reminders-modal',
@@ -16,8 +14,6 @@ import { Router } from '@angular/router';
 })
 export class RecurringRemindersModalComponent {
   private readonly recurringReminderService = inject(RecurringReminderService);
-  private readonly transactionDraftService = inject(TransactionDraftService);
-  private readonly router = inject(Router);
   readonly i18n = inject(TranslationService);
 
   readonly isOpen = input(false);
@@ -64,16 +60,16 @@ export class RecurringRemindersModalComponent {
   }
 
   pay(reminder: RecurringReminderItem): void {
-    this.transactionDraftService.requestOpen({
-      type: reminder.transactionType,
-      categoryId: reminder.categoryId,
-      accountId: reminder.accountId,
-      amount: reminder.amount === null ? null : String(reminder.amount),
-      transactionDate: this.getTodayDate(),
-      comment: reminder.comment
+    this.errorMessage.set('');
+
+    this.recurringReminderService.completeReminder(reminder.id).subscribe({
+      next: () => {
+        this.reminders.update((items) => items.filter((item) => item.id !== reminder.id));
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.errorMessage.set(error.error?.message || this.i18n.translate('recurringReminders.loadFailed'));
+      }
     });
-    this.closed.emit();
-    this.router.navigateByUrl('/transactions');
   }
 
   skip(reminder: RecurringReminderItem): void {
@@ -104,13 +100,5 @@ export class RecurringRemindersModalComponent {
           this.errorMessage.set(error.error?.message || this.i18n.translate('recurringReminders.loadFailed'));
         }
       });
-  }
-
-  private getTodayDate(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 }

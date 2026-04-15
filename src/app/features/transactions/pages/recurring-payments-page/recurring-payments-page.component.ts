@@ -5,21 +5,26 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { formatMoney } from '../../../../shared/utils/money-format';
+import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
 import { TransactionCategory } from '../../models/transaction.model';
 import { RecurringPaymentModalComponent } from '../../components/recurring-payment-modal/recurring-payment-modal.component';
 import { RecurringPaymentItem, RecurringPaymentService } from '../../services/recurring-payment.service';
 import { TransactionsService } from '../../services/transactions.service';
+import { TransactionDraftService } from '../../services/transaction-draft.service';
+import { RecurringReminderService } from '../../../../notifications/recurring-reminder.service';
 
 @Component({
   selector: 'app-recurring-payments-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, RecurringPaymentModalComponent],
+  imports: [CommonModule, RouterLink, RecurringPaymentModalComponent, AddTransactionModalComponent],
   templateUrl: './recurring-payments-page.component.html',
   styleUrl: './recurring-payments-page.component.css'
 })
 export class RecurringPaymentsPageComponent {
   private readonly recurringPaymentService = inject(RecurringPaymentService);
   private readonly transactionsService = inject(TransactionsService);
+  private readonly transactionDraftService = inject(TransactionDraftService);
+  private readonly recurringReminderService = inject(RecurringReminderService);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
@@ -32,15 +37,17 @@ export class RecurringPaymentsPageComponent {
   readonly errorMessage = signal('');
   readonly totalItems = signal(0);
   readonly isModalOpen = signal(false);
+  readonly isTransactionModalOpen = signal(false);
   readonly selectedPayment = signal<RecurringPaymentItem | null>(null);
   readonly pendingPaymentId = signal<number | null>(null);
+  readonly pendingPayReminderId = signal<number | null>(null);
 
   readonly recurringCategoryOptions = computed(() =>
     this.categories()
-      .filter((category) => category.type === 'EXPENSE' && category.parentCategoryId === null)
+      .filter((category) => category.type === 'EXPENSE')
       .map((category) => ({
         id: category.id,
-        label: category.name
+        label: category.parentCategoryName ? `${category.parentCategoryName} > ${category.name}` : category.name
       }))
   );
 
@@ -113,6 +120,37 @@ export class RecurringPaymentsPageComponent {
     return this.currentUserRole === 'ADMIN' || payment.ownerId === this.currentUserId;
   }
 
+  canPay(payment: RecurringPaymentItem): boolean {
+    return this.canManagePayment(payment) && !payment.currentMonthStatus.paid && payment.currentMonthStatus.id > 0;
+  }
+
+  openPayModal(payment: RecurringPaymentItem): void {
+    if (!this.canPay(payment) || this.pendingPayReminderId() !== null) {
+      return;
+    }
+
+    this.pendingPayReminderId.set(payment.currentMonthStatus.id);
+    this.recurringReminderService.getPayData(payment.currentMonthStatus.id)
+      .pipe(finalize(() => this.pendingPayReminderId.set(null)))
+      .subscribe({
+        next: (payData) => {
+          this.transactionDraftService.requestOpen({
+            type: payData.transactionType,
+            categoryId: payData.categoryId,
+            accountId: payData.accountId,
+            amount: String(payData.amount),
+            transactionDate: payData.transactionDate,
+            comment: payData.description,
+            reminderId: payData.reminderId
+          });
+          this.isTransactionModalOpen.set(true);
+        },
+        error: (error: { error?: { message?: string } }) => {
+          this.errorMessage.set(error.error?.message || this.i18n.translate('recurringPayments.loadFailed'));
+        }
+      });
+  }
+
   openCreateModal(): void {
     if (!this.hasRecurringCategoryOptions()) {
       return;
@@ -136,8 +174,19 @@ export class RecurringPaymentsPageComponent {
     this.selectedPayment.set(null);
   }
 
+  closeTransactionModal(): void {
+    this.isTransactionModalOpen.set(false);
+    this.transactionDraftService.reset();
+    this.transactionDraftService.clearOpenRequest();
+  }
+
   handlePaymentSaved(): void {
     this.closeModal();
+    this.loadPayments();
+  }
+
+  handlePayTransactionCreated(): void {
+    this.closeTransactionModal();
     this.loadPayments();
   }
 

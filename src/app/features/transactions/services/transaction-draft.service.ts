@@ -36,7 +36,8 @@ export class TransactionDraftService {
       ...request,
       amount: request.amount ?? null,
       transactionDate: request.transactionDate ?? this.getTodayDate(),
-      comment: request.comment ?? ''
+      comment: request.comment ?? '',
+      reminderId: request.reminderId ?? null
     });
   }
 
@@ -50,7 +51,8 @@ export class TransactionDraftService {
       preselectedFromAccount: request.preselectedFromAccount ?? null,
       amount: null,
       transactionDate: this.getTodayDate(),
-      comment: ''
+      comment: '',
+      reminderId: null
     });
   }
 

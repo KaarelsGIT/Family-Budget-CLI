@@ -38,10 +38,10 @@ export class RecurringPaymentModalComponent {
 
   readonly categoryOptions = computed(() =>
     this.categories()
-      .filter((category) => category.type === 'EXPENSE' && category.parentCategoryId === null)
+      .filter((category) => category.type === 'EXPENSE')
       .map((category) => ({
         id: category.id,
-        label: category.name
+        label: category.parentCategoryName ? `${category.parentCategoryName} > ${category.name}` : category.name
       }))
   );
 
@@ -63,7 +63,7 @@ export class RecurringPaymentModalComponent {
 
     return [...options, {
       id: category.id,
-      label: category.name
+      label: category.parentCategoryName ? `${category.parentCategoryName} > ${category.name}` : category.name
     }];
   });
 

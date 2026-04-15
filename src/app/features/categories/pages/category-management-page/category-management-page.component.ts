@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
-import { formatMoney } from '../../../../shared/utils/money-format';
 import { TransactionCategory } from '../../../transactions/models/transaction.model';
 import { TransactionsService } from '../../../transactions/services/transactions.service';
 import { CategoryEditorModalComponent } from '../../components/category-editor-modal/category-editor-modal.component';
@@ -154,18 +153,6 @@ export class CategoryManagementPageComponent {
       return this.i18n.translate('transactions.typeIncome');
     }
     return type;
-  }
-
-  formatRecurringAmount(amount: number | null): string {
-    if (amount === null) {
-      return '—';
-    }
-
-    return formatMoney(amount);
-  }
-
-  isRecurringEditable(category: TransactionCategory): boolean {
-    return category.type === 'EXPENSE' && category.parentCategoryId !== null;
   }
 
   canAddSubcategory(node: CategoryNode): boolean {

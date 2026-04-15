@@ -37,23 +37,16 @@
           *ngFor="let node of section.nodes; trackBy: trackByCategoryId"
           [style.marginLeft.px]="node.depth * 24">
           <div class="node-main">
-            <div class="node-info">
-              <div class="node-title-row">
-                <strong>{{ node.category.name }}</strong>
-                <span class="badge group-badge">{{ getGroupLabel(node.category.group) }}</span>
-                <span class="badge recurring-badge" *ngIf="node.category.isRecurring">{{ i18n.translate('categories.recurring') }}</span>
+              <div class="node-info">
+                <div class="node-title-row">
+                  <strong>{{ node.category.name }}</strong>
+                  <span class="badge group-badge">{{ getGroupLabel(node.category.group) }}</span>
+                </div>
+                <div class="node-meta">
+                  <span class="badge type-badge">{{ getTypeLabel(node.category.type) }}</span>
+                  <span class="badge depth-badge" *ngIf="node.depth > 0">{{ i18n.translate('categories.subcategory') }}</span>
+                </div>
               </div>
-              <div class="node-meta">
-                <span class="badge type-badge">{{ getTypeLabel(node.category.type) }}</span>
-                <span class="badge depth-badge" *ngIf="node.depth > 0">{{ i18n.translate('categories.subcategory') }}</span>
-                <span class="due-day" *ngIf="node.category.isRecurring && node.category.dueDayOfMonth">
-                  {{ i18n.translate('categories.dueDay') }}: {{ node.category.dueDayOfMonth }}
-                </span>
-                <span class="due-day" *ngIf="node.category.isRecurring && node.category.recurringAmount !== null">
-                  {{ i18n.translate('categories.recurringAmount') }}: {{ formatRecurringAmount(node.category.recurringAmount) }}
-                </span>
-              </div>
-            </div>
 
             <div class="node-actions">
               <button
@@ -75,17 +68,6 @@
                 [attr.title]="i18n.translate('categories.addSubcategory')">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z"></path>
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="icon-button recurring-icon-button"
-                *ngIf="isRecurringEditable(node.category)"
-                [attr.aria-label]="i18n.translate('categories.editRecurring')"
-                [attr.title]="i18n.translate('categories.editRecurring')"
-                (click)="openEditCategory(node.category)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.02-.26 1.98-.73 2.82l1.46 1.46A7.96 7.96 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.02.26-1.98.73-2.82L5.27 7.72A7.96 7.96 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"></path>
                 </svg>
               </button>
               <button

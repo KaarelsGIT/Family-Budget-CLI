@@ -48,9 +48,6 @@ interface CategoryApiResponse {
   parentCategoryId: number | null;
   parentCategoryName: string | null;
   group: 'FAMILY' | 'CHILD';
-  isRecurring: boolean;
-  dueDayOfMonth: number | null;
-  recurringAmount: number | null;
 }
 
 interface UserApiResponse {
@@ -131,7 +128,8 @@ export class TransactionsService {
         : (payload.type === 'INCOME' ? payload.accountId : null),
       categoryId: payload.categoryId,
       transactionDate: payload.transactionDate,
-      comment: payload.comment || null
+      comment: payload.comment || null,
+      reminderId: payload.reminderId ?? null
     };
 
     return this.http.post<ApiResponse<TransactionApiResponse>>(`${environment.apiUrl}/transactions`, body).pipe(
@@ -163,9 +161,7 @@ export class TransactionsService {
   createCategory(payload: CreateTransactionCategoryPayload): Observable<TransactionCategory> {
     const body = {
       ...payload,
-      name: payload.name.trim(),
-      isRecurring: payload.isRecurring ?? false,
-      dueDayOfMonth: payload.dueDayOfMonth ?? null
+      name: payload.name.trim()
     };
 
     return this.http.post<ApiResponse<CategoryApiResponse>>(`${environment.apiUrl}/categories`, body).pipe(
@@ -199,9 +195,9 @@ export class TransactionsService {
       parentCategoryId: category.parentCategoryId,
       parentCategoryName: category.parentCategoryName,
       group: category.group,
-      isRecurring: category.isRecurring,
-      dueDayOfMonth: category.dueDayOfMonth,
-      recurringAmount: category.recurringAmount
+      isRecurring: false,
+      dueDayOfMonth: null,
+      recurringAmount: null
     };
   }
 

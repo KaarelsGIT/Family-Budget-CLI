@@ -58,6 +58,7 @@ interface CreateTransferPayload {
   targetUserId?: number | null;
   transactionDate?: string | null;
   comment?: string;
+  reminderId?: number | null;
 }
 
 export interface SelectableUser {
@@ -128,7 +129,8 @@ export class AccountService {
       toAccountId: payload.targetAccountId ?? payload.toAccountId ?? null,
       categoryId: null,
       transactionDate: payload.transactionDate || null,
-      comment: payload.comment || null
+      comment: payload.comment || null,
+      reminderId: payload.reminderId ?? null
     }).pipe(
       map(() => void 0)
     );

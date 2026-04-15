@@ -40,8 +40,9 @@
         </button>
       </nav>
 
-      <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()">
-        <div class="modal-scroll">
+    <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()">
+      <input type="hidden" formControlName="reminderId" />
+      <div class="modal-scroll">
           <section class="tab-panel" *ngIf="transactionType() === 'EXPENSE'">
             <p class="helper-copy">
               {{ i18n.translate('transactions.typeExpense') }}
@@ -303,21 +304,6 @@
             <label class="field field-wide">
               <span>{{ i18n.translate('transactions.categoryName') }}</span>
               <input type="text" formControlName="name" />
-            </label>
-
-            <label class="field field-wide" *ngIf="shouldAllowRecurring()">
-              <span>{{ i18n.translate('recurring.label') }}</span>
-              <input type="checkbox" formControlName="isRecurring" />
-            </label>
-
-            <label class="field field-wide" *ngIf="shouldAllowRecurring() && categoryForm.controls.isRecurring.value">
-              <span>{{ i18n.translate('recurring.dueDate') }}</span>
-              <input
-                type="number"
-                min="1"
-                max="31"
-                inputmode="numeric"
-                formControlName="dueDayOfMonth" />
             </label>
           </div>
 

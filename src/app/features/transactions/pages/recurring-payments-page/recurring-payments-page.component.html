@@ -67,6 +67,17 @@
               <ng-container *ngIf="canManagePayment(payment); else noActions">
                 <button
                   type="button"
+                  class="primary pay-button"
+                  [class.pay-button-urgent]="payment.currentMonthStatus.urgent"
+                  [disabled]="!canPay(payment) || pendingPayReminderId() === payment.currentMonthStatus.id"
+                  (click)="openPayModal(payment)"
+                  [attr.aria-label]="i18n.translate('pay.action')"
+                  [attr.title]="i18n.translate('pay.action')">
+                  {{ pendingPayReminderId() === payment.currentMonthStatus.id ? i18n.translate('transactions.loading') : i18n.translate('pay.action') }}
+                </button>
+
+                <button
+                  type="button"
                   class="icon-button edit-button"
                   (click)="openEditModal(payment)"
                   [attr.aria-label]="i18n.translate('recurringPayments.editAction')"
@@ -105,4 +116,11 @@
     [categories]="categories()"
     (closed)="closeModal()"
     (saved)="handlePaymentSaved()" />
+
+  <app-add-transaction-modal
+    *ngIf="isTransactionModalOpen()"
+    [categories]="categories()"
+    (closed)="closeTransactionModal()"
+    (created)="handlePayTransactionCreated()"
+    (categoryCreated)="loadCategories()" />
 </section>
