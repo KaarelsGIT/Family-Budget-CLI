@@ -73,6 +73,13 @@
     (closed)="closeAddAccountModal()"
     (created)="handleAccountsChanged()" />
 
+  <app-add-transaction-modal
+    *ngIf="isTransactionModalOpen()"
+    [categories]="[]"
+    (closed)="closeTransactionModal()"
+    (created)="handleAccountsChanged()"
+    (categoryCreated)="handleAccountsChanged()" />
+
   <app-adjust-balance-modal
     *ngIf="selectedAdjustBalanceAccount()"
     [account]="selectedAdjustBalanceAccount()!"

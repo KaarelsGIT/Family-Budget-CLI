@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { AuthService } from '../../../../auth/auth.service';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
 import { AddAccountModalComponent } from '../../components/add-account-modal/add-account-modal.component';
 import { AdjustBalanceModalComponent } from '../../components/adjust-balance-modal/adjust-balance-modal.component';
 import { ShareAccountModalComponent } from '../../components/share-account-modal/share-account-modal.component';
+import { AddTransactionModalComponent } from '../../../transactions/components/add-transaction-modal/add-transaction-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { TransactionDraftService } from '../../../transactions/services/transaction-draft.service';
@@ -34,20 +34,20 @@ interface AccountSection {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent],
+  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, AddTransactionModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
 export class AccountsPageComponent {
   private readonly accountService = inject(AccountService);
   private readonly transactionDraftService = inject(TransactionDraftService);
-  private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly accounts = signal<Account[]>([]);
   readonly isLoading = signal(false);
   readonly isModalOpen = signal(false);
+  readonly isTransactionModalOpen = signal(false);
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedShareAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
@@ -114,7 +114,13 @@ export class AccountsPageComponent {
 
   openTransactionModal(request: { type: 'INCOME' | 'EXPENSE' | 'TRANSFER'; preselectedFromAccount?: number | null }): void {
     this.transactionDraftService.openTransactionModal(request);
-    this.router.navigateByUrl('/transactions');
+    this.isTransactionModalOpen.set(true);
+  }
+
+  closeTransactionModal(): void {
+    this.isTransactionModalOpen.set(false);
+    this.transactionDraftService.reset();
+    this.transactionDraftService.clearOpenRequest();
   }
 
   openAdjustBalanceModal(account: Account): void {

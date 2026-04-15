@@ -277,7 +277,6 @@ export class Header {
     this.transactionDraftService.requestOpen({
       categoryId: notification.relatedCategoryId
     });
-    this.router.navigateByUrl('/transactions');
   }
 
   openRecurringRemindersModal(selectedReminderId: number | null = null): void {
