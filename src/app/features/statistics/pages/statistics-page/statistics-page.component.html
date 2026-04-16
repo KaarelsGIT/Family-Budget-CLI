@@ -107,23 +107,17 @@
           </div>
         </header>
 
-        <ng-container *ngIf="hasStatisticsData(); else savingsEmpty">
-          <svg viewBox="0 0 600 240" class="line-chart" aria-hidden="true" focusable="false">
-            <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
-            <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
-            <g *ngFor="let tick of savingsChartTicks(); trackBy: trackByTick">
-              <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
-              <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
-            </g>
-            <polyline [attr.points]="savingsLine().points" class="line-path"></polyline>
-            <circle *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" [attr.cx]="dot.x" [attr.cy]="dot.y" r="4" class="line-dot"></circle>
-            <text *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" class="bar-label" [attr.x]="dot.x" y="220">{{ dot.label }}</text>
-          </svg>
-        </ng-container>
-
-        <ng-template #savingsEmpty>
-          <p class="empty-state">{{ i18n.translate('statistics.empty') }}</p>
-        </ng-template>
+        <svg viewBox="0 0 600 240" class="line-chart" aria-hidden="true" focusable="false">
+          <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
+          <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
+          <g *ngFor="let tick of savingsChartTicks(); trackBy: trackByTick">
+            <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
+            <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+          </g>
+          <polyline [attr.points]="savingsLine().points" class="line-path"></polyline>
+          <circle *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" [attr.cx]="dot.x" [attr.cy]="dot.y" r="4" class="line-dot"></circle>
+          <text *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" class="bar-label" [attr.x]="dot.x" y="220">{{ dot.label }}</text>
+        </svg>
       </article>
 
       <article class="chart-card pie-card">

@@ -568,7 +568,7 @@ export class TransactionsPageComponent {
         throw new Error('Invalid sort config');
       }
 
-      const allowedFields: SortField[] = ['transactionDate', 'amount', 'category.name', 'fromAccount.name', 'createdBy.username', 'comment', 'id'];
+      const allowedFields: SortField[] = ['transactionDate', 'createdAt', 'amount', 'category.name', 'fromAccount.name', 'createdBy.username', 'comment', 'id', 'type'];
       const config = parsed
         .filter((item): item is SortConfigItem => {
           return !!item && typeof item === 'object'
@@ -577,6 +577,16 @@ export class TransactionsPageComponent {
             && (((item as SortConfigItem).direction === 'asc') || ((item as SortConfigItem).direction === 'desc'));
         })
         .slice(0, 4);
+
+      const defaultSort: SortConfigItem[] = [
+        { field: 'transactionDate', direction: 'desc' },
+        { field: 'id', direction: 'desc' }
+      ];
+
+      const hasDefaultSort = config.some((item, index) => index === 0 && item.field === 'transactionDate' && item.direction === 'desc');
+      if (!hasDefaultSort) {
+        return [...defaultSort, ...config.filter((item) => item.field !== 'transactionDate')].slice(0, 4);
+      }
 
       if (config.length === 0) {
         throw new Error('Empty sort config');

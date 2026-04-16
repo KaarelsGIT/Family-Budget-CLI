@@ -20,9 +20,9 @@
           <a routerLink="/settings/categories" class="transactions-dropdown-item" (click)="closeTransactionsMenu()">
             {{ i18n.translate('transactions.manageCategories') }}
           </a>
-          <button type="button" class="transactions-dropdown-item" (click)="openTransactionModal({ type: 'EXPENSE' })">
-            {{ i18n.translate('transactions.addAction') }}
-          </button>
+<!--          <button type="button" class="transactions-dropdown-item" (click)="openTransactionModal({ type: 'EXPENSE' })">-->
+<!--            {{ i18n.translate('transactions.addAction') }}-->
+<!--          </button>-->
         </div>
       </div>
     </div>
@@ -202,9 +202,9 @@
       </table>
     </div>
 
-    <div class="table-footer-summary">
-      <strong>Perioodi Netosaldo: {{ formatAmount(periodNetBalance()) }}</strong>
-    </div>
+<!--    <div class="table-footer-summary">-->
+<!--      <strong>Perioodi Netosaldo: {{ formatAmount(periodNetBalance()) }}</strong>-->
+<!--    </div>-->
   </section>
 
   <footer class="pagination" *ngIf="!errorMessage()">
