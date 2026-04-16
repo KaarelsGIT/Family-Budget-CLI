@@ -20,7 +20,7 @@ import { TransactionDraftService } from '../../services/transaction-draft.servic
 import { TransactionsService } from '../../services/transactions.service';
 import { formatMoney } from '../../../../shared/utils/money-format';
 
-type SortField = 'transactionDate' | 'amount' | 'category.name' | 'fromAccount.name' | 'createdBy.username' | 'comment' | 'id';
+type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'category.name' | 'fromAccount.name' | 'createdBy.username' | 'comment' | 'id' | 'type';
 type SortDirection = 'asc' | 'desc';
 interface SortConfigItem {
   field: SortField;
@@ -66,7 +66,7 @@ export class TransactionsPageComponent {
 
   readonly filters = signal({
     page: 0,
-    size: 10,
+    size: 25,
     userId: this.currentUserId,
     type: null as TransactionFilterType,
     mainCategoryId: null as number | null,
@@ -92,6 +92,10 @@ export class TransactionsPageComponent {
 
   readonly periodNetBalance = computed(() =>
     this.transactions().reduce((sum, transaction) => {
+      if (this.filters().type === 'TRANSFER') {
+        return sum + transaction.amount;
+      }
+
       if (transaction.type === 'INCOME') {
         return sum + transaction.amount;
       }
@@ -294,7 +298,7 @@ export class TransactionsPageComponent {
   clearFilters(): void {
     this.filters.set({
       page: 0,
-      size: 10,
+      size: 25,
       userId: this.currentUserId,
       type: null,
       mainCategoryId: null,

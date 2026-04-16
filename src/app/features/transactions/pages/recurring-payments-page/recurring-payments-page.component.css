@@ -159,22 +159,12 @@ tbody tr:hover {
   color: #1f5b35;
 }
 
-button.secondary.action-toggle {
+button.icon-button.action-toggle {
   min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid #c3d3c8;
-  border-radius: 10px;
-  background: #fff;
-  color: #1f5b35;
-  font-weight: 700;
-  cursor: pointer;
+  padding: 0;
 }
 
-button.secondary.action-toggle:hover:not(:disabled) {
-  background: #f1f7f3;
-}
-
-button.secondary.action-toggle:disabled {
+button.icon-button.action-toggle:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

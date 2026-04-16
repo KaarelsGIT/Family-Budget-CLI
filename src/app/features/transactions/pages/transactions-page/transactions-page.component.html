@@ -2,7 +2,6 @@
   <header class="page-header">
     <div>
       <h1>{{ i18n.translate('transactions.title') }}</h1>
-      <p class="page-copy">{{ i18n.translate('transactions.copy') }}</p>
     </div>
 
     <div class="header-actions">
@@ -21,6 +20,9 @@
           <a routerLink="/settings/categories" class="transactions-dropdown-item" (click)="closeTransactionsMenu()">
             {{ i18n.translate('transactions.manageCategories') }}
           </a>
+          <button type="button" class="transactions-dropdown-item" (click)="openTransactionModal({ type: 'EXPENSE' })">
+            {{ i18n.translate('transactions.addAction') }}
+          </button>
         </div>
       </div>
     </div>
@@ -109,17 +111,26 @@
       <table>
         <thead>
           <tr>
-            <th>#</th>
+            <th class="sortable" (click)="setSort('id', $event)">
+              #
+              <span class="sort-meta" *ngIf="getSortMeta('id') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
+            </th>
             <th class="sortable" (click)="setSort('createdBy.username', $event)">
               {{ i18n.translate('transactions.columnUser') }}
               <span class="sort-meta" *ngIf="getSortMeta('createdBy.username') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th>{{ i18n.translate('transactions.columnType') }}</th>
+            <th class="sortable" (click)="setSort('type', $event)">
+              {{ i18n.translate('transactions.columnType') }}
+              <span class="sort-meta" *ngIf="getSortMeta('type') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
+            </th>
             <th class="sortable" (click)="setSort('transactionDate', $event)">
               {{ i18n.translate('transactions.columnDate') }}
               <span class="sort-meta" *ngIf="getSortMeta('transactionDate') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th>{{ i18n.translate('transactions.columnAccount') }}</th>
+            <th class="sortable" (click)="setSort('fromAccount.name', $event)">
+              {{ i18n.translate('transactions.columnAccount') }}
+              <span class="sort-meta" *ngIf="getSortMeta('fromAccount.name') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
+            </th>
             <th class="sortable" (click)="setSort('category.name', $event)">
               {{ i18n.translate('transactions.columnCategory') }}
               <span class="sort-meta" *ngIf="getSortMeta('category.name') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
@@ -128,7 +139,10 @@
               {{ i18n.translate('transactions.columnAmount') }}
               <span class="sort-meta" *ngIf="getSortMeta('amount') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th>{{ i18n.translate('transactions.columnCreated') }}</th>
+            <th class="sortable" (click)="setSort('createdAt', $event)">
+              {{ i18n.translate('transactions.columnCreated') }}
+              <span class="sort-meta" *ngIf="getSortMeta('createdAt') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
+            </th>
             <th class="sortable" (click)="setSort('comment', $event)">
               {{ i18n.translate('transactions.columnComment') }}
               <span class="sort-meta" *ngIf="getSortMeta('comment') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
@@ -197,9 +211,10 @@
     <label class="page-size">
       <span>{{ i18n.translate('transactions.rowsPerPage') }}</span>
       <select [ngModel]="filters().size" (ngModelChange)="onPageSizeChange($event)">
-        <option [ngValue]="10">10</option>
-        <option [ngValue]="20">20</option>
+        <option [ngValue]="15">15</option>
+        <option [ngValue]="25">25</option>
         <option [ngValue]="50">50</option>
+        <option [ngValue]="100">100</option>
       </select>
     </label>
 

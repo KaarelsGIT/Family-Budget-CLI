@@ -342,12 +342,20 @@ tbody td {
   vertical-align: top;
 }
 
-tbody tr:nth-child(even) {
-  background: #fbfdfb;
-}
-
 tbody tr:hover {
   background: #f2f8f4;
+}
+
+tbody tr.income-row td {
+  color: #2f7d46;
+}
+
+tbody tr.expense-row td {
+  color: #b85c38;
+}
+
+tbody tr.transfer-row td {
+  color: #4f5a60;
 }
 
 .modal-overlay {

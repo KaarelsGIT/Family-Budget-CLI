@@ -133,7 +133,7 @@ const translations = {
     'accounts.ownerLabel': '{username}',
     'accounts.noSectionAccounts': 'Selles jaotuses ei ole nähtavaid kontosid.',
     'transactions.title': 'Tehingud',
-    'transactions.copy': 'Vaata olemasolevaid tehinguid, filtreeri kasutaja ja kategooria järgi ning kasuta pea- ja alamkategooriat otse praeguse backend API järgi.',
+    'transactions.copy': '',
     'transactions.addTitle': 'Lisa tehing',
     'transactions.addAction': 'Lisa tehing',
     'transactions.recurringPayments': 'Korduvad maksed',

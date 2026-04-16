@@ -89,12 +89,17 @@
 
                 <button
                   type="button"
-                  class="secondary action-toggle"
+                  class="icon-button action-toggle"
                   (click)="toggleActive(payment)"
                   [disabled]="isPending(payment)"
                   [attr.aria-label]="payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction')"
                   [attr.title]="payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction')">
-                  {{ payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction') }}
+                  <svg *ngIf="payment.active" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 4.5a7.5 7.5 0 0 0-6.7 10.9l1.7-1a5.5 5.5 0 1 1 9.3 0l1.7 1A7.5 7.5 0 0 0 12 4.5Zm0-2.5C6.2 2 1.5 6.7 1.5 12.5S6.2 23 12 23s10.5-4.7 10.5-10.5S17.8 2 12 2Z"></path>
+                  </svg>
+                  <svg *ngIf="!payment.active" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 2a2 2 0 0 1 2 2v6h4a4 4 0 0 1 0 8h-2v4a2 2 0 0 1-4 0V4a2 2 0 0 1 0-2Z"></path>
+                  </svg>
                 </button>
               </ng-container>
               <ng-template #noActions>—</ng-template>
