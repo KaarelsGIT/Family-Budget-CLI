@@ -344,7 +344,7 @@ button.primary-action:hover {
 /* --- KOMPAKTNE TABEL --- */
 table {
   width: 100%;
-  min-width: 1400px; /* Suurendatud, et toetada laiemat kategooriat */
+  min-width: 1400px;
   border-collapse: collapse;
   background: #fff;
   border-radius: 14px;
@@ -362,18 +362,19 @@ thead th {
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
+  cursor: pointer; /* LISATUD: Muudab kursori käeks */
 }
 
-/* Veergude täpsed laiused */
+/* Veergude täpsed laiused ja päiste keskele joondamine */
 thead th:nth-child(1) { width: 45px; }   /* # */
 thead th:nth-child(2) { width: 110px; }  /* Kasutaja */
-thead th:nth-child(3) { width: 100px; }  /* Tüüp */
-thead th:nth-child(4) { width: 120px; }  /* Kuupäev */
-thead th:nth-child(5) { width: 185px; }  /* Konto */
-thead th:nth-child(6) { width: 280px; }  /* Kategooria (Laiendatud!) */
+thead th:nth-child(3) { width: 100px; text-align: center; }  /* Tüüp */
+thead th:nth-child(4) { width: 120px; text-align: center; }  /* Kuupäev */
+thead th:nth-child(5) { width: 185px; text-align: center; }  /* Konto */
+thead th:nth-child(6) { width: 280px; text-align: center; }  /* Kategooria */
 thead th:nth-child(7) { width: 115px; }  /* Summa */
-thead th:nth-child(8) { width: 155px; }  /* Loodud */
-thead th:nth-child(9) { width: auto; }   /* Kommentaar (võtab ülejäänud ruumi) */
+thead th:nth-child(8) { width: 155px; text-align: center; }  /* Loodud */
+thead th:nth-child(9) { width: auto; }   /* Kommentaar */
 thead th:nth-child(10) { width: 110px; } /* Tegevused */
 
 tbody td {
@@ -384,6 +385,15 @@ tbody td {
   vertical-align: middle;
   height: 44px;
   border-bottom: 1px solid #f0f4f1;
+}
+
+/* Keskele joondamine valitud veergudele (Tüüp, Kuupäev, Konto, Kategooria, Loodud) */
+tbody td:nth-child(3),
+tbody td:nth-child(4),
+tbody td:nth-child(5),
+tbody td:nth-child(6),
+tbody td:nth-child(8) {
+  text-align: center;
 }
 
 .transaction-row td {

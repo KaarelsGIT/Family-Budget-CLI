@@ -1,13 +1,13 @@
-import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {NgIf, NgStyle} from '@angular/common';
+import { NgIf, NgStyle } from '@angular/common';
 
 @Component({
   selector: 'app-calculator',
   standalone: true,
   imports: [FormsModule, NgIf, NgStyle],
   templateUrl: './calculator.component.html',
-  styleUrls: ['./calculator.component.css']
+  styleUrls: ['./calculator.component.css'],
 })
 export class CalculatorComponent {
   @Input() isVisible = false;
@@ -27,8 +27,8 @@ export class CalculatorComponent {
 
     const key = event.key;
 
-    if (/^[0-9.]$/.test(key)) {
-      this.appendNumber(key);
+    if (/^[0-9.,]$/.test(key)) {
+      this.appendNumber(key === ',' ? '.' : key);
       return;
     }
 
@@ -85,7 +85,6 @@ export class CalculatorComponent {
     if (this.tokens.length === 0 || this.isOperator(lastToken)) {
       this.expression = this.tokens.join(' ') + (this.tokens.length > 0 ? ' ' : '') + this.display;
     } else {
-      // Replacing the last number token (or percent token)
       const newTokens = [...this.tokens];
       newTokens[lastTokenIndex] = this.display;
       this.expression = newTokens.join(' ');
@@ -110,7 +109,6 @@ export class CalculatorComponent {
     }
 
     if (this.waitingForSecondOperand && this.tokens.length > 0) {
-      // Replace last operator
       this.tokens[this.tokens.length - 1] = op;
     } else {
       this.tokens.push(this.display);
@@ -134,9 +132,6 @@ export class CalculatorComponent {
 
     const lastOp = this.tokens[this.tokens.length - 1];
     if (this.tokens.length >= 2 && (lastOp === '+' || lastOp === '-')) {
-      // For addition/subtraction, percent is based on the first term of the expression (simplified logic)
-      // or more accurately, the base value it's being added to.
-      // Let's find the base value.
       const baseValue = this.evaluateTokens(this.tokens.slice(0, -1));
       percentValue = (baseValue * value) / 100;
     } else {
@@ -146,10 +141,6 @@ export class CalculatorComponent {
     this.display = String(Number(percentValue.toFixed(10)));
     this.waitingForSecondOperand = false;
 
-    // Add percent to expression display
-    if (this.tokens.length > 0 && !this.isOperator(this.tokens[this.tokens.length - 1])) {
-       // Should not happen with current logic as we push display then operator
-    }
     this.expression = this.tokens.join(' ') + (this.tokens.length > 0 ? ' ' : '') + value + '%';
   }
 
@@ -169,7 +160,6 @@ export class CalculatorComponent {
   private evaluateTokens(tokens: string[]): number {
     if (tokens.length === 0) return 0;
 
-    // Process * and / first (Precedence)
     let tempTokens: (number | string)[] = [];
     let i = 0;
     while (i < tokens.length) {
@@ -187,7 +177,6 @@ export class CalculatorComponent {
       }
     }
 
-    // Process + and -
     let result = tempTokens[0] as number;
     let j = 1;
     while (j < tempTokens.length) {
@@ -236,7 +225,6 @@ export class CalculatorComponent {
   handleMouseUp() {
     this.onMouseUp();
   }
-
 
   dragging = false;
   offsetX = 0;

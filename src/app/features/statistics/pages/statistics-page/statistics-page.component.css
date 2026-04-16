@@ -98,7 +98,7 @@
 
 .summary-card--expenses strong,
 .negative {
-  color: #b85c38;
+  color: #d32f2f; /* ERKSAM PUNANE */
 }
 
 .summary-card--net strong,
@@ -150,7 +150,7 @@
 }
 
 .bar-expense {
-  fill: #c96a3a;
+  fill: #d32f2f; /* ERKSAM PUNANE TULP */
   rx: 4;
 }
 
@@ -231,7 +231,7 @@
 }
 
 .legend-swatch.expenses {
-  background: #c96a3a;
+  background: #d32f2f; /* ERKSAM PUNANE LEGEND */
 }
 
 .chart-legend {
