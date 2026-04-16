@@ -150,11 +150,16 @@
 }
 
 .child-row {
-  background: #ffffff;
+  background: #fbfdfb;
 }
 
 .child-row .category-name {
-  color: #526258;
+  color: #738277;
+}
+
+.child-row .total-cell,
+.child-row .month-cell {
+  color: #738277;
 }
 
 .expand-button {

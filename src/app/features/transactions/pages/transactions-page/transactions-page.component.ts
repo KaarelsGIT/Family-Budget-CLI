@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -62,6 +62,7 @@ export class TransactionsPageComponent {
   readonly errorMessage = signal('');
   readonly totalItems = signal(0);
   readonly sortConfig = signal<SortConfigItem[]>(this.loadSortConfig());
+  readonly isTransactionsMenuOpen = signal(false);
 
   readonly filters = signal({
     page: 0,
@@ -113,6 +114,14 @@ export class TransactionsPageComponent {
         this.isAddTransactionModalOpen.set(true);
       }
     });
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.transactions-menu')) {
+      this.closeTransactionsMenu();
+    }
   }
 
   openTransactionModal(request: { type: 'INCOME' | 'EXPENSE' | 'TRANSFER'; preselectedFromAccount?: number | null }): void {
@@ -244,6 +253,14 @@ export class TransactionsPageComponent {
       subCategoryId: null
     }));
     this.loadTransactions();
+  }
+
+  toggleTransactionsMenu(): void {
+    this.isTransactionsMenuOpen.update((state) => !state);
+  }
+
+  closeTransactionsMenu(): void {
+    this.isTransactionsMenuOpen.set(false);
   }
 
   onMainCategoryChange(value: number | null): void {

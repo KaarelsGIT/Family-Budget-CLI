@@ -273,6 +273,10 @@ export class EditTransactionModalComponent {
     return user.id;
   }
 
+  getTransferAccountDetails(account: Account): string {
+    return `${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
   private loadAccounts(): void {
     this.isLoadingAccounts.set(true);
 

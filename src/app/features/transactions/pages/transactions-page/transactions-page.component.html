@@ -6,16 +6,23 @@
     </div>
 
     <div class="header-actions">
-      <a routerLink="/transactions/recurring" class="secondary-action">
-        {{ i18n.translate('transactions.recurringPayments') }}
-      </a>
-      <a routerLink="/settings/categories" class="secondary-action">
-        {{ i18n.translate('transactions.manageCategories') }}
-      </a>
+      <div class="transactions-menu">
+        <button type="button" class="secondary-action transactions-menu-trigger" (click)="toggleTransactionsMenu()">
+          <span>{{ i18n.translate('header.transactions') }}</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="menu-chevron">
+            <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
 
-      <button type="button" class="primary-action" (click)="openTransactionModal({ type: 'EXPENSE' })">
-        {{ i18n.translate('transactions.addAction') }}
-      </button>
+        <div class="transactions-dropdown" *ngIf="isTransactionsMenuOpen()">
+          <a routerLink="/transactions/recurring" class="transactions-dropdown-item" (click)="closeTransactionsMenu()">
+            {{ i18n.translate('transactions.recurringPayments') }}
+          </a>
+          <a routerLink="/settings/categories" class="transactions-dropdown-item" (click)="closeTransactionsMenu()">
+            {{ i18n.translate('transactions.manageCategories') }}
+          </a>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -25,16 +32,6 @@
         <span>{{ i18n.translate('transactions.filterUser') }}</span>
         <select [ngModel]="filters().userId" (ngModelChange)="onUserChange($event)">
           <option *ngFor="let user of filterUsers()" [ngValue]="user.id">{{ user.username }}</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('transactions.transactionType') }}</span>
-        <select [ngModel]="filters().type" (ngModelChange)="onTypeChange($event)">
-          <option [ngValue]="null">{{ i18n.translate('transactions.allTypes') }}</option>
-          <option [ngValue]="'INCOME'">{{ i18n.translate('transactions.typeIncome') }}</option>
-          <option [ngValue]="'EXPENSE'">{{ i18n.translate('transactions.typeExpense') }}</option>
-          <option [ngValue]="'TRANSFER'">{{ i18n.translate('transactions.typeTransfer') }}</option>
         </select>
       </label>
 
@@ -80,6 +77,34 @@
       <strong>{{ i18n.translate('transactions.totalItems') }}: {{ totalItems() }}</strong>
     </div>
 
+    <div class="table-toolbar">
+      <button
+        type="button"
+        class="icon-button add-transaction-button"
+        (click)="openTransactionModal({ type: 'EXPENSE' })"
+        [attr.aria-label]="i18n.translate('transactions.addAction')"
+        [attr.title]="i18n.translate('transactions.addAction')">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M11 5h2v14h-2zM5 11h14v2H5z"></path>
+        </svg>
+      </button>
+
+      <div class="toggle-group" role="tablist" [attr.aria-label]="i18n.translate('transactions.transactionType')">
+        <button type="button" class="toggle-button" [class.active]="filters().type === 'EXPENSE'" (click)="onTypeChange('EXPENSE')">
+          {{ i18n.translate('transactions.typeExpense') }}
+        </button>
+        <button type="button" class="toggle-button" [class.active]="filters().type === 'INCOME'" (click)="onTypeChange('INCOME')">
+          {{ i18n.translate('transactions.typeIncome') }}
+        </button>
+        <button type="button" class="toggle-button" [class.active]="filters().type === 'TRANSFER'" (click)="onTypeChange('TRANSFER')">
+          {{ i18n.translate('transactions.typeTransfer') }}
+        </button>
+        <button type="button" class="toggle-button" [class.active]="filters().type === null" (click)="onTypeChange(null)">
+          {{ i18n.translate('transactions.allTypes') }}
+        </button>
+      </div>
+    </div>
+
     <div class="table-scroll">
       <table>
         <thead>
@@ -115,8 +140,6 @@
         <tbody>
           <tr
             *ngFor="let transaction of transactions(); trackBy: trackByTransactionId; let index = index"
-            [class.income-row]="transaction.type === 'INCOME'"
-            [class.expense-row]="transaction.type === 'EXPENSE'"
             [class.transfer-row]="transaction.type === 'TRANSFER'">
             <td>{{ index + 1 + filters().page * filters().size }}</td>
             <td>{{ transaction.createdByUsername }}</td>
@@ -128,7 +151,7 @@
             <td>{{ formatDate(transaction.transactionDate) }}</td>
             <td>{{ getAccountFlow(transaction) }}</td>
             <td>{{ getCategoryLabel(transaction) }}</td>
-            <td class="amount-column" [class.income-amount]="transaction.type === 'INCOME'" [class.expense-amount]="transaction.type === 'EXPENSE'">{{ formatAmount(transaction.amount) }}</td>
+            <td class="amount-column" [class.income-amount]="transaction.type === 'INCOME'" [class.expense-amount]="transaction.type === 'EXPENSE'" [class.transfer-amount]="transaction.type === 'TRANSFER'">{{ formatAmount(transaction.amount) }}</td>
             <td>{{ formatCreatedAt(transaction.createdAt) }}</td>
             <td>{{ transaction.comment || '—' }}</td>
             <td class="actions-column">
@@ -187,7 +210,7 @@
 
       <span>{{ i18n.translate('transactions.pageLabel', { page: filters().page + 1, total: pageCount() }) }}</span>
 
-      <button type="button" class="secondary" [disabled]="!hasNextPage()" (click)="changePage(1)">
+        <button type="button" class="secondary" [disabled]="!hasNextPage()" (click)="changePage(1)">
         {{ i18n.translate('transactions.nextPage') }}
       </button>
     </div>

@@ -67,6 +67,10 @@
   gap: 12px;
 }
 
+.transfer-source-field {
+  min-width: 0;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -145,6 +149,11 @@
   border-radius: 10px;
   background: #fff;
   cursor: pointer;
+}
+
+.account-option.selected {
+  border-color: #2f7d46;
+  background: #f1f8f3;
 }
 
 .account-option input {

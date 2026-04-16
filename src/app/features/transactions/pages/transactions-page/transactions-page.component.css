@@ -25,6 +25,55 @@
   flex-wrap: wrap;
 }
 
+.transactions-menu {
+  position: relative;
+}
+
+.transactions-menu-trigger {
+  min-width: 150px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-chevron {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.transactions-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid #dce9e0;
+  background: #fff;
+  box-shadow: 0 16px 32px rgba(17, 43, 24, 0.12);
+  z-index: 20;
+}
+
+.transactions-dropdown-item {
+  border: 0;
+  background: transparent;
+  color: #17361f;
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.transactions-dropdown-item:hover {
+  background: #f1f7f3;
+}
+
 .page-copy {
   margin: 0;
   color: #526457;
@@ -48,6 +97,31 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
   align-items: end;
+}
+
+.toggle-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #eef4ef;
+}
+
+.toggle-button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #4d6454;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toggle-button.active {
+  background: #2f7d46;
+  color: #fff;
 }
 
 .field {
@@ -212,6 +286,26 @@ button.primary-action:hover {
   color: #244131;
 }
 
+.table-toolbar {
+  padding: 12px 18px 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-transaction-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.add-transaction-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
 .table-footer-summary {
   padding: 0 18px 18px;
   text-align: right;
@@ -256,18 +350,6 @@ tbody tr:hover {
   background: #f2f8f4;
 }
 
-tbody tr.income-row {
-  background: #edf8f0;
-}
-
-tbody tr.expense-row {
-  background: #fdf0ed;
-}
-
-tbody tr.transfer-row {
-  background: inherit;
-}
-
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -291,17 +373,20 @@ tbody tr.transfer-row {
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+  text-align: center;
 }
 
 .confirm-copy {
   margin: 0 0 8px;
   color: #17361f;
   font-weight: 700;
+  text-align: center;
 }
 
 .confirm-meta {
   margin: 0 0 16px;
   color: #526457;
+  text-align: center;
 }
 
 .danger-action {
@@ -310,18 +395,6 @@ tbody tr.transfer-row {
 
 .danger-action:hover:not(:disabled) {
   background: #8f2f21 !important;
-}
-
-tbody tr.income-row:hover {
-  background: #def1e3;
-}
-
-tbody tr.expense-row:hover {
-  background: #f9e2dc;
-}
-
-tbody tr.transfer-row:hover {
-  background: #f2f8f4;
 }
 
 .sortable {
@@ -340,6 +413,11 @@ tbody tr.transfer-row:hover {
 
 .expense-amount {
   color: #a53a2b;
+  font-weight: 700;
+}
+
+.transfer-amount {
+  color: #4f5a60;
   font-weight: 700;
 }
 

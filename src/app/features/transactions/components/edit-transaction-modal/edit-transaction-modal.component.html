@@ -27,15 +27,21 @@
 
       <ng-container *ngIf="isTransfer(); else regularTransactionFields">
         <div class="transfer-edit-grid">
-          <label class="field">
+          <div class="field transfer-source-field">
             <span>{{ i18n.translate('accounts.transferFrom') }}</span>
-            <select formControlName="fromAccountId">
-              <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
-              <option *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId" [value]="'' + account.id">
-                {{ account.name }}
-              </option>
-            </select>
-          </label>
+            <div class="account-list">
+              <label
+                class="account-option"
+                *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId"
+                [class.selected]="form.controls.fromAccountId.value === '' + account.id">
+                <input type="radio" formControlName="fromAccountId" [value]="account.id" />
+                <span class="account-label">
+                  <span class="account-name">{{ account.name }}</span>
+                  <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
+                </span>
+              </label>
+            </div>
+          </div>
 
           <div class="field">
             <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
@@ -69,7 +75,7 @@
                           <input type="radio" formControlName="toAccountId" [value]="account.id" (change)="selectTransferTarget(account.id)" />
                           <span class="account-label">
                             <span class="account-name">{{ account.name }}</span>
-                            <span class="account-meta">{{ account.ownerUsername }}</span>
+                            <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
                           </span>
                         </label>
                       </div>
