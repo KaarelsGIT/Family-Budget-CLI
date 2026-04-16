@@ -120,6 +120,10 @@ tbody tr:nth-child(even) {
   background: #fbfdfb;
 }
 
+tbody tr:hover {
+  background: #eef6f0;
+}
+
 .actions-column {
   display: flex;
   align-items: center;

@@ -52,6 +52,9 @@ export class RecurringPaymentsPageComponent {
   );
 
   readonly hasRecurringCategoryOptions = computed(() => this.recurringCategoryOptions().length > 0);
+  readonly sortedPayments = computed(() =>
+    [...this.payments()].sort((left, right) => left.name.localeCompare(right.name))
+  );
   readonly totalAmount = computed(() =>
     this.payments()
       .filter((payment) => payment.active)

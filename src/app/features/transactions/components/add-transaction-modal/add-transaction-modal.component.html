@@ -233,6 +233,9 @@
               <label class="field">
                 <span>{{ i18n.translate('accounts.transferAmount') }}</span>
                 <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                <p class="error-message" *ngIf="!isTransferAmountWithinBalance() && transactionForm.controls.amount.value">
+                  {{ i18n.translate('transactions.balanceWouldGoNegative') }}
+                </p>
               </label>
 
               <label class="field">
@@ -246,9 +249,6 @@
               </label>
             </div>
 
-            <p class="error-message" *ngIf="!isTransferAmountWithinBalance() && transactionForm.controls.amount.value">
-              {{ i18n.translate('transactions.balanceWouldGoNegative') }}
-            </p>
           </section>
 
           <p class="state-message" *ngIf="isLoadingAccounts() || isLoadingTransferTargets()">{{ i18n.translate('transactions.loadingAccounts') }}</p>

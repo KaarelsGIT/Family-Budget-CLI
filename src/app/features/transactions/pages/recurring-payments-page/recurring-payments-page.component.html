@@ -48,7 +48,7 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let payment of payments(); trackBy: trackByPaymentId">
+          <tr *ngFor="let payment of sortedPayments(); trackBy: trackByPaymentId">
             <td>{{ payment.name }}</td>
             <td>{{ formatAmount(payment.amount) }}</td>
             <td>{{ payment.dueDay }}</td>
