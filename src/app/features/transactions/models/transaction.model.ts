@@ -51,6 +51,9 @@ export interface TransactionQuery {
 export interface TransactionListResult {
   data: TransactionItem[];
   total: number;
+  totalIncome: number;
+  totalExpenses: number;
+  totalTransfers: number;
 }
 
 export interface CreateTransactionPayload {

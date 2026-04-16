@@ -50,18 +50,32 @@
 }
 
 button.primary-action {
-  min-height: 42px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  background: forestgreen;
+  background: #1f7a1f;
   color: white;
+  border: none;
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 12px;
   font-weight: 700;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(31, 122, 31, 0.24);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 button.primary-action:hover:not(:disabled) {
   background: #176017;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(31, 122, 31, 0.3);
+}
+
+.plus-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 
 button.primary-action:disabled {
@@ -74,6 +88,26 @@ button.primary-action:disabled {
   border: 1px solid #dce9e0;
   border-radius: 18px;
   box-shadow: 0 10px 24px rgba(17, 43, 24, 0.06);
+}
+
+.table-toolbar {
+  padding: 12px 18px 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-recurring-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.add-recurring-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 
 .table-summary {
@@ -116,9 +150,9 @@ tbody td {
   vertical-align: top;
 }
 
-tbody tr:nth-child(even) {
+/* tbody tr:nth-child(even) {
   background: #fbfdfb;
-}
+} */
 
 tbody tr:hover {
   background: #eef6f0;

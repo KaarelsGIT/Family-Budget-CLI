@@ -5,26 +5,6 @@
     </div>
 
     <div class="header-actions">
-      <div class="transactions-menu">
-        <button type="button" class="secondary-action transactions-menu-trigger" (click)="toggleTransactionsMenu()">
-          <span>{{ i18n.translate('header.transactions') }}</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="menu-chevron">
-            <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-        </button>
-
-        <div class="transactions-dropdown" *ngIf="isTransactionsMenuOpen()">
-          <a routerLink="/transactions/recurring" class="transactions-dropdown-item" (click)="closeTransactionsMenu()">
-            {{ i18n.translate('transactions.recurringPayments') }}
-          </a>
-          <a routerLink="/settings/categories" class="transactions-dropdown-item" (click)="closeTransactionsMenu()">
-            {{ i18n.translate('transactions.manageCategories') }}
-          </a>
-<!--          <button type="button" class="transactions-dropdown-item" (click)="openTransactionModal({ type: 'EXPENSE' })">-->
-<!--            {{ i18n.translate('transactions.addAction') }}-->
-<!--          </button>-->
-        </div>
-      </div>
     </div>
   </header>
 
@@ -80,16 +60,16 @@
     </div>
 
     <div class="table-toolbar">
-      <button
-        type="button"
-        class="icon-button add-transaction-button"
-        (click)="openTransactionModal({ type: 'EXPENSE' })"
-        [attr.aria-label]="i18n.translate('transactions.addAction')"
-        [attr.title]="i18n.translate('transactions.addAction')">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M11 5h2v14h-2zM5 11h14v2H5z"></path>
-        </svg>
-      </button>
+        <button
+          type="button"
+          class="icon-button add-transaction-button"
+          (click)="openTransactionModal({ type: 'EXPENSE' })"
+          [attr.aria-label]="i18n.translate('transactions.addAction')"
+          [attr.title]="i18n.translate('transactions.addAction')">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M11 5h2v14h-2zM5 11h14v2H5z"></path>
+          </svg>
+        </button>
 
       <div class="toggle-group" role="tablist" [attr.aria-label]="i18n.translate('transactions.transactionType')">
         <button type="button" class="toggle-button" [class.active]="filters().type === 'EXPENSE'" (click)="onTypeChange('EXPENSE')">
@@ -135,7 +115,7 @@
               {{ i18n.translate('transactions.columnCategory') }}
               <span class="sort-meta" *ngIf="getSortMeta('category.name') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th class="sortable amount-column" (click)="setSort('amount', $event)">
+            <th class="sortable amount-cell" (click)="setSort('amount', $event)">
               {{ i18n.translate('transactions.columnAmount') }}
               <span class="sort-meta" *ngIf="getSortMeta('amount') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
@@ -151,24 +131,33 @@
           </tr>
         </thead>
 
-        <tbody>
+        <tbody class="transaction-list-body">
           <tr
             *ngFor="let transaction of transactions(); trackBy: trackByTransactionId; let index = index"
+            class="transaction-row"
+            [class.income-row]="transaction.type === 'INCOME'"
+            [class.expense-row]="transaction.type === 'EXPENSE'"
             [class.transfer-row]="transaction.type === 'TRANSFER'">
-            <td>{{ index + 1 + filters().page * filters().size }}</td>
-            <td>{{ transaction.createdByUsername }}</td>
-            <td>
+            <td class="index-cell">{{ index + 1 + filters().page * filters().size }}</td>
+            <td class="user-cell">{{ transaction.createdByUsername }}</td>
+            <td class="type-cell">
               <span class="type-badge" [class.income]="transaction.type === 'INCOME'" [class.expense]="transaction.type === 'EXPENSE'" [class.transfer]="transaction.type === 'TRANSFER'">
                 {{ getTypeLabel(transaction.type) }}
               </span>
             </td>
-            <td>{{ formatDate(transaction.transactionDate) }}</td>
-            <td>{{ getAccountFlow(transaction) }}</td>
-            <td>{{ getCategoryLabel(transaction) }}</td>
-            <td class="amount-column" [class.income-amount]="transaction.type === 'INCOME'" [class.expense-amount]="transaction.type === 'EXPENSE'" [class.transfer-amount]="transaction.type === 'TRANSFER'">{{ formatAmount(transaction.amount) }}</td>
-            <td>{{ formatCreatedAt(transaction.createdAt) }}</td>
-            <td>{{ transaction.comment || '—' }}</td>
-            <td class="actions-column">
+            <td class="date-cell">{{ formatDate(transaction.transactionDate) }}</td>
+            <td class="flow-cell">{{ getAccountFlow(transaction) }}</td>
+            <td class="category-cell">{{ getCategoryLabel(transaction) }}</td>
+            <td class="amount-cell">
+              <span [class.income-amount]="transaction.type === 'INCOME'"
+                    [class.expense-amount]="transaction.type === 'EXPENSE'"
+                    [class.transfer-amount]="transaction.type === 'TRANSFER'">
+                {{ formatAmount(transaction.amount) }}
+              </span>
+            </td>
+            <td class="created-at-cell">{{ formatCreatedAt(transaction.createdAt) }}</td>
+            <td class="comment-cell">{{ transaction.comment || '—' }}</td>
+            <td class="actions-cell">
               <ng-container *ngIf="canModifyTransaction(transaction); else noActions">
                 <button
                   type="button"
@@ -202,9 +191,22 @@
       </table>
     </div>
 
-<!--    <div class="table-footer-summary">-->
-<!--      <strong>Perioodi Netosaldo: {{ formatAmount(periodNetBalance()) }}</strong>-->
-<!--    </div>-->
+    <div class="table-footer-summary" *ngIf="transactionData() as data">
+      <div class="summary-rows">
+        <div class="summary-row">
+          <span class="summary-label">{{ i18n.translate('transactions.totalIncome') }}:</span>
+          <span class="summary-value income-amount">{{ formatAmount(data.totalIncome) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">{{ i18n.translate('transactions.totalExpenses') }}:</span>
+          <span class="summary-value expense-amount">{{ formatAmount(data.totalExpenses) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">{{ i18n.translate('transactions.totalTransfers') }}:</span>
+          <span class="summary-value transfer-amount">{{ formatAmount(data.totalTransfers) }}</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <footer class="pagination" *ngIf="!errorMessage()">
@@ -254,7 +256,7 @@
       </div>
 
       <p class="confirm-copy">{{ getDeleteConfirmationMessage(deleteTransaction) }}</p>
-      <p class="confirm-meta">{{ getAccountFlow(deleteTransaction) }} · {{ formatAmount(deleteTransaction.amount) }}</p>
+      <p class="confirm-meta">{{ getAccountFlow(deleteTransaction) }} · <span [class.income-amount]="deleteTransaction.type === 'INCOME'" [class.expense-amount]="deleteTransaction.type === 'EXPENSE'" [class.transfer-amount]="deleteTransaction.type === 'TRANSFER'">{{ formatAmount(deleteTransaction.amount) }}</span></p>
 
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="closeDeleteConfirmation()">

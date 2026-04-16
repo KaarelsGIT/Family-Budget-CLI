@@ -11,13 +11,12 @@
         class="primary-action"
         (click)="openCreateModal()"
         [disabled]="!hasRecurringCategoryOptions()"
-        [attr.title]="!hasRecurringCategoryOptions() ? i18n.translate('recurringPayments.noEligibleCategories') : null">
-        {{ i18n.translate('recurringPayments.addAction') }}
+        [attr.title]="!hasRecurringCategoryOptions() ? i18n.translate('recurringPayments.noEligibleCategories') : i18n.translate('recurringPayments.addAction')">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="plus-icon">
+          <path d="M11 5h2v14h-2zM5 11h14v2H5z"></path>
+        </svg>
+        <span>{{ i18n.translate('recurringPayments.addAction') }}</span>
       </button>
-
-      <a routerLink="/transactions" class="secondary-action">
-        {{ i18n.translate('transactions.backToTransaction') }}
-      </a>
     </div>
   </header>
 
@@ -92,13 +91,21 @@
                   class="icon-button action-toggle"
                   (click)="toggleActive(payment)"
                   [disabled]="isPending(payment)"
-                  [attr.aria-label]="payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction')"
-                  [attr.title]="payment.active ? i18n.translate('recurringPayments.makeNormal') : i18n.translate('recurringPayments.activateAction')">
-                  <svg *ngIf="payment.active" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M12 4.5a7.5 7.5 0 0 0-6.7 10.9l1.7-1a5.5 5.5 0 1 1 9.3 0l1.7 1A7.5 7.5 0 0 0 12 4.5Zm0-2.5C6.2 2 1.5 6.7 1.5 12.5S6.2 23 12 23s10.5-4.7 10.5-10.5S17.8 2 12 2Z"></path>
+                  [attr.aria-label]="payment.active ? i18n.translate('recurringPayments.deactivateAction') : i18n.translate('recurringPayments.activateAction')"
+                  [attr.title]="payment.active ? i18n.translate('recurringPayments.deactivateAction') : i18n.translate('recurringPayments.activateAction')">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 2a1 1 0 0 1 1 1v9a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1zm3.32 2.8a1 1 0 0 1 1.36-.32A9 9 0 1 1 7.32 4.48a1 1 0 0 1 1.36 1.44 7 7 0 1 0 6.64 0 1 1 0 0 1-.32-1.36l.32-.76z" fill="currentColor"></path>
                   </svg>
-                  <svg *ngIf="!payment.active" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M12 2a2 2 0 0 1 2 2v6h4a4 4 0 0 1 0 8h-2v4a2 2 0 0 1-4 0V4a2 2 0 0 1 0-2Z"></path>
+                </button>
+
+                <button
+                  type="button"
+                  class="icon-button family-action"
+                  (click)="makePublic(payment)"
+                  [attr.aria-label]="i18n.translate('recurringPayments.makePublic')"
+                  [attr.title]="i18n.translate('recurringPayments.makePublic')">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"></path>
                   </svg>
                 </button>
               </ng-container>

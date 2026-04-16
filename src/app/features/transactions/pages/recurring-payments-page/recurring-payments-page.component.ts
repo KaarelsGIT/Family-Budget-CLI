@@ -16,7 +16,7 @@ import { RecurringReminderService } from '../../../../notifications/recurring-re
 @Component({
   selector: 'app-recurring-payments-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, RecurringPaymentModalComponent, AddTransactionModalComponent],
+  imports: [CommonModule, RecurringPaymentModalComponent, AddTransactionModalComponent],
   templateUrl: './recurring-payments-page.component.html',
   styleUrl: './recurring-payments-page.component.css'
 })
@@ -68,6 +68,11 @@ export class RecurringPaymentsPageComponent {
 
   trackByPaymentId(_index: number, payment: RecurringPaymentItem): number {
     return payment.id;
+  }
+
+  makePublic(_payment: RecurringPaymentItem): void {
+    // Action to make payment public/family-wide
+    console.log('Make public:', _payment);
   }
 
   trackByCategoryId(_index: number, option: { id: number }): number {

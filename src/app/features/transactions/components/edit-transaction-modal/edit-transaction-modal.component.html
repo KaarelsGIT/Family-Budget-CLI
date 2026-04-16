@@ -29,13 +29,13 @@
         <div class="transfer-edit-grid">
           <div class="field transfer-source-field">
             <span>{{ i18n.translate('accounts.transferFrom') }}</span>
-            <div class="account-list">
+            <div class="account-cards">
               <label
-                class="account-option"
+                class="account-card-option"
                 *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId"
                 [class.selected]="form.controls.fromAccountId.value === '' + account.id">
                 <input type="radio" formControlName="fromAccountId" [value]="account.id" />
-                <span class="account-label">
+                <span class="account-card-content">
                   <span class="account-name">{{ account.name }}</span>
                   <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
                 </span>
@@ -47,14 +47,14 @@
             <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
 
             <div class="target-section">
-              <div class="account-list" *ngIf="hasTransferTargets(); else noTransferAccounts">
+              <div class="account-cards" *ngIf="hasTransferTargets(); else noTransferAccounts">
                 <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
                   <ng-container *ngIf="!user.isCurrentUser; else currentUserTransferTarget">
                     <label
-                      class="account-option"
+                      class="account-card-option"
                       [class.selected]="form.controls.toAccountId.value === '' + user.id">
                       <input type="radio" formControlName="toAccountId" [value]="user.id" (change)="selectTransferTarget(user.id)" />
-                      <span class="account-label">
+                      <span class="account-card-content">
                         <span class="account-name">{{ user.username }}</span>
                       </span>
                     </label>
@@ -67,13 +67,13 @@
                         <span class="group-state">{{ isExpandedTransferTarget(user) ? '▾' : '▸' }}</span>
                       </button>
 
-                      <div class="group-accounts" *ngIf="isExpandedTransferTarget(user)">
+                      <div class="group-accounts account-cards" *ngIf="isExpandedTransferTarget(user)">
                         <label
-                          class="account-option"
+                          class="account-card-option"
                           *ngFor="let account of user.accounts; trackBy: trackByAccountId"
                           [class.selected]="form.controls.toAccountId.value === '' + account.id">
                           <input type="radio" formControlName="toAccountId" [value]="account.id" (change)="selectTransferTarget(account.id)" />
-                          <span class="account-label">
+                          <span class="account-card-content">
                             <span class="account-name">{{ account.name }}</span>
                             <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
                           </span>

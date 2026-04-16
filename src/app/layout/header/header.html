@@ -7,7 +7,25 @@
     <ul class="nav-links">
       <ng-container *ngIf="authService.isLoggedIn()">
         <li><a routerLink="/accounts">{{ i18n.translate('header.accounts') }}</a></li>
-        <li><a routerLink="/transactions">{{ i18n.translate('header.transactions') }}</a></li>
+
+        <li class="transactions-menu">
+          <button type="button" class="tools-trigger" (click)="toggleTransactionsMenu()">
+            {{ i18n.translate('header.transactions') }}
+          </button>
+
+          <div class="tools-dropdown" *ngIf="isTransactionsOpen">
+            <a routerLink="/transactions" class="tools-dropdown-link" (click)="closeTransactionsMenu()">
+              {{ i18n.translate('header.transactions') }}
+            </a>
+            <a routerLink="/transactions/recurring" class="tools-dropdown-link" (click)="closeTransactionsMenu()">
+              {{ i18n.translate('transactions.recurringPayments') }}
+            </a>
+            <a routerLink="/settings/categories" class="tools-dropdown-link" (click)="closeTransactionsMenu()">
+              {{ i18n.translate('transactions.manageCategories') }}
+            </a>
+          </div>
+        </li>
+
         <li><a routerLink="/statistics">{{ i18n.translate('header.statistics') }}</a></li>
 
         <li class="tools-menu">

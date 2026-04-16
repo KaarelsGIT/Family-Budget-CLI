@@ -16,6 +16,9 @@ import {
 interface ListResponse<T> {
   data: T;
   total: number;
+  totalIncome?: number;
+  totalExpenses?: number;
+  totalTransfers?: number;
 }
 
 interface ApiResponse<T> {
@@ -93,7 +96,10 @@ export class TransactionsService {
     return this.http.get<ListResponse<TransactionApiResponse[]>>(`${environment.apiUrl}/transactions`, { params }).pipe(
       map((response) => ({
         data: response.data.map((item) => this.mapTransaction(item)),
-        total: response.total
+        total: response.total,
+        totalIncome: response.totalIncome ?? 0,
+        totalExpenses: response.totalExpenses ?? 0,
+        totalTransfers: response.totalTransfers ?? 0
       }))
     );
   }

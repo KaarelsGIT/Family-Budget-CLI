@@ -29,6 +29,7 @@ export class Header {
   isUserMenuOpen = false;
   isLanguageMenuOpen = false;
   isNotificationsOpen = false;
+  isTransactionsOpen = false;
   isCalculatorVisible = false;
   isRecurringRemindersModalOpen = false;
   isHelpOpen = false;
@@ -57,6 +58,9 @@ export class Header {
     const target = event.target as HTMLElement | null;
     if (!target?.closest('.tools-menu')) {
       this.isToolsOpen = false;
+    }
+    if (!target?.closest('.transactions-menu')) {
+      this.isTransactionsOpen = false;
     }
     if (!target?.closest('.user-menu')) {
       this.isUserMenuOpen = false;
@@ -144,6 +148,29 @@ export class Header {
 
   openCalculator(): void {
     this.isCalculatorVisible = true;
+    this.isToolsOpen = false;
+    this.isLanguageMenuOpen = false;
+    this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
+  }
+
+  toggleTransactionsMenu(): void {
+    this.isToolsOpen = false;
+    this.isUserMenuOpen = false;
+    this.isLanguageMenuOpen = false;
+    this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
+    this.isTransactionsOpen = !this.isTransactionsOpen;
+  }
+
+  closeTransactionsMenu(): void {
+    this.isTransactionsOpen = false;
+  }
+
+  openAddTransaction(): void {
+    this.transactionDraftService.requestOpen({ type: 'EXPENSE' });
+    this.closeTransactionsMenu();
+    this.isUserMenuOpen = false;
     this.isToolsOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;

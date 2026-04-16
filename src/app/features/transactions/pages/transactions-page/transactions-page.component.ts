@@ -13,6 +13,7 @@ import { EditTransactionModalComponent } from '../../components/edit-transaction
 import {
   TransactionCategory,
   TransactionItem,
+  TransactionListResult,
   TransactionQuery,
   TransactionUserOption
 } from '../../models/transaction.model';
@@ -35,7 +36,7 @@ interface CategoryFilterOption {
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent],
+  imports: [CommonModule, FormsModule, AddTransactionModalComponent, EditTransactionModalComponent],
   templateUrl: './transactions-page.component.html',
   styleUrl: './transactions-page.component.css'
 })
@@ -50,6 +51,7 @@ export class TransactionsPageComponent {
   readonly currentUserRole = this.authService.getRole();
 
   readonly transactions = signal<TransactionItem[]>([]);
+  readonly transactionData = signal<TransactionListResult | null>(null);
   readonly categories = signal<TransactionCategory[]>([]);
   readonly users = signal<TransactionUserOption[]>([]);
   readonly accounts = signal<Account[]>([]);
@@ -90,21 +92,9 @@ export class TransactionsPageComponent {
     return size > 0 ? Math.max(1, Math.ceil(this.totalItems() / size)) : 1;
   });
 
-  readonly periodNetBalance = computed(() =>
-    this.transactions().reduce((sum, transaction) => {
-      if (this.filters().type === 'TRANSFER') {
-        return sum + transaction.amount;
-      }
-
-      if (transaction.type === 'INCOME') {
-        return sum + transaction.amount;
-      }
-      if (transaction.type === 'EXPENSE') {
-        return sum - transaction.amount;
-      }
-      return sum;
-    }, 0)
-  );
+  readonly totalIncome = computed(() => this.transactionData()?.totalIncome ?? 0);
+  readonly totalExpenses = computed(() => this.transactionData()?.totalExpenses ?? 0);
+  readonly totalTransfers = computed(() => this.transactionData()?.totalTransfers ?? 0);
 
   readonly hasPreviousPage = computed(() => this.filters().page > 0);
   readonly hasNextPage = computed(() => this.filters().page + 1 < this.pageCount());
@@ -191,10 +181,12 @@ export class TransactionsPageComponent {
       .subscribe({
         next: (response) => {
           this.transactions.set(response.data);
+          this.transactionData.set(response);
           this.totalItems.set(response.total);
         },
         error: (error: { error?: { message?: string } }) => {
           this.transactions.set([]);
+          this.transactionData.set(null);
           this.totalItems.set(0);
           this.errorMessage.set(error.error?.message || this.i18n.translate('transactions.loadFailed'));
         }
