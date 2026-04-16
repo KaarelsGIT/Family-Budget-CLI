@@ -136,6 +136,10 @@ export class TransferFormComponent {
     return user.id;
   }
 
+  selectTransferTarget(value: number): void {
+    this.form.patchValue({ toAccountId: String(value) });
+  }
+
   isCurrentUserTarget(user: TransferTargetUser): boolean {
     return user.isCurrentUser;
   }
@@ -154,10 +158,6 @@ export class TransferFormComponent {
     }
 
     this.expandedTargetUserId.set(this.isExpandedTarget(user) ? null : user.id);
-  }
-
-  selectTransferTarget(value: number): void {
-    this.form.patchValue({ toAccountId: String(value) });
   }
 
   isAmountWithinBalance(): boolean {

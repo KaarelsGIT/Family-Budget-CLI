@@ -145,7 +145,6 @@ export class TransactionsPageComponent {
       ...state,
       page: 0
     }));
-    this.closeAddTransactionModal();
     this.loadTransactions();
   }
 

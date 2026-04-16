@@ -41,7 +41,9 @@ export class RecurringPaymentModalComponent {
       .filter((category) => category.type === 'EXPENSE')
       .map((category) => ({
         id: category.id,
-        label: category.parentCategoryName ? `${category.parentCategoryName} > ${category.name}` : category.name
+        label: category.parentCategoryName
+          ? `${category.parentCategoryName} > ${category.name ?? ''}`
+          : (category.name ?? '')
       }))
   );
 
@@ -49,11 +51,11 @@ export class RecurringPaymentModalComponent {
     const options = [...this.categoryOptions()];
     const payment = this.payment();
     if (!payment) {
-      return options;
+      return options.sort((left, right) => (left.label ?? '').localeCompare(right.label ?? '', 'et'));
     }
 
     if (options.some((option) => option.id === payment.categoryId)) {
-      return options;
+      return options.sort((left, right) => (left.label ?? '').localeCompare(right.label ?? '', 'et'));
     }
 
     const category = this.categories().find((item) => item.id === payment.categoryId);
@@ -63,8 +65,10 @@ export class RecurringPaymentModalComponent {
 
     return [...options, {
       id: category.id,
-      label: category.parentCategoryName ? `${category.parentCategoryName} > ${category.name}` : category.name
-    }];
+      label: category.parentCategoryName
+        ? `${category.parentCategoryName} > ${category.name ?? ''}`
+        : (category.name ?? '')
+    }].sort((left, right) => (left.label ?? '').localeCompare(right.label ?? '', 'et'));
   });
 
   readonly form = this.formBuilder.nonNullable.group({

@@ -48,7 +48,7 @@
           </div>
 
           <div class="account-grid owner-accounts">
-            <app-account-card
+              <app-account-card
               *ngFor="let account of group.accounts; trackBy: trackByAccountId"
               [account]="account"
               [accentColor]="getAccountColor(group.accounts, account)"

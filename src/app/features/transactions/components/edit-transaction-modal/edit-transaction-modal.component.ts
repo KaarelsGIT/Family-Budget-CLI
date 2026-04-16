@@ -87,11 +87,6 @@ export class EditTransactionModalComponent {
   readonly isTransfer = computed(() => this.transaction().type === 'TRANSFER');
 
   readonly transferSourceOptions = computed(() => this.ownAccounts());
-
-  readonly transferTargetUsers = computed<TransferTargetUser[]>(() =>
-    buildTransferTargetUsers(this.transferTargets(), this.accounts(), this.currentUserId)
-  );
-
   readonly selectedTransferSourceAccount = computed(() => {
     const sourceAccountId = this.parseNumber(this.form.controls.fromAccountId.getRawValue()) ?? this.transaction().fromAccountId;
     if (sourceAccountId === null) {
@@ -100,6 +95,10 @@ export class EditTransactionModalComponent {
 
     return this.transferSourceOptions().find((account) => account.id === sourceAccountId) ?? null;
   });
+
+  readonly transferTargetUsers = computed<TransferTargetUser[]>(() =>
+    buildTransferTargetUsers(this.transferTargets(), this.accounts(), this.currentUserId)
+  );
 
   readonly hasTransferTargets = computed(() =>
     this.transferTargetUsers().some((user) => !user.isCurrentUser || this.shouldShowMyAccountsSection(user))
@@ -113,21 +112,11 @@ export class EditTransactionModalComponent {
       this.form.patchValue({
         amount: transaction.amount,
         fromAccountId: transaction.type === 'TRANSFER' ? String(transaction.fromAccountId ?? '') : '',
-        toAccountId: transaction.type === 'TRANSFER'
-          ? String(transaction.toAccountId ?? '')
-          : '',
-        transactionDate: transaction.transactionDate,
+        toAccountId: transaction.type === 'TRANSFER' ? String(transaction.toAccountId ?? '') : '',
+        transactionDate: this.normalizeDateValue(transaction.transactionDate),
         comment: transaction.comment ?? ''
       }, { emitEvent: false });
       this.errorMessage.set('');
-    });
-
-    effect(() => {
-      if (!this.isTransfer()) {
-        return;
-      }
-
-      this.ensureValidTransferSelection();
     });
   }
 
@@ -193,7 +182,6 @@ export class EditTransactionModalComponent {
     if (this.isTransfer()) {
       const parsedFromAccountId = this.parseNumber(fromAccountId);
       const parsedToAccountId = this.parseNumber(toAccountId);
-      const selectedOwnAccount = this.isOwnTransferTarget(parsedToAccountId);
 
       if (parsedFromAccountId === null || parsedToAccountId === null) {
         this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
@@ -206,6 +194,7 @@ export class EditTransactionModalComponent {
       }
 
       payload.fromAccountId = parsedFromAccountId;
+      const selectedOwnAccount = this.isOwnTransferTarget(parsedToAccountId);
       payload.targetUserId = selectedOwnAccount ? null : parsedToAccountId;
       payload.toAccountId = selectedOwnAccount ? parsedToAccountId : null;
     }
@@ -280,12 +269,8 @@ export class EditTransactionModalComponent {
     return account.id;
   }
 
-  trackByTransferTargetUser(_index: number, user: SelectableUser): number {
+  trackByTransferTargetUser(_index: number, user: TransferTargetUser): number {
     return user.id;
-  }
-
-  shouldShowMyAccountsSection(user: TransferTargetUser): boolean {
-    return shouldShowMyAccountsSection(user, this.accounts(), this.currentUserId);
   }
 
   private loadAccounts(): void {
@@ -366,15 +351,6 @@ export class EditTransactionModalComponent {
     return this.parseNumber(this.form.controls.fromAccountId.getRawValue()) ?? this.transaction().fromAccountId;
   }
 
-  private getSelectedTransferDestinationUser(): SelectableUser | null {
-    const selectedTargetId = this.parseNumber(this.form.controls.toAccountId.getRawValue()) ?? this.resolveTransactionDestinationUserId();
-    if (selectedTargetId === null || this.isOwnTransferTarget(selectedTargetId)) {
-      return null;
-    }
-
-    return this.transferTargetUsers().find((user) => user.id === selectedTargetId) ?? null;
-  }
-
   private getSelectedTransferDestinationLabel(): string {
     const selectedTargetId = this.parseNumber(this.form.controls.toAccountId.getRawValue()) ?? this.resolveTransactionDestinationUserId();
     if (selectedTargetId === null) {
@@ -404,6 +380,10 @@ export class EditTransactionModalComponent {
     }
 
     return this.transferTargetUsers().find((user) => user.defaultMainAccountId === destinationAccountId)?.id ?? null;
+  }
+
+  shouldShowMyAccountsSection(user: TransferTargetUser): boolean {
+    return shouldShowMyAccountsSection(user, this.accounts(), this.currentUserId);
   }
 
   isExpandedTransferTarget(user: TransferTargetUser): boolean {
@@ -452,6 +432,22 @@ export class EditTransactionModalComponent {
     }
 
     return users.find((user) => !user.isCurrentUser)?.id ?? null;
+  }
+
+  private normalizeDateValue(value: string | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private resolveErrorMessage(error: { error?: { message?: string } }): string {

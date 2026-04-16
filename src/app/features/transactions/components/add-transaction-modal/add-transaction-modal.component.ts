@@ -778,6 +778,10 @@ export class AddTransactionModalComponent {
       return this.i18n.translate('transactions.balanceWouldGoNegative');
     }
 
+    if (message === 'Transfer accounts must differ') {
+      return this.i18n.translate('transactions.transferSameAccount');
+    }
+
     return message || this.i18n.translate(fallbackKey);
   }
 
@@ -1077,8 +1081,12 @@ export class AddTransactionModalComponent {
     }
 
     const currentDestinationAccountId = this.parseNumber(this.transactionForm.controls.transferToAccountId.getRawValue());
-    if (currentDestinationAccountId !== null && this.isValidTransferTargetValue(currentDestinationAccountId)) {
+    if (currentDestinationAccountId !== null &&
+      this.isValidTransferTargetValue(currentDestinationAccountId) &&
+      currentDestinationAccountId !== currentSourceAccountId) {
       this.selectedTransferToAccountId.set(currentDestinationAccountId);
+    } else if (currentDestinationAccountId !== null && currentDestinationAccountId === currentSourceAccountId) {
+      this.ensureDefaultTransferDestination();
     }
 
     if (this.selectedTransferFromAccountId() === null) {
@@ -1120,6 +1128,7 @@ export class AddTransactionModalComponent {
     const draft = this.draftService.value();
     const preferredAccountId = draft.transferToAccountId ?? draft.toAccountId;
     const preferredSelection = preferredAccountId !== null && this.isValidTransferTargetValue(preferredAccountId)
+      && preferredAccountId !== this.selectedTransferSourceAccount()?.id
       ? preferredAccountId
       : this.findFallbackTransferTargetValue(destinationUsers);
 
