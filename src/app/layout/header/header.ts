@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { LoginModalComponent } from '../../login-modal/login-modal.component';
 import { CalculatorComponent } from '../../tools/calculator/calculator.component';
+import { SalaryCalculatorModal } from '../../tools/salary-calculator-modal/salary-calculator-modal';
 import { LanguageCode, TranslationService } from '../../i18n/translation.service';
 import { NotificationItem, NotificationService } from '../../notifications/notification.service';
 import { RecurringRemindersModalComponent } from '../../notifications/components/recurring-reminders-modal/recurring-reminders-modal.component';
@@ -14,7 +15,7 @@ import { HelpGuideModalComponent } from '../../help/components/help-guide-modal/
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoginModalComponent, CalculatorComponent, RecurringRemindersModalComponent, HelpGuideModalComponent],
+  imports: [CommonModule, RouterLink, LoginModalComponent, CalculatorComponent, SalaryCalculatorModal, RecurringRemindersModalComponent, HelpGuideModalComponent],
   templateUrl: './header.html',
   styleUrl: './header.css'
 })
@@ -31,6 +32,7 @@ export class Header {
   isNotificationsOpen = false;
   isTransactionsOpen = false;
   isCalculatorVisible = false;
+  isSalaryCalculatorVisible = false;
   isRecurringRemindersModalOpen = false;
   isHelpOpen = false;
   highlightedReminderId: number | null = null;
@@ -148,6 +150,16 @@ export class Header {
 
   openCalculator(): void {
     this.isCalculatorVisible = true;
+    this.isSalaryCalculatorVisible = false;
+    this.isToolsOpen = false;
+    this.isLanguageMenuOpen = false;
+    this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
+  }
+
+  openSalaryCalculator(): void {
+    this.isSalaryCalculatorVisible = true;
+    this.isCalculatorVisible = false;
     this.isToolsOpen = false;
     this.isLanguageMenuOpen = false;
     this.isNotificationsOpen = false;
@@ -179,6 +191,10 @@ export class Header {
 
   closeCalculator(): void {
     this.isCalculatorVisible = false;
+  }
+
+  closeSalaryCalculator(): void {
+    this.isSalaryCalculatorVisible = false;
   }
 
   toggleNotificationsMenu(): void {
@@ -249,6 +265,7 @@ export class Header {
     this.isNotificationsOpen = false;
     this.isHelpOpen = false;
     this.isCalculatorVisible = false;
+    this.isSalaryCalculatorVisible = false;
     this.isLoginModalOpen = false;
     this.unreadNotificationsCount = 0;
     this.notifications = [];

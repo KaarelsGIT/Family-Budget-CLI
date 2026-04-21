@@ -1,0 +1,122 @@
+<ng-container *ngIf="isOpen">
+  <div class="modal-overlay salary-calculator-modal">
+    <div class="modal-backdrop" (click)="close()"></div>
+
+    <section
+      class="modal-card salary-card"
+      role="dialog"
+      aria-modal="true"
+      [style.transform]="getModalTransform()">
+      <div class="modal-header salary-header" (pointerdown)="startDrag($event)">
+        <div>
+          <p class="eyebrow">{{ i18n.translate('salaryCalculator.eyebrow') }}</p>
+          <h2>{{ i18n.translate('salaryCalculator.title') }}</h2>
+        </div>
+
+        <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+      </div>
+
+      <div class="salary-layout">
+        <form class="salary-inputs" autocomplete="off">
+          <label class="field">
+            <span>{{ i18n.translate('salaryCalculator.grossSalary') }}</span>
+            <input
+              type="text"
+              inputmode="decimal"
+              [ngModel]="grossSalaryInput"
+              (ngModelChange)="grossSalaryInput = $event"
+              (input)="onGrossSalaryInput($event)"
+              name="grossSalary"
+              [placeholder]="i18n.translate('salaryCalculator.grossSalaryPlaceholder')" />
+          </label>
+
+          <label class="field">
+            <span>{{ i18n.translate('salaryCalculator.taxFreeAllowance') }}</span>
+            <input
+              type="text"
+              inputmode="decimal"
+              [ngModel]="taxFreeAllowanceInput"
+              (ngModelChange)="taxFreeAllowanceInput = $event"
+              (input)="onTaxFreeAllowanceInput($event)"
+              name="taxFreeAllowance"
+              [placeholder]="i18n.translate('salaryCalculator.taxFreeAllowancePlaceholder')" />
+          </label>
+
+          <label class="toggle-row">
+            <input type="checkbox" [(ngModel)]="pensionEnabled" name="pensionEnabled" />
+            <span>
+              <strong>{{ i18n.translate('salaryCalculator.pensionToggle') }}</strong>
+              <small>{{ i18n.translate('salaryCalculator.pensionHint') }}</small>
+            </span>
+          </label>
+
+          <div class="rate-grid">
+            <div class="rate-pill">
+              <span>{{ i18n.translate('salaryCalculator.incomeTaxRate') }}</span>
+              <strong>20%</strong>
+            </div>
+            <div class="rate-pill">
+              <span>{{ i18n.translate('salaryCalculator.unemploymentRate') }}</span>
+              <strong>1.6%</strong>
+            </div>
+            <div class="rate-pill">
+              <span>{{ i18n.translate('salaryCalculator.pensionRate') }}</span>
+              <strong>2%</strong>
+            </div>
+          </div>
+        </form>
+
+        <aside class="results-card" aria-live="polite">
+          <div class="results-top">
+            <p class="results-label">{{ i18n.translate('salaryCalculator.results') }}</p>
+            <div class="net-amount">{{ formatMoney(netSalary) }}</div>
+            <p class="net-caption">{{ i18n.translate('salaryCalculator.netSalary') }}</p>
+          </div>
+
+          <div class="breakdown-list">
+            <div class="breakdown-item">
+              <div class="breakdown-head">
+                <span>{{ i18n.translate('salaryCalculator.incomeTax') }}</span>
+                <strong>{{ formatMoney(incomeTax) }}</strong>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill income-tax" [style.width.%]="incomeTaxBarWidth"></div>
+              </div>
+            </div>
+
+            <div class="breakdown-item">
+              <div class="breakdown-head">
+                <span>{{ i18n.translate('salaryCalculator.unemploymentInsurance') }}</span>
+                <strong>{{ formatMoney(unemploymentContribution) }}</strong>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill unemployment" [style.width.%]="unemploymentBarWidth"></div>
+              </div>
+            </div>
+
+            <div class="breakdown-item">
+              <div class="breakdown-head">
+                <span>{{ i18n.translate('salaryCalculator.pensionFund') }}</span>
+                <strong>{{ formatMoney(pensionContribution) }}</strong>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill pension" [style.width.%]="pensionBarWidth"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="results-footer">
+            <div>
+              <span>{{ i18n.translate('salaryCalculator.taxFreeAllowanceUsed') }}</span>
+              <strong>{{ formatMoney(taxFreeAllowance) }}</strong>
+            </div>
+            <div>
+              <span>{{ i18n.translate('salaryCalculator.grossSalary') }}</span>
+              <strong>{{ formatMoney(grossSalary) }}</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
+</ng-container>
