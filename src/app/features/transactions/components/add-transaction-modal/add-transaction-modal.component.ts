@@ -1103,6 +1103,10 @@ export class AddTransactionModalComponent {
       return;
     }
 
+    if (this.transferSourceAccounts().length === 0 || this.transferTargetUsers().length === 0) {
+      return;
+    }
+
     const currentSourceAccountId = this.parseNumber(this.transactionForm.controls.transferFromAccountId.getRawValue());
     if (currentSourceAccountId !== null && this.transferSourceAccounts().some((account) => account.id === currentSourceAccountId)) {
       this.selectedTransferFromAccountId.set(currentSourceAccountId);
@@ -1165,7 +1169,12 @@ export class AddTransactionModalComponent {
       this.selectedTransferToAccountId.set(preferredSelection);
       this.selectedTransferTarget.set({ kind: this.resolveTransferTargetKind(preferredSelection), id: preferredSelection });
       this.persistDraft();
+      return;
     }
+
+    this.transactionForm.patchValue({ transferToAccountId: '' }, { emitEvent: false });
+    this.selectedTransferToAccountId.set(null);
+    this.selectedTransferTarget.set(null);
   }
 
   private syncTransactionControlsForType(type: TransactionType): void {
@@ -1357,15 +1366,14 @@ export class AddTransactionModalComponent {
   private findFallbackTransferTargetValue(users: TransferTargetUser[]): number | null {
     const currentUserTarget = users.find((user) => user.isCurrentUser);
     const showMyAccounts = currentUserTarget !== undefined && this.shouldShowMyAccountsSection(currentUserTarget);
+    const sourceAccountId = this.selectedTransferSourceAccount()?.id ?? null;
 
     if (!showMyAccounts) {
       return users.find((user) => !user.isCurrentUser)?.id ?? null;
     }
 
     if (currentUserTarget?.accounts.length) {
-      const sourceAccountId = this.selectedTransferSourceAccount()?.id ?? null;
-      const preferredOwnAccount = currentUserTarget.accounts.find((account) => account.id !== sourceAccountId)
-        ?? currentUserTarget.accounts[0];
+      const preferredOwnAccount = currentUserTarget.accounts.find((account) => account.id !== sourceAccountId) ?? null;
       if (preferredOwnAccount) {
         return preferredOwnAccount.id;
       }
