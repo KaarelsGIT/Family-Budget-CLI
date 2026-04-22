@@ -2,7 +2,18 @@
   <div class="card-header">
     <div class="card-main">
       <div class="card-title-row">
-      <app-edit-account-inline [account]="account()" [editable]="canEditAccount()" [showTrigger]="false" (updated)="onUpdated()" />
+        <div class="account-title">
+          <app-edit-account-inline [account]="account()" [editable]="canEditAccount()" [showTrigger]="false" (updated)="onUpdated()" />
+          <span
+            class="shared-indicator"
+            *ngIf="isSharedAccount()"
+            [attr.aria-label]="i18n.translate('accounts.sharedAccount')"
+            [attr.title]="i18n.translate('accounts.sharedAccount')">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-6 8a6 6 0 0 1 12 0H6Zm11.5-9a3.5 3.5 0 1 0-2.83-5.62A5.98 5.98 0 0 1 17.5 11Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
       </div>
 
       <div class="card-tools">

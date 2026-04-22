@@ -35,6 +35,28 @@
   min-width: 0;
 }
 
+.account-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.shared-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: #3f7f55;
+}
+
+.shared-indicator svg {
+  width: 18px;
+  height: 18px;
+}
+
 .card-tools {
   display: flex;
   align-items: center;

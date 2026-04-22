@@ -56,6 +56,10 @@ export class AccountCardComponent {
     return this.isOwner() || this.isAdmin();
   }
 
+  isSharedAccount(): boolean {
+    return (this.account().sharedUsers?.length ?? 0) > 0;
+  }
+
   onTransfer(): void {
     if (!this.canTransfer()) {
       return;
