@@ -173,6 +173,11 @@ export class EditTransactionModalComponent {
       return;
     }
 
+    if (this.transaction().type === 'EXPENSE' && !this.isExpenseAmountWithinBalance(parsedAmount)) {
+      this.errorMessage.set(this.i18n.translate('transactions.balanceWouldGoNegative'));
+      return;
+    }
+
     const payload: UpdateTransactionPayload = {
       amount: parsedAmount,
       transactionDate,
@@ -275,6 +280,29 @@ export class EditTransactionModalComponent {
 
   getTransferAccountDetails(account: Account): string {
     return `${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
+  isExpenseAmountWithinBalance(amount?: number): boolean {
+    if (this.transaction().type !== 'EXPENSE') {
+      return true;
+    }
+
+    const parsedAmount = amount ?? parseMoneyInput(this.form.controls.amount.getRawValue());
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return true;
+    }
+
+    const sourceAccountId = this.transaction().fromAccountId;
+    if (sourceAccountId === null) {
+      return true;
+    }
+
+    const sourceAccount = this.accounts().find((account) => account.id === sourceAccountId);
+    if (!sourceAccount) {
+      return true;
+    }
+
+    return parsedAmount <= sourceAccount.balance + this.transaction().amount;
   }
 
   private loadAccounts(): void {

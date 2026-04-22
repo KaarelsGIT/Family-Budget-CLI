@@ -18,110 +18,35 @@
           <span>{{ isTransfer() ? i18n.translate('accounts.transferFrom') : i18n.translate('transactions.columnAccount') }}</span>
           <div class="readonly-field">{{ getAccountLabel() }}</div>
         </label>
+      </div>
+
+      <hr class="form-divider">
+
+      <div class="input-grid">
+        <label class="field">
+          <span>{{ i18n.translate('transactions.columnDate') }}</span>
+          <input type="date" formControlName="transactionDate" />
+        </label>
 
         <label class="field">
           <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-          <div class="readonly-field">{{ formatCurrentAmount() }}</div>
+          <input type="text" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+          <p class="error-message" *ngIf="transaction().type === 'EXPENSE' && !isExpenseAmountWithinBalance() && form.controls.amount.value">
+            {{ i18n.translate('transactions.balanceWouldGoNegative') }}
+          </p>
         </label>
       </div>
 
-      <ng-container *ngIf="isTransfer(); else regularTransactionFields">
-        <div class="transfer-edit-grid">
-          <div class="field transfer-source-field">
-            <span>{{ i18n.translate('accounts.transferFrom') }}</span>
-            <div class="account-cards">
-              <label
-                class="account-card-option"
-                *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId"
-                [class.selected]="form.controls.fromAccountId.value === '' + account.id">
-                <input type="radio" formControlName="fromAccountId" [value]="account.id" />
-                <span class="account-card-content">
-                  <span class="account-name">{{ account.name }}</span>
-                  <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <div class="field">
-            <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
-
-            <div class="target-section">
-              <div class="account-cards" *ngIf="hasTransferTargets(); else noTransferAccounts">
-                <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
-                  <ng-container *ngIf="!user.isCurrentUser; else currentUserTransferTarget">
-                    <label
-                      class="account-card-option"
-                      [class.selected]="form.controls.toAccountId.value === '' + user.id">
-                      <input type="radio" formControlName="toAccountId" [value]="user.id" (change)="selectTransferTarget(user.id)" />
-                      <span class="account-card-content">
-                        <span class="account-name">{{ user.username }}</span>
-                      </span>
-                    </label>
-                  </ng-container>
-
-                  <ng-template #currentUserTransferTarget>
-                    <div class="user-group current-user-group" *ngIf="shouldShowMyAccountsSection(user); else hiddenCurrentUserTarget">
-                      <button type="button" class="group-toggle" (click)="toggleTransferTargetExpansion(user)">
-                        <span>{{ i18n.translate('accounts.myAccounts') }}</span>
-                        <span class="group-state">{{ isExpandedTransferTarget(user) ? '▾' : '▸' }}</span>
-                      </button>
-
-                      <div class="group-accounts account-cards" *ngIf="isExpandedTransferTarget(user)">
-                        <label
-                          class="account-card-option"
-                          *ngFor="let account of user.accounts; trackBy: trackByAccountId"
-                          [class.selected]="form.controls.toAccountId.value === '' + account.id">
-                          <input type="radio" formControlName="toAccountId" [value]="account.id" (change)="selectTransferTarget(account.id)" />
-                          <span class="account-card-content">
-                            <span class="account-name">{{ account.name }}</span>
-                            <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </ng-template>
-
-                  <ng-template #hiddenCurrentUserTarget></ng-template>
-                </ng-container>
-              </div>
-              <ng-template #noTransferAccounts>
-                <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
-              </ng-template>
-            </div>
-          </div>
-        </div>
-
-        <p class="state-message" *ngIf="isLoadingAccounts()">{{ i18n.translate('transactions.loadingAccounts') }}</p>
-        <p class="error-message" *ngIf="!hasTransferTargets()">
-          {{ i18n.translate('accounts.noTransferTargets') }}
-        </p>
-      </ng-container>
-
-      <ng-template #regularTransactionFields>
-        <p class="field-hint">{{ getAccountLabel() }}</p>
-      </ng-template>
-
-      <label class="field">
-        <span>{{ i18n.translate('transactions.columnDate') }}</span>
-        <input type="date" formControlName="transactionDate" />
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-        <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
-      </label>
-
       <label class="field">
         <span>{{ i18n.translate('transactions.columnComment') }}</span>
-        <textarea rows="3" formControlName="comment"></textarea>
+        <textarea rows="3" formControlName="comment" placeholder="Lisa märkus..."></textarea>
       </label>
 
       <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
-        <button type="submit" class="primary" [disabled]="isSubmitting() || (isTransfer() && (isLoadingAccounts() || !hasTransferTargets()))">
+        <button type="submit" class="primary" [disabled]="isSubmitting()">
           {{ isSubmitting() ? i18n.translate('transactions.editing') : i18n.translate('transactions.saveChanges') }}
         </button>
       </div>
