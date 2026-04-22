@@ -191,8 +191,8 @@
                     <ng-container *ngIf="!user.isCurrentUser; else currentUserTransferTarget">
                       <label
                         class="account-option"
-                        [class.selected]="selectedTransferToAccountId() === user.id">
-                        <input type="radio" formControlName="transferToAccountId" [value]="user.id" (change)="selectTransferTarget(user.id)" />
+                        [class.selected]="isTargetSelected(user.id, 'user')">
+                        <input type="radio" formControlName="transferToAccountId" [value]="user.id" [checked]="isTargetSelected(user.id, 'user')" (change)="selectTransferTarget(user.id, 'user')" />
                         <span class="account-label">
                           <span class="account-name">{{ user.username }}</span>
                         </span>
@@ -209,8 +209,8 @@
                           <label
                             class="account-option"
                             *ngFor="let account of user.accounts; trackBy: trackByAccountId"
-                            [class.selected]="selectedTransferToAccountId() === account.id">
-                            <input type="radio" formControlName="transferToAccountId" [value]="account.id" (change)="selectTransferTarget(account.id)" />
+                            [class.selected]="isTargetSelected(account.id, 'account')">
+                            <input type="radio" formControlName="transferToAccountId" [value]="account.id" [checked]="isTargetSelected(account.id, 'account')" (change)="selectTransferTarget(account.id, 'account')" />
                             <span class="account-label">
                               <span class="account-name">{{ account.name }}</span>
                               <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>

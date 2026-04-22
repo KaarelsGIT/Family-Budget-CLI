@@ -17,6 +17,7 @@ import { TransactionsService } from '../../services/transactions.service';
 type ModalView = 'transaction' | 'category';
 type CategoryMode = 'main' | 'sub';
 type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
+type TransferTargetKind = 'user' | 'account';
 
 const ADD_CATEGORY_VALUE = '__add_category__';
 
@@ -37,6 +38,11 @@ interface TransferDestinationOption {
   value: string;
   label: string;
   groupKey: 'accounts.transferOwnAccounts' | 'accounts.transferOtherUsers';
+}
+
+interface SelectedTransferTarget {
+  kind: TransferTargetKind;
+  id: number;
 }
 
 @Component({
@@ -78,6 +84,7 @@ export class AddTransactionModalComponent {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly selectedTransferFromAccountId = signal<number | null>(null);
   readonly selectedTransferToAccountId = signal<number | null>(null);
+  readonly selectedTransferTarget = signal<SelectedTransferTarget | null>(null);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
 
@@ -380,7 +387,13 @@ export class AddTransactionModalComponent {
   onTransferFromAccountChange(value: string): void {
     this.errorMessage.set('');
     this.transactionForm.patchValue({ transferFromAccountId: value }, { emitEvent: false });
-    this.selectedTransferFromAccountId.set(this.parseNumber(value));
+    const parsedValue = this.parseNumber(value);
+    this.selectedTransferFromAccountId.set(parsedValue);
+    if (parsedValue !== null && this.selectedTransferTarget()?.id === parsedValue) {
+      this.selectedTransferTarget.set(null);
+      this.selectedTransferToAccountId.set(null);
+      this.transactionForm.patchValue({ transferToAccountId: '' }, { emitEvent: false });
+    }
     this.ensureDefaultTransferDestination();
     this.persistDraft();
   }
@@ -390,6 +403,15 @@ export class AddTransactionModalComponent {
     this.transactionForm.patchValue({ transferToAccountId: value }, { emitEvent: false });
     const parsedValue = this.parseNumber(value);
     this.selectedTransferToAccountId.set(parsedValue);
+    if (parsedValue !== null) {
+      const currentSelection = this.selectedTransferTarget();
+      this.selectedTransferTarget.set({
+        kind: currentSelection?.id === parsedValue ? currentSelection.kind : this.resolveTransferTargetKind(parsedValue),
+        id: parsedValue
+      });
+    } else {
+      this.selectedTransferTarget.set(null);
+    }
     if (parsedValue !== null && this.isOwnTransferTarget(parsedValue)) {
       this.expandedTransferTargetUserId.set(this.authService.getUserId());
     }
@@ -415,7 +437,8 @@ export class AddTransactionModalComponent {
       const trimmedComment = (comment || '').trim();
       const parsedFromAccountId = this.parseNumber(transferFromAccountId);
       const parsedToAccountId = this.parseNumber(transferToAccountId);
-      const selectedTargetIsOwnAccount = parsedToAccountId !== null && this.isOwnTransferTarget(parsedToAccountId);
+      const selectedTarget = this.selectedTransferTarget();
+      const selectedTargetKind = selectedTarget?.id === parsedToAccountId ? selectedTarget.kind : null;
 
       if (
         parsedFromAccountId === null ||
@@ -444,8 +467,8 @@ export class AddTransactionModalComponent {
       this.accountService.createTransfer({
         amount: parsedAmount,
         fromAccountId: parsedFromAccountId,
-        targetUserId: selectedTargetIsOwnAccount ? null : parsedToAccountId,
-        toAccountId: selectedTargetIsOwnAccount ? parsedToAccountId : null,
+        targetUserId: selectedTargetKind === 'user' ? parsedToAccountId : null,
+        toAccountId: selectedTargetKind === 'account' ? parsedToAccountId : null,
         transactionDate,
         comment: trimmedComment,
         reminderId: null
@@ -745,8 +768,9 @@ export class AddTransactionModalComponent {
     return this.selectedTransferFromAccountId() === account.id;
   }
 
-  isTransferDestinationSelected(user: SelectableUser): boolean {
-    return this.selectedTransferToAccountId() === user.id;
+  isTargetSelected(id: number, kind: TransferTargetKind): boolean {
+    const selected = this.selectedTransferTarget();
+    return selected?.kind === kind && selected.id === id;
   }
 
   isExpandedTransferTarget(user: TransferTargetUser): boolean {
@@ -761,8 +785,10 @@ export class AddTransactionModalComponent {
     this.expandedTransferTargetUserId.set(this.isExpandedTransferTarget(user) ? null : user.id);
   }
 
-  selectTransferTarget(value: number): void {
+  selectTransferTarget(value: number, kind: TransferTargetKind): void {
+    this.selectedTransferTarget.set({ kind, id: value });
     this.selectedTransferToAccountId.set(value);
+    this.transactionForm.patchValue({ transferToAccountId: String(value) }, { emitEvent: false });
     this.persistDraft();
   }
 
@@ -978,6 +1004,7 @@ export class AddTransactionModalComponent {
     this.selectedCategoryId.set(category.id);
     this.selectedTransferFromAccountId.set(null);
     this.selectedTransferToAccountId.set(null);
+    this.selectedTransferTarget.set(null);
 
     this.syncTransactionControlsForType(resolvedType);
     this.ensureDefaultIncomeExpenseAccount();
@@ -1135,6 +1162,7 @@ export class AddTransactionModalComponent {
     if (preferredSelection !== null) {
       this.transactionForm.patchValue({ transferToAccountId: String(preferredSelection) }, { emitEvent: false });
       this.selectedTransferToAccountId.set(preferredSelection);
+      this.selectedTransferTarget.set({ kind: this.resolveTransferTargetKind(preferredSelection), id: preferredSelection });
       this.persistDraft();
     }
   }
@@ -1314,6 +1342,15 @@ export class AddTransactionModalComponent {
     }
 
     return this.transferTargetUsers().some((user) => user.isCurrentUser && user.accounts.some((account) => account.id === value));
+  }
+
+  private resolveTransferTargetKind(value: number): TransferTargetKind {
+    const currentUserTarget = this.transferTargetUsers().find((user) => user.isCurrentUser) ?? null;
+    if (currentUserTarget?.accounts.some((account) => account.id === value)) {
+      return 'account';
+    }
+
+    return 'user';
   }
 
   private findFallbackTransferTargetValue(users: TransferTargetUser[]): number | null {
