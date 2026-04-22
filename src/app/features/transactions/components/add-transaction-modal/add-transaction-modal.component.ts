@@ -389,7 +389,8 @@ export class AddTransactionModalComponent {
     this.transactionForm.patchValue({ transferFromAccountId: value }, { emitEvent: false });
     const parsedValue = this.parseNumber(value);
     this.selectedTransferFromAccountId.set(parsedValue);
-    if (parsedValue !== null && this.selectedTransferTarget()?.id === parsedValue) {
+    const selectedTarget = this.selectedTransferTarget();
+    if (parsedValue !== null && selectedTarget?.kind === 'account' && selectedTarget.id === parsedValue) {
       this.selectedTransferTarget.set(null);
       this.selectedTransferToAccountId.set(null);
       this.transactionForm.patchValue({ transferToAccountId: '' }, { emitEvent: false });
