@@ -1,16 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { AuthService } from '../../../../auth/auth.service';
-import { TranslationService } from '../../../../i18n/translation.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
-import { AddAccountModalComponent } from '../../components/add-account-modal/add-account-modal.component';
-import { AdjustBalanceModalComponent } from '../../components/adjust-balance-modal/adjust-balance-modal.component';
-import { ShareAccountModalComponent } from '../../components/share-account-modal/share-account-modal.component';
-import { AddTransactionModalComponent } from '../../../transactions/components/add-transaction-modal/add-transaction-modal.component';
+import { AddAccountModalComponent } from '../../modals/add-account-modal/add-account-modal.component';
+import { AdjustBalanceModalComponent } from '../../modals/adjust-balance-modal/adjust-balance-modal.component';
+import { ShareAccountModalComponent } from '../../modals/share-account-modal/share-account-modal.component';
+import { AddTransactionModalComponent } from '../../../transactions/modals/add-transaction-modal/add-transaction-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { TransactionDraftService } from '../../../transactions/services/transaction-draft.service';
-import { formatMoney } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../shared/utils/money-format';
 
 interface AccountOwnerGroup {
   ownerId: number;

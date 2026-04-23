@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, output, signal, viewChild } from '@angular/core';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../../../auth/auth.service';
-import { TranslationService } from '../../../../i18n/translation.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { EditAccountInlineComponent } from '../edit-account-inline/edit-account-inline.component';
-import { formatMoney } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../shared/utils/money-format';
 import { canShareAccount as canShareAccountForUser, canTransactFromAccount } from '../../utils/account-access';
 
 @Component({

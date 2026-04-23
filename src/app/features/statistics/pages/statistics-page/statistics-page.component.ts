@@ -2,11 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
-import { AuthService } from '../../../../auth/auth.service';
-import { TranslationService } from '../../../../i18n/translation.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
-import { formatMoney } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../shared/utils/money-format';
 import { CategoryTableComponent, CategoryTableNode } from '../../components/category-table/category-table.component';
 import {
   StatisticsService,

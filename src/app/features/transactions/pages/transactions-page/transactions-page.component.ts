@@ -3,13 +3,13 @@ import { Component, HostListener, computed, effect, inject, signal } from '@angu
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../../../auth/auth.service';
-import { TranslationService } from '../../../../i18n/translation.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
-import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
-import { EditTransactionModalComponent } from '../../components/edit-transaction-modal/edit-transaction-modal.component';
+import { AddTransactionModalComponent } from '../../modals/add-transaction-modal/add-transaction-modal.component';
+import { EditTransactionModalComponent } from '../../modals/edit-transaction-modal/edit-transaction-modal.component';
 import {
   TransactionCategory,
   TransactionItem,
@@ -19,7 +19,7 @@ import {
 } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
 import { TransactionsService } from '../../services/transactions.service';
-import { formatMoney } from '../../../../shared/utils/money-format';
+import { formatMoney } from '../../../shared/utils/money-format';
 
 type SortField = 'transactionDate' | 'createdAt' | 'amount' | 'category.name' | 'fromAccount.name' | 'createdBy.username' | 'comment' | 'id' | 'type';
 type SortDirection = 'asc' | 'desc';

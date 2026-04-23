@@ -2,16 +2,16 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../../../auth/auth.service';
-import { TranslationService } from '../../../../i18n/translation.service';
-import { formatMoney } from '../../../../shared/utils/money-format';
-import { AddTransactionModalComponent } from '../../components/add-transaction-modal/add-transaction-modal.component';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { TranslationService } from '../../../../core/services/i18n/translation.service';
+import { formatMoney } from '../../../shared/utils/money-format';
+import { AddTransactionModalComponent } from '../../modals/add-transaction-modal/add-transaction-modal.component';
 import { TransactionCategory } from '../../models/transaction.model';
-import { RecurringPaymentModalComponent } from '../../components/recurring-payment-modal/recurring-payment-modal.component';
+import { RecurringPaymentModalComponent } from '../../modals/recurring-payment-modal/recurring-payment-modal.component';
 import { RecurringPaymentItem, RecurringPaymentService } from '../../services/recurring-payment.service';
 import { TransactionsService } from '../../services/transactions.service';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
-import { RecurringReminderService } from '../../../../notifications/recurring-reminder.service';
+import { RecurringReminderService } from '../../../notifications/services/recurring-reminder.service';
 
 @Component({
   selector: 'app-recurring-payments-page',

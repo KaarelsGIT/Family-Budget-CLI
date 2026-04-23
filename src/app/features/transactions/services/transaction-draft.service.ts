@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { AuthService } from '../../../auth/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { TransactionDraft, TransactionOpenRequest } from '../models/transaction.model';
 
 @Injectable({

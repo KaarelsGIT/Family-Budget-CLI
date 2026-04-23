@@ -2,11 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../../../auth/auth.service';
-import { TranslationService } from '../../../../i18n/translation.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { TransactionCategory } from '../../../transactions/models/transaction.model';
 import { TransactionsService } from '../../../transactions/services/transactions.service';
-import { CategoryEditorModalComponent } from '../../components/category-editor-modal/category-editor-modal.component';
+import { CategoryEditorModalComponent } from '../../modals/category-editor-modal/category-editor-modal.component';
 
 type TransactionType = 'INCOME' | 'EXPENSE';
 type CategoryGroup = 'FAMILY' | 'CHILD';
