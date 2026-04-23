@@ -10,7 +10,7 @@ import { LanguageCode, TranslationService } from '../../services/i18n/translatio
 import { NotificationItem, NotificationService } from '../../../features/notifications/services/notification.service';
 import { RecurringRemindersModalComponent } from '../../../features/notifications/components/recurring-reminders-modal/recurring-reminders-modal.component';
 import { TransactionDraftService } from '../../../features/transactions/services/transaction-draft.service';
-import { HelpGuideModalComponent } from '../../../features/modals/help-guide-modal/help-guide-modal.component';
+import { HelpGuideModalComponent } from '../../../features/help/help-guide-modal/help-guide-modal.component';
 
 @Component({
   selector: 'app-header',

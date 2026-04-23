@@ -127,7 +127,7 @@ const helpContent: Record<HelpLanguage, HelpContent> = {
         points: [
           'Accounts, transactions, and statistics are always one click away.',
           'The tools menu contains the calculator-modal for quick checks.',
-          'The help icon opens this guide and closes like the other modals.'
+          'The help icon opens this guide and closes like the other help.'
         ]
       },
       {
