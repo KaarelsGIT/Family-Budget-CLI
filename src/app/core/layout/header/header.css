@@ -44,6 +44,7 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   min-height: 42px;
   padding: 0 16px;
   border-radius: 999px;
@@ -55,6 +56,13 @@ header {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.mobile-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .nav-links a:hover {
@@ -153,6 +161,7 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   min-height: 42px;
   padding: 0 16px;
   border-radius: 999px;
@@ -323,12 +332,16 @@ header {
   font-size: 15px;
   text-align: left;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .tools-dropdown-link {
   display: flex;
   align-items: center;
+  gap: 10px;
   width: 100%;
   min-height: 44px;
   padding: 0 16px;
@@ -349,6 +362,12 @@ header {
 .tools-dropdown-item:hover {
   background: rgba(31, 122, 31, 0.1);
   color: #144914;
+}
+
+.dropdown-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .user-dropdown .tools-dropdown-link,
@@ -432,6 +451,14 @@ header {
     justify-content: flex-start;
   }
 
+  .mobile-icon {
+    margin-right: 0;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
   .tools-dropdown {
     position: static;
     width: 100%;
@@ -440,5 +467,108 @@ header {
 
   .user-dropdown {
     margin-top: 10px;
+  }
+}
+
+/* --- MOBIILIVAADE (Menüü ekraani all) --- */
+@media (max-width: 768px) {
+  header {
+    top: auto !important;
+    bottom: 0 !important;
+    border-radius: 20px 20px 0 0; /* Ümarad nurgad üleval */
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.2);
+    padding-bottom: env(safe-area-inset-bottom); /* Toetus iPhone'i "pulgale" */
+  }
+
+  .navbar {
+    min-height: 65px !important;
+    padding: 0 5px !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    gap: 0 !important;
+  }
+
+  /* Peidame logo ja tekstid, et ainult ikoonid jääksid */
+  .logo,
+  .nav-label,
+  .language-code,
+  .user-trigger span:not(.mobile-icon) {
+    display: none !important;
+  }
+
+  .nav-links {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    gap: 0 !important;
+  }
+
+  .nav-links li {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Teeme nupud mobiilis kompaktseks */
+  .nav-links a,
+  .tools-trigger,
+  .user-trigger,
+  .language-trigger,
+  .icon-link {
+    background: transparent !important;
+    border: none !important;
+    padding: 12px 5px !important;
+    min-height: 55px !important;
+    width: auto !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Ikoonide suurus mobiilis */
+  .mobile-icon,
+  .icon-link svg {
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+  }
+
+  /* Keele lipp keskele */
+  .language-flag {
+    margin: 0 !important;
+    font-size: 22px !important;
+  }
+
+  /* Dropdownid avanevad nüüd ALT ÜLES */
+  .tools-dropdown,
+  .user-dropdown,
+  .language-dropdown,
+  .notifications-dropdown {
+    position: fixed !important;
+    bottom: 75px !important; /* Menüü kohal */
+    top: auto !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 15px !important;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.3) !important;
+    animation: slideUp 0.2s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Lisame body-le alla ruumi, et sisu ei jääks menüü taha kinni */
+  body {
+    padding-bottom: 80px !important;
+    padding-top: 20px !important;
   }
 }
