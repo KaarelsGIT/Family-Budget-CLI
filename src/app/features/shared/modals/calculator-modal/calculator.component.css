@@ -34,6 +34,12 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 10px;
+  cursor: move;
+  user-select: none;
+}
+
+.calculator-header:active {
+  cursor: move;
 }
 
 .close-button {
@@ -117,4 +123,37 @@ button:hover {
 
 .result::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+}
+
+@media (max-width: 860px) {
+  .calculator {
+    top: 50% !important;
+    left: 50% !important;
+    width: min(92vw, 320px) !important;
+    max-width: 320px;
+    padding: 12px !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .calculator .display {
+    padding: 10px !important;
+    min-height: 68px !important;
+  }
+
+  .calculator .keypad {
+    gap: 6px !important;
+  }
+
+  .calculator button {
+    padding: 11px 5px !important;
+    font-size: 17px !important;
+  }
+}
+
+/* Väga väikeste ekraanide jaoks (iPhone SE jms) */
+@media (max-width: 370px) {
+  .calculator button {
+    padding: 9px 2px !important;
+    font-size: 15px !important;
+  }
 }

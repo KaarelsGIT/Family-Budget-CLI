@@ -149,6 +149,7 @@ export class TransactionsPageComponent {
       page: 0
     }));
     this.loadTransactions();
+    this.loadAccounts();
   }
 
   handleTransactionUpdated(): void {
@@ -158,6 +159,7 @@ export class TransactionsPageComponent {
     }));
     this.selectedTransactionToEdit.set(null);
     this.loadTransactions();
+    this.loadAccounts();
   }
 
   handleCategoryCreated(category: TransactionCategory): void {

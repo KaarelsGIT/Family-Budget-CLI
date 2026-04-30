@@ -77,3 +77,53 @@
     flex-basis: 100%;
   }
 }
+
+@media (max-width: 640px) {
+  :host {
+    flex: 1 1 100%; /* Võtab täislaiuse, aga ei suru fikseeritud pikkust */
+    width: 100%;
+  }
+
+  .account-card {
+    padding: 12px; /* Vähendame siseäärt */
+    gap: 8px;      /* Vähendame vahesid */
+  }
+
+  /* Hoiame logo/pealkirja ja nupud ühel real */
+  .card-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .account-title {
+    font-size: 16px; /* Veidi väiksem font */
+  }
+
+  /* Nupud olgu kompaktsed ja reas */
+  .card-tools {
+    width: auto;
+    overflow-x: visible;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .header-icon-button {
+    width: 32px;  /* Vähendame nuppude suurust */
+    height: 32px;
+  }
+
+  /* Saldo ja badge ühele reale kõrvuti */
+  .card-meta {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  .account-balance {
+    font-size: 18px; /* Kompaktsem saldo */
+    margin-top: 0;
+  }
+}

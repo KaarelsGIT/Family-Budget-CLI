@@ -156,3 +156,58 @@ button.secondary:disabled {
     width: 100%;
   }
 }
+
+@media (max-width: 640px) {
+  /* 1. Modal võtab mobiilis rohkem laiust ja kohandub kõrgusega */
+  .modal-card {
+    width: calc(100vw - 16px);
+    padding: 16px;
+    border-radius: 16px;
+    max-height: 92vh; /* Et modal ei läheks ekraanist välja */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 2. Lubame sisu kerimist modali sees, kui see on pikk */
+  .modal-form {
+    overflow-y: auto;
+    padding-right: 4px; /* Ruumi scrollbarile */
+    gap: 12px;
+  }
+
+  .modal-header h2 {
+    font-size: 18px;
+  }
+
+  /* 3. Sisendväljad (font 16px väldib iOS-i automaatset suumi) */
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: 16px;
+    padding: 12px; /* Suurem ala vajutamiseks */
+  }
+
+  /* 4. Checkbox rida - teeme selle selgemaks */
+  .checkbox-field {
+    background: #f8fbf9;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #edf2ef;
+  }
+
+  /* 5. Nupud ekraani allosas - peamine nupp eespool */
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top: 1px solid #edf2ef; /* Eraldame nupud vormist */
+  }
+
+  button.primary,
+  button.secondary {
+    width: 100%;
+    min-height: 48px; /* Sõbralik suurus pöidlale */
+    font-size: 16px;
+  }
+}

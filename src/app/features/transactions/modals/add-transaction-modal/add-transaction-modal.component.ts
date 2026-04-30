@@ -158,7 +158,7 @@ export class AddTransactionModalComponent {
       .sort((left, right) => {
         const typeOrder: Record<Account['type'], number> = {
           MAIN: 0,
-          GOAL: 1,
+          SUB_ACCOUNT: 1,
           SAVINGS: 2,
           CASH: 3
         };
@@ -186,7 +186,7 @@ export class AddTransactionModalComponent {
       .sort((left, right) => {
         const typeOrder: Record<Account['type'], number> = {
           MAIN: 0,
-          GOAL: 1,
+          SUB_ACCOUNT: 1,
           SAVINGS: 2,
           CASH: 3
         };
@@ -493,6 +493,7 @@ export class AddTransactionModalComponent {
             comment: '',
             reminderId: ''
           }, { emitEvent: false });
+          this.loadAccounts();
           this.created.emit();
         },
         error: (error: { error?: { message?: string } }) => {
@@ -571,6 +572,7 @@ export class AddTransactionModalComponent {
           comment: '',
           reminderId: ''
         }, { emitEvent: false });
+        this.loadAccounts();
         this.created.emit();
       },
       error: (error: { error?: { message?: string } }) => {
@@ -890,11 +892,21 @@ export class AddTransactionModalComponent {
       .subscribe({
         next: (accounts) => {
           this.accounts.set(accounts);
-          if (this.transactionType() === 'TRANSFER') {
-            this.ensureDefaultTransferSelections();
-          } else {
-            this.syncIncomeExpenseSelection();
-            this.ensureDefaultIncomeExpenseAccount();
+
+          // Kontrollime, kas vorm on tühi (st tehing on just tehtud)
+          // või on see modali esmakordne avamine.
+          const amountValue = this.transactionForm.controls.amount.value;
+          const isInitialLoad = !amountValue || amountValue === '';
+
+          // Algseadistusi teeme AINULT siis, kui vorm on tühi/algseisus.
+          // Kui kasutaja on juba midagi valinud, siis me ei vii teda "vaikimisi" kontole tagasi.
+          if (isInitialLoad) {
+            if (this.transactionType() === 'TRANSFER') {
+              this.ensureDefaultTransferSelections();
+            } else {
+              this.syncIncomeExpenseSelection();
+              this.ensureDefaultIncomeExpenseAccount();
+            }
           }
         },
         error: (error: { error?: { message?: string } }) => {

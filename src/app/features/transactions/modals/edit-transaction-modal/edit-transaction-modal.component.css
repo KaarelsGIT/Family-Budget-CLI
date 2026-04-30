@@ -177,3 +177,59 @@ button.secondary:hover {
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 600px) {
+  /* 1. Modal liigub ekraani põhja */
+  .modal-overlay {
+    align-items: flex-end; /* Modal surutakse alla */
+  }
+
+  .modal-card {
+    width: 100%; /* Võtab terve laiuse */
+    max-width: 100%;
+    margin: 0;
+    border-radius: 24px 24px 0 0; /* Ümarad nurgad ainult ülal */
+    padding: 24px 20px; /* Vähem tühja ruumi külgedel */
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+    transform: translateY(0); /* Valmis sujuvaks sisenemiseks alt üles */
+  }
+
+  /* 2. Gridid ühte tulpa */
+  .summary-grid,
+  .input-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* 3. Päis kompaktsemaks */
+  .modal-header {
+    margin-bottom: 20px;
+    cursor: default; /* Mobiilis lohistamine on tüütu */
+  }
+
+  .modal-header h2 {
+    font-size: 20px;
+  }
+
+  /* 4. Sisendväljad (iOS suumi vältimiseks 16px) */
+  .field input,
+  .field textarea,
+  .readonly-field {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+
+  /* 5. Nupud üksteise alla ja täislaiuses */
+  .modal-actions {
+    flex-direction: column-reverse; /* Peamine nupp jääb mugavalt pöidlast ülespoole */
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  button.primary,
+  button.secondary {
+    width: 100%; /* Nupud ulatuvad servast servani */
+    min-height: 52px; /* Suurem ala vajutamiseks */
+    font-size: 16px;
+    border-radius: 16px;
+  }
+}

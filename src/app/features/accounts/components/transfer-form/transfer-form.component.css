@@ -183,3 +183,76 @@ button.primary:disabled {
   }
 
 }
+@media (max-width: 640px) {
+  /* 1. Üldine vormi tihedus */
+  .transfer-form {
+    gap: 12px; /* Vähendame vahesid, et rohkem mahuks ekraanile */
+  }
+
+  .field {
+    gap: 6px;
+  }
+
+  /* 2. Target-section (kuhu kulu/ülekanne läheb) */
+  .target-section {
+    padding: 10px;
+    gap: 8px;
+    background: #fdfdfd; /* Veidi heledam, et ei mõjuks rängalt */
+  }
+
+  .section-header {
+    font-size: 11px; /* Kompaktsem pealkiri */
+  }
+
+  /* 3. Kontode valik (Account options) - teeme need madalamaks */
+  .account-option {
+    padding: 8px 10px;
+    gap: 8px;
+    align-items: center; /* Tsentreerime teksti ja raadionupu */
+  }
+
+  .account-option input {
+    margin-top: 0; /* Resetime eelmise margin-topi */
+    width: 18px;   /* Teeme kontrollnupu veidi suuremaks sõrme jaoks */
+    height: 18px;
+  }
+
+  .account-name {
+    font-size: 13px;
+  }
+
+  .account-meta {
+    font-size: 11px;
+  }
+
+  /* 4. Grupi lülitid (Group toggles) */
+  .group-toggle {
+    padding: 8px 10px;
+    font-size: 13px;
+    min-height: 44px; /* Sõbralik suurus pöidlale */
+  }
+
+  /* 5. Sisendväljad */
+  .field input,
+  .field select,
+  .field textarea,
+  .readonly-field {
+    padding: 8px 10px;
+    font-size: 16px; /* NB! iOS-is väldib 16px font automaatset "zoomimist" inputi valimisel */
+    min-height: 40px;
+  }
+
+  /* 6. Nupud ekraani allosas */
+  .modal-actions {
+    flex-direction: column-reverse; /* Tühista/Cancel nupp jääb alla, Peamine nupp üles */
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  button.primary,
+  button.secondary {
+    width: 100%;
+    min-height: 48px; /* Suured ja selged nupud pöidlale */
+    font-size: 16px;
+  }
+}

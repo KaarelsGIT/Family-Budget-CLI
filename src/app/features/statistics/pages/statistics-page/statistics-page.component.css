@@ -113,6 +113,21 @@
   padding: 18px;
 }
 
+.chart-card--clickable {
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.chart-card--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 42px rgba(25, 48, 31, 0.1);
+}
+
+.chart-card--clickable:focus-visible {
+  outline: 3px solid rgba(47, 125, 70, 0.28);
+  outline-offset: 3px;
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;

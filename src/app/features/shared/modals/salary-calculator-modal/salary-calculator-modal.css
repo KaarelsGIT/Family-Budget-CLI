@@ -309,3 +309,101 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* --- PARANDATUD MOBIILI OPTIMEERIMINE --- */
+
+@media (max-width: 860px) {
+  /* 1. Kontrollime, et sisu ei paisutaks kasti laiemaks */
+  .salary-card,
+  .salary-card * {
+    box-sizing: border-box !important;
+  }
+
+  /* 2. Modal Bottom-Sheet parandus */
+  .salary-card {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important; /* See on parem kui width: 100% */
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 94vh !important;
+
+    /* Eemaldame igasugused marginid, mis lükkavad kasti ekraanilt välja */
+    margin: 0 !important;
+    padding: 16px !important;
+
+    /* Ümarad nurgad ainult üleval */
+    border-radius: 24px 24px 0 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+  }
+
+  /* 3. Joondus ekraani põhjaga */
+  .modal-overlay {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+
+  /* 4. Sisu kerimine: peame tagama, et siin poleks horisontaalset scrolli */
+  .salary-layout {
+    display: block !important; /* Grid asendatud blockiga on mobiilis lollikindlam */
+    overflow-y: auto !important;
+    overflow-x: hidden !important; /* Keelab küljele liikumise */
+    flex: 1;
+    width: 100% !important;
+    padding-bottom: 30px;
+  }
+
+  /* 5. Tulpade ja kaartide laiused */
+  .salary-inputs,
+  .results-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 16px;
+  }
+
+  /* 6. Gridid ühte tulpa (üle kirjutatud dünaamiliselt) */
+  .rate-grid,
+  .results-footer {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Väga kitsas ekraan (nt iPhone SE) */
+  @media (max-width: 400px) {
+    .rate-grid,
+    .results-footer {
+      grid-template-columns: 1fr !important;
+    }
+
+    .net-amount {
+      font-size: 32px !important;
+    }
+  }
+
+  /* 7. Sisendväljad (iOS zoom fix ja laiuse kontroll) */
+  .field input,
+  .field select {
+    width: 100% !important;
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  /* 8. Päis kompaktsemaks */
+  .salary-header {
+    width: 100% !important;
+    margin-bottom: 12px;
+  }
+}

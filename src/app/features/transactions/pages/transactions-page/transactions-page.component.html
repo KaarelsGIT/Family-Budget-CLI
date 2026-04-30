@@ -162,7 +162,7 @@
                 <button
                   type="button"
                   class="icon-button edit-button"
-                  (click)="openEditTransactionModal(transaction)"
+                  (click)="$event.stopPropagation(); openEditTransactionModal(transaction)"
                   [attr.aria-label]="i18n.translate('transactions.editTransaction')"
                   [attr.title]="i18n.translate('transactions.editTransaction')">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -172,7 +172,7 @@
                 <button
                   type="button"
                   class="icon-button delete-button"
-                  (click)="deleteTransaction(transaction)"
+                  (click)="$event.stopPropagation(); deleteTransaction(transaction)"
                   [attr.aria-label]="i18n.translate('transactions.deleteTransaction')"
                   [attr.title]="i18n.translate('transactions.deleteTransaction')">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -255,6 +255,7 @@
         <button type="button" class="close-button" (click)="closeDeleteConfirmation()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
       </div>
 
+      <p class="confirm-eyebrow">{{ deleteTransaction.type === 'TRANSFER' ? i18n.translate('transactions.typeTransfer') : i18n.translate('transactions.deleteTransaction') }}</p>
       <p class="confirm-copy">{{ getDeleteConfirmationMessage(deleteTransaction) }}</p>
       <p class="confirm-meta">{{ getAccountFlow(deleteTransaction) }} · <span [class.income-amount]="deleteTransaction.type === 'INCOME'" [class.expense-amount]="deleteTransaction.type === 'EXPENSE'" [class.transfer-amount]="deleteTransaction.type === 'TRANSFER'">{{ formatAmount(deleteTransaction.amount) }}</span></p>
 

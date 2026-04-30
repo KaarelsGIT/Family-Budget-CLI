@@ -56,6 +56,19 @@ export class AccountCardComponent {
     return this.isOwner() || this.isAdmin();
   }
 
+  getTypeTranslationKey(type: Account['type']): 'accounts.typeMain' | 'accounts.typeSavings' | 'accounts.typeSubAccount' | 'accounts.typeCash' {
+    switch (type) {
+      case 'MAIN':
+        return 'accounts.typeMain';
+      case 'SAVINGS':
+        return 'accounts.typeSavings';
+      case 'SUB_ACCOUNT':
+        return 'accounts.typeSubAccount';
+      case 'CASH':
+        return 'accounts.typeCash';
+    }
+  }
+
   isSharedAccount(): boolean {
     return (this.account().sharedUsers?.length ?? 0) > 0;
   }
@@ -126,16 +139,4 @@ export class AccountCardComponent {
     return !!this.accentColor();
   }
 
-  getTypeLabel(type: Account['type']): string {
-    switch (type) {
-      case 'MAIN':
-        return this.i18n.translate('accounts.typeMain');
-      case 'GOAL':
-        return this.i18n.translate('accounts.typeGoal');
-      case 'CASH':
-        return this.i18n.translate('accounts.typeCash');
-      default:
-        return this.i18n.translate('accounts.typeSavings');
-    }
-  }
 }

@@ -3,7 +3,7 @@ import { SelectableUser } from '../services/account.service';
 
 const accountTypeOrder: Record<Account['type'], number> = {
   MAIN: 0,
-  GOAL: 1,
+  SUB_ACCOUNT: 1,
   SAVINGS: 2,
   CASH: 3
 };

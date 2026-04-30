@@ -430,11 +430,81 @@ tbody tr:hover {
 
 /* --- MODAALID & PAGINATION --- */
 .modal-card.confirm-modal {
+  position: relative;
   width: min(460px, calc(100vw - 32px));
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 32px 24px;
-  text-align: center;
+  background: linear-gradient(180deg, #f6fff6 0%, #eef8ee 100%);
+  border: 1px solid rgba(22, 95, 22, 0.15);
+  border-radius: 22px;
+  padding: 24px;
+  text-align: left;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+.confirm-modal .modal-header {
+  position: relative;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.confirm-modal .modal-header h2 {
+  padding-right: 52px;
+  font-size: 24px;
+  color: #17361f;
+}
+
+.confirm-modal .close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: none;
+  background: rgba(22, 95, 22, 0.08);
+  color: #184d18;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 20, 10, 0.52);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-eyebrow {
+  margin: 0 0 6px;
+  color: #2f6b2f;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.confirm-copy {
+  margin: 0 0 10px;
+  color: #1b3f1b;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.confirm-meta {
+  margin: 0;
+  color: #526457;
+}
+
+.confirm-modal .modal-actions {
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 
 .pagination {
@@ -458,4 +528,69 @@ tbody tr:hover {
 @media (max-width: 900px) {
   .filters-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .pagination { flex-direction: column; align-items: stretch; }
+}
+
+@media (max-width: 768px) {
+  /* Vähendame üldist konteineri vaba ruumi */
+  .transactions-container {
+    padding: 8px;
+    gap: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  /* Tabeli seaded - lubame horisontaalset scrolli, aga teeme sisu tihedaks */
+  table {
+    min-width: 600px; /* Vähendame 1400px -> 600px peale */
+    table-layout: auto; /* Laseme brauseril ise mahutada vastavalt sisule */
+  }
+
+  /* Peidame mobiilis vähemkriitilised veerud, et säästa ruumi */
+  /* Näiteks: Kommentaar (#9) ja Loodud aeg (#8) võtavad palju ruumi */
+  thead th:nth-child(8), tbody td:nth-child(8),
+  thead th:nth-child(9), tbody td:nth-child(9) {
+    display: none;
+  }
+
+  /* Teeme read madalamaks */
+  tbody td {
+    padding: 4px 8px;
+    height: 36px;
+    font-size: 13px; /* Väiksem tekst mahutab rohkem */
+  }
+
+  /* Muudame badge'id (Tüüp) väiksemaks */
+  .type-badge {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  /* Tegevuste nupud (Edit/Delete) väiksemaks */
+  .icon-button {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Filtrite osa kompaktsemaks */
+  .filters-card {
+    padding: 12px;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr 1fr; /* Kaks filtrit kõrvuti, et ei tekiks pikka rida */
+    gap: 8px;
+  }
+
+  .field span {
+    font-size: 12px;
+  }
+
+  .field select, .field input {
+    min-height: 34px;
+    height: 34px;
+    font-size: 13px;
+    padding: 4px 8px;
+  }
 }

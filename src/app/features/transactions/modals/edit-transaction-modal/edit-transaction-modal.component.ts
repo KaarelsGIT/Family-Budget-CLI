@@ -71,7 +71,7 @@ export class EditTransactionModalComponent {
       .sort((left, right) => {
         const typeOrder: Record<Account['type'], number> = {
           MAIN: 0,
-          GOAL: 1,
+          SUB_ACCOUNT: 1,
           SAVINGS: 2,
           CASH: 3
         };

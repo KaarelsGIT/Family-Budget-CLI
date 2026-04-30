@@ -20,7 +20,7 @@ interface AccountApiResponse {
   ownerUsername: string;
   ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
   balance: number | string | null;
-  type: 'MAIN' | 'SAVINGS' | 'GOAL' | 'CASH';
+  type: 'MAIN' | 'SAVINGS' | 'SUB_ACCOUNT' | 'CASH';
   accessRole?: 'OWNER' | 'EDITOR' | 'VIEWER' | null;
   sharedUsers?: AccountSharedUserApiResponse[];
 }

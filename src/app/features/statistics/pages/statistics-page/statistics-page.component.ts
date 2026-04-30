@@ -9,6 +9,11 @@ import { AccountService, SelectableUser } from '../../../accounts/services/accou
 import { formatMoney } from '../../../shared/utils/money-format';
 import { CategoryTableComponent, CategoryTableNode } from '../../components/category-table/category-table.component';
 import {
+  ChartDetailModalComponent,
+  ChartDetailModalData,
+  ChartDetailModalType
+} from '../../modals/chart-detail-modal/chart-detail-modal.component';
+import {
   StatisticsService,
   YearlyStatisticsMonthlyEntry,
   YearlyStatisticsResponse,
@@ -53,7 +58,7 @@ interface ChartTick {
 @Component({
   selector: 'app-statistics-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, CategoryTableComponent],
+  imports: [CommonModule, FormsModule, CategoryTableComponent, ChartDetailModalComponent],
   templateUrl: './statistics-page.component.html',
   styleUrl: './statistics-page.component.css'
 })
@@ -77,6 +82,7 @@ export class StatisticsPageComponent {
   readonly statistics = signal<YearlyStatisticsResponse | null>(null);
   readonly accounts = signal<Account[]>([]);
   readonly selectableUsers = signal<SelectableUser[]>([]);
+  readonly activeChartModal = signal<{ type: ChartDetailModalType; data: ChartDetailModalData } | null>(null);
 
   readonly yearOptions = computed(() => {
     const years: number[] = [];
@@ -143,6 +149,22 @@ export class StatisticsPageComponent {
 
   setCategoryTab(tab: CategoryTab): void {
     this.selectedCategoryTab.set(tab);
+  }
+
+  openChartModal(type: ChartDetailModalType): void {
+    const statistics = this.statistics();
+    if (!statistics) {
+      return;
+    }
+
+    this.activeChartModal.set({
+      type,
+      data: this.buildChartModalData(type, statistics)
+    });
+  }
+
+  closeChartModal(): void {
+    this.activeChartModal.set(null);
   }
 
   formatAmount(value: number): string {
@@ -247,6 +269,32 @@ export class StatisticsPageComponent {
 
   private buildCategoryTableCategories(): CategoryTableNode[] {
     return this.buildCategoryGroups().map((group) => this.mapCategoryNode(group));
+  }
+
+  private buildChartModalData(type: ChartDetailModalType, statistics: YearlyStatisticsResponse): ChartDetailModalData {
+    if (type === 'monthly') {
+      return {
+        kind: 'monthly',
+        year: statistics.year,
+        bars: this.buildMonthlyBars(),
+        ticks: this.buildMonthlyTicks()
+      };
+    }
+
+    if (type === 'savings') {
+      return {
+        kind: 'savings',
+        year: statistics.year,
+        line: this.buildSavingsLine(),
+        ticks: this.buildSavingsTicks()
+      };
+    }
+
+    return {
+      kind: 'category',
+      year: statistics.year,
+      slices: this.categoryPieSlices()
+    };
   }
 
   private mapCategoryNode(group: YearlyStatisticsCategoryEntry): CategoryTableNode {

@@ -65,7 +65,7 @@
     </section>
 
     <section class="charts-grid" *ngIf="statistics() as stats">
-      <article class="chart-card">
+      <article class="chart-card chart-card--clickable" (click)="openChartModal('monthly')" tabindex="0" role="button">
         <header class="section-header">
           <div>
             <p class="eyebrow">{{ i18n.translate('statistics.monthlyChartTitle') }}</p>
@@ -99,7 +99,7 @@
         </ng-template>
       </article>
 
-      <article class="chart-card">
+      <article class="chart-card chart-card--clickable" (click)="openChartModal('savings')" tabindex="0" role="button">
         <header class="section-header">
           <div>
             <p class="eyebrow">{{ i18n.translate('statistics.savingsChartTitle') }}</p>
@@ -120,7 +120,7 @@
         </svg>
       </article>
 
-      <article class="chart-card pie-card">
+      <article class="chart-card pie-card chart-card--clickable" (click)="openChartModal('category')" tabindex="0" role="button">
         <header class="section-header">
           <div>
             <p class="eyebrow">{{ i18n.translate('statistics.categoryChartTitle') }}</p>
@@ -166,4 +166,10 @@
   <div class="loading-overlay" *ngIf="isLoading()">
     <div class="spinner"></div>
   </div>
+
+  <app-chart-detail-modal
+    [chart]="activeChartModal()?.type ?? null"
+    [data]="activeChartModal()?.data ?? null"
+    (closed)="closeChartModal()">
+  </app-chart-detail-modal>
 </section>
