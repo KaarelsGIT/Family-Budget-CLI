@@ -1,0 +1,254 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1250;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 20, 16, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  width: 95vw;
+  max-width: 1200px;
+  height: 80vh;
+  background: #ffffff;
+  border: 1px solid #dde5df;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 26px 70px rgba(17, 39, 24, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.modal-header h2 {
+  margin: 4px 0 0;
+  font-size: 28px;
+  color: #17361f;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: #4b6f53;
+  font-weight: 700;
+}
+
+.close-button {
+  border: none;
+  background: #f1f5f2;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  color: #526457;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex: 0 0 auto;
+}
+
+.close-button:hover {
+  background: #e4ece6;
+  color: #17361f;
+}
+
+.chart-modal-body {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.detail-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: block;
+  overflow: visible;
+}
+
+.axis-line {
+  stroke: #bfcdbc;
+  stroke-width: 1.4;
+}
+
+.chart-grid-line {
+  stroke: #e7eee8;
+  stroke-width: 1;
+}
+
+.axis-label {
+  font-size: 18px;
+  fill: #5d6d61;
+  text-anchor: end;
+}
+
+.bar-income {
+  fill: #2f7d46;
+  rx: 5;
+}
+
+.bar-expense {
+  fill: #d32f2f;
+  rx: 5;
+}
+
+.bar-label {
+  font-size: 16px;
+  fill: #5d6d61;
+  text-anchor: middle;
+}
+
+.line-path {
+  fill: none;
+  stroke: #2f7d46;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.line-dot {
+  fill: #ffffff;
+  stroke: #2f7d46;
+  stroke-width: 4;
+}
+
+.pie-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.pie-chart {
+  width: min(38vw, 420px);
+  height: min(38vw, 420px);
+}
+
+.pie-chart-base {
+  fill: none;
+  stroke: #e5ece6;
+  stroke-width: 6;
+}
+
+.pie-chart-hole {
+  fill: white;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.legend-row strong {
+  display: block;
+  font-size: 18px;
+}
+
+.legend-row span {
+  color: #5b6a60;
+  font-size: 15px;
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 auto;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .modal-card {
+    width: 95vw;
+    max-width: 1200px;
+    height: 80vh;
+    padding: 24px;
+  }
+
+  .pie-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pie-chart {
+    width: min(72vw, 320px);
+    height: min(72vw, 320px);
+    margin: 0 auto;
+  }
+
+  .detail-chart {
+    height: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-card {
+    padding: 15px;
+  }
+
+  .modal-header {
+    margin-bottom: 12px;
+  }
+
+  .chart-modal-body {
+    gap: 16px;
+  }
+
+  .axis-label {
+    font-size: 12px;
+  }
+
+  .bar-label {
+    font-size: 11px;
+  }
+
+  .legend-row strong {
+    font-size: 14px;
+  }
+
+  .legend-row span {
+    font-size: 12px;
+  }
+}

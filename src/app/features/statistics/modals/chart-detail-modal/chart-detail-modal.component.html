@@ -1,0 +1,78 @@
+<div class="modal-overlay" *ngIf="isOpen()">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section
+    class="modal-card chart-modal"
+    role="dialog"
+    aria-modal="true"
+    [style.transform]="getModalTransform()"
+    (pointermove)="onDrag($event)"
+    (pointerup)="stopDrag($event)"
+    (pointercancel)="stopDrag($event)">
+    <div class="modal-header" (pointerdown)="startDrag($event)">
+      <div>
+        <p class="eyebrow">{{ i18n.translate('header.statistics') }}</p>
+        <h2>
+          <ng-container *ngIf="chart() === 'monthly'">{{ i18n.translate('statistics.monthlyChartTitle') }}</ng-container>
+          <ng-container *ngIf="chart() === 'savings'">{{ i18n.translate('statistics.savingsChartTitle') }}</ng-container>
+          <ng-container *ngIf="chart() === 'category'">{{ i18n.translate('statistics.categoryChartTitle') }}</ng-container>
+        </h2>
+      </div>
+
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" aria-label="Close">✖</button>
+    </div>
+
+    <div class="chart-modal-body" *ngIf="data() as chartData">
+      <ng-container *ngIf="isMonthly(chartData)">
+        <svg viewBox="0 0 600 260" class="detail-chart" aria-hidden="true" focusable="false">
+          <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
+          <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
+          <g *ngFor="let tick of chartData.ticks; trackBy: trackByTick">
+            <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
+            <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+          </g>
+          <g *ngFor="let group of chartData.bars; trackBy: trackByMonth">
+            <rect class="bar-income" [attr.x]="group.month * 44 - 10" [attr.y]="group.incomeY" width="12" [attr.height]="group.incomeHeight"></rect>
+            <rect class="bar-expense" [attr.x]="group.month * 44 + 4" [attr.y]="group.expenseY" width="12" [attr.height]="group.expenseHeight"></rect>
+            <text class="bar-label" [attr.x]="group.month * 44" y="220">{{ group.label }}</text>
+          </g>
+        </svg>
+      </ng-container>
+
+      <ng-container *ngIf="isSavings(chartData)">
+        <svg viewBox="0 0 600 260" class="detail-chart" aria-hidden="true" focusable="false">
+          <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
+          <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
+          <g *ngFor="let tick of chartData.ticks; trackBy: trackByTick">
+            <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
+            <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+          </g>
+          <polyline [attr.points]="chartData.line.points" class="line-path"></polyline>
+          <circle *ngFor="let dot of chartData.line.dots; trackBy: trackByMonth" [attr.cx]="dot.x" [attr.cy]="dot.y" r="7" class="line-dot"></circle>
+        </svg>
+      </ng-container>
+
+      <ng-container *ngIf="isCategory(chartData)">
+        <div class="pie-layout">
+          <svg viewBox="0 0 100 100" class="pie-chart" aria-hidden="true" focusable="false">
+            <circle class="pie-chart-base" cx="50" cy="50" r="42"></circle>
+            <g *ngFor="let slice of chartData.slices; trackBy: trackBySlice">
+              <path [attr.d]="slice.path" [attr.fill]="slice.color"></path>
+            </g>
+            <circle class="pie-chart-hole" cx="50" cy="50" r="18"></circle>
+          </svg>
+
+          <div class="pie-legend">
+            <div class="legend-row" *ngFor="let slice of chartData.slices; trackBy: trackBySlice">
+              <span class="legend-swatch" [style.background]="slice.color"></span>
+              <div>
+                <strong>{{ slice.label }}</strong>
+                <span>{{ slice.total }} · {{ slice.percent.toFixed(1) }} %</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+</div>
