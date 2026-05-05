@@ -37,20 +37,39 @@
   gap: 14px;
   align-items: flex-end;
   flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  flex: 1 1 180px;
+  gap: 6px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 180px;
-  flex: 1 1 180px;
+  align-items: center;
 }
 
 .field span {
   font-size: 13px;
   font-weight: 700;
   color: #304238;
+  width: 100%;
+  text-align: center;
+}
+
+.field .filter-control {
+  width: 100%;
+}
+
+.filter-action {
+  align-self: flex-end;
+  margin-bottom: 0;
 }
 
 .summary-grid,
@@ -324,7 +343,7 @@
     align-items: end;
   }
 
-  .filters-bar .field {
+  .filters-bar .filter-group {
     min-width: 0;
     flex: initial;
   }

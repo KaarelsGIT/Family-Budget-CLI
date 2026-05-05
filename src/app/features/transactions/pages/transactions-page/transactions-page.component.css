@@ -160,6 +160,10 @@ tr {
   cursor: not-allowed;
 }
 
+.field .filter-control:disabled::placeholder {
+  color: #9aa7a0;
+}
+
 .page-size select:disabled {
   background: #f0f3f1;
   color: #829186;
@@ -724,5 +728,33 @@ tbody tr:hover {
     font-size: 13px;
     padding: 4px 8px;
     border-radius: 999px;
+  }
+
+  .table-toolbar {
+    padding: 10px 12px 0;
+    gap: 6px;
+  }
+
+  .add-transaction-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    flex: 0 0 34px;
+  }
+
+  .toggle-group {
+    gap: 4px;
+    padding: 3px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .toggle-button {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
 }

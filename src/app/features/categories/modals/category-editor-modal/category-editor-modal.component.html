@@ -1,12 +1,12 @@
 <div class="modal-overlay" *ngIf="isOpen()">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="category-editor-title" (keydown.escape)="close()">
-    <div class="modal-header">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="category-editor-title" [style.transform]="getModalTransform()" (keydown.escape)="close()">
+    <div class="modal-header" (pointerdown)="startDrag($event)">
       <h2 id="category-editor-title">
         {{ isEditMode() ? i18n.translate('categories.editTitle') : i18n.translate('categories.createTitle') }}
       </h2>
-      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
     <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault(); submit()">
@@ -16,22 +16,27 @@
 
       <label class="field">
         <span>{{ i18n.translate('categories.name') }}</span>
-        <input type="text" formControlName="name" />
+        <input class="form-input-rounded" type="text" formControlName="name" />
       </label>
 
-      <label class="field" *ngIf="isCreateMainMode()">
+      <label class="field" *ngIf="isCreateMainMode() || isCreateSubMode() || isEditMode()">
         <span>{{ i18n.translate('categories.type') }}</span>
-        <select formControlName="type">
+        <select class="form-input-rounded" formControlName="type">
           <option value="EXPENSE">{{ i18n.translate('transactions.typeExpense') }}</option>
           <option value="INCOME">{{ i18n.translate('transactions.typeIncome') }}</option>
         </select>
       </label>
 
-      <label class="field" *ngIf="isCreateMainMode() && allowGroupSelection()">
+      <label class="field" *ngIf="isCreateMainMode() || isCreateSubMode() || isEditMode()">
         <span>{{ i18n.translate('categories.group') }}</span>
-        <select formControlName="group">
-          <option value="FAMILY">{{ i18n.translate('categories.groupFamily') }}</option>
-          <option value="CHILD">{{ i18n.translate('categories.groupChild') }}</option>
+        <select class="form-input-rounded" formControlName="group">
+          <option *ngFor="let group of getAllowedGroupOptions()" [value]="group">
+            {{ group === 'FAMILY'
+              ? i18n.translate('categories.groupFamily')
+              : group === 'CHILD'
+                ? i18n.translate('categories.groupChild')
+                : i18n.translate('categories.groupParent') }}
+          </option>
         </select>
       </label>
 

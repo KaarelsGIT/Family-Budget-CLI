@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, HostListener, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import {
   CreateTransactionCategoryPayload,
@@ -10,7 +11,7 @@ import {
 import { TransactionsService } from '../../../transactions/services/transactions.service';
 
 type TransactionType = 'INCOME' | 'EXPENSE';
-type CategoryGroup = 'FAMILY' | 'CHILD';
+type CategoryGroup = 'FAMILY' | 'CHILD' | 'PARENT';
 type EditorMode = 'create-main' | 'create-sub' | 'edit';
 
 @Component({
@@ -23,6 +24,7 @@ type EditorMode = 'create-main' | 'create-sub' | 'edit';
 export class CategoryEditorModalComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly transactionsService = inject(TransactionsService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly isOpen = input(false);
@@ -45,6 +47,16 @@ export class CategoryEditorModalComponent {
     group: ['FAMILY' as CategoryGroup, Validators.required]
   });
 
+  readonly modalOffsetX = signal(0);
+  readonly modalOffsetY = signal(0);
+  readonly allowedGroups = signal<CategoryGroup[]>(this.getAllowedGroups());
+
+  private dragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragOriginX = 0;
+  private dragOriginY = 0;
+
   constructor() {
     effect(() => {
     if (!this.isOpen()) {
@@ -59,6 +71,47 @@ export class CategoryEditorModalComponent {
 
   close(): void {
     this.closed.emit();
+  }
+
+  startDrag(event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target || target.closest('button')) {
+      return;
+    }
+
+    if (event.button !== 0) {
+      return;
+    }
+
+    this.dragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragOriginX = this.modalOffsetX();
+    this.dragOriginY = this.modalOffsetY();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.close();
+  }
+
+  @HostListener('document:pointermove', ['$event'])
+  onDocumentPointerMove(event: PointerEvent): void {
+    if (!this.dragging) {
+      return;
+    }
+
+    const nextX = this.dragOriginX + (event.clientX - this.dragStartX);
+    const nextY = this.dragOriginY + (event.clientY - this.dragStartY);
+    const { x, y } = this.clampToViewport(nextX, nextY);
+    this.modalOffsetX.set(x);
+    this.modalOffsetY.set(y);
+  }
+
+  @HostListener('document:pointerup')
+  @HostListener('document:pointercancel')
+  endDrag(): void {
+    this.dragging = false;
   }
 
   submit(): void {
@@ -97,11 +150,11 @@ export class CategoryEditorModalComponent {
       }
 
       request.type = (parentCategory.type === 'INCOME' ? 'INCOME' : 'EXPENSE');
-      request.group = parentCategory.group as CategoryGroup;
+      request.group = group;
       request.parentCategoryId = parentCategory.id;
     } else if (category) {
       request.type = category.type as TransactionType;
-      request.group = category.group as CategoryGroup;
+      request.group = group;
       request.parentCategoryId = category.parentCategoryId;
     }
 
@@ -142,6 +195,10 @@ export class CategoryEditorModalComponent {
     return this.mode() === 'create-sub';
   }
 
+  getAllowedGroupOptions(): CategoryGroup[] {
+    return this.allowedGroups();
+  }
+
   private initializeForm(): void {
     const category = this.category();
     const parentCategory = this.parentCategory();
@@ -157,21 +214,49 @@ export class CategoryEditorModalComponent {
         : (category?.group ? (category.group as CategoryGroup) : this.defaultGroup())
     }, { emitEvent: false });
 
-    if (this.allowGroupSelection()) {
+    if (mode === 'create-main' || mode === 'edit') {
+      this.form.controls.group.enable({ emitEvent: false });
+    } else if (mode === 'create-sub') {
       this.form.controls.group.enable({ emitEvent: false });
     } else {
       this.form.controls.group.disable({ emitEvent: false });
     }
 
-    if (mode === 'create-main') {
+    if (mode === 'create-main' || mode === 'edit') {
       this.form.controls.type.enable({ emitEvent: false });
     } else if (mode === 'create-sub') {
       this.form.controls.type.disable({ emitEvent: false });
-      this.form.controls.group.disable({ emitEvent: false });
     } else {
       this.form.controls.type.disable({ emitEvent: false });
-      this.form.controls.group.disable({ emitEvent: false });
     }
+  }
+
+  getModalTransform(): string {
+    return `translate3d(${this.modalOffsetX()}px, ${this.modalOffsetY()}px, 0)`;
+  }
+
+  private clampToViewport(nextX: number, nextY: number): { x: number; y: number } {
+    const width = Math.min(560, window.innerWidth - 32);
+    const height = 360;
+    const padding = 12;
+    const maxX = Math.max(padding, window.innerWidth - width - padding);
+    const maxY = Math.max(padding, window.innerHeight - height - padding);
+
+    return {
+      x: Math.min(Math.max(nextX, -maxX), maxX),
+      y: Math.min(Math.max(nextY, -maxY), maxY)
+    };
+  }
+
+  private getAllowedGroups(): CategoryGroup[] {
+    const role = this.authService.getRole();
+    if (role === 'ADMIN') {
+      return ['FAMILY', 'CHILD', 'PARENT'];
+    }
+    if (role === 'PARENT') {
+      return ['FAMILY', 'PARENT'];
+    }
+    return ['CHILD'];
   }
 
   private getFallbackError(mode: EditorMode): string {

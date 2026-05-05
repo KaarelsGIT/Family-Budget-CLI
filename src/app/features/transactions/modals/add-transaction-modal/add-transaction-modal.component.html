@@ -51,7 +51,7 @@
             <div class="form-grid">
               <label class="field field-wide">
                 <span>{{ getAccountFieldLabel() }}</span>
-                <select formControlName="accountId">
+                <select class="form-input-rounded" formControlName="accountId">
                   <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
                   <option *ngFor="let account of expenseAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
                     {{ getAccountLabel(account) }}
@@ -61,13 +61,13 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
-                <input type="date" formControlName="transactionDate" />
+                <input class="form-input-rounded" type="date" formControlName="transactionDate" />
               </label>
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnAmount') }}</span>
                 <div class="amount-input-row">
-                  <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                  <input class="form-input-rounded amount-input" type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
                   <button
                     type="button"
                     class="calculator-button"
@@ -95,7 +95,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.mainCategory') }}</span>
-                <select formControlName="mainCategoryId">
+                <select class="form-input-rounded" formControlName="mainCategoryId">
                   <option value="" disabled>{{ mainCategoryPlaceholder() }}</option>
                   <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
                   <option *ngFor="let category of mainCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
@@ -106,7 +106,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.subCategory') }}</span>
-                <select formControlName="categoryId" [disabled]="!selectedMainCategory()">
+                <select class="form-input-rounded" formControlName="categoryId" [disabled]="!selectedMainCategory()">
                   <option value="" disabled>{{ subCategoryPlaceholder() }}</option>
                   <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
                   <option *ngFor="let category of subCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
@@ -130,7 +130,7 @@
             <div class="form-grid">
               <label class="field field-wide">
                 <span>{{ getAccountFieldLabel() }}</span>
-                <select formControlName="accountId">
+                <select class="form-input-rounded" formControlName="accountId">
                   <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
                   <option *ngFor="let account of expenseAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
                     {{ getAccountLabel(account) }}
@@ -140,13 +140,13 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
-                <input type="date" formControlName="transactionDate" />
+                <input class="form-input-rounded" type="date" formControlName="transactionDate" />
               </label>
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnAmount') }}</span>
                 <div class="amount-input-row">
-                  <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                  <input class="form-input-rounded amount-input" type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
                   <button
                     type="button"
                     class="calculator-button"
@@ -171,7 +171,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.mainCategory') }}</span>
-                <select formControlName="mainCategoryId">
+                <select class="form-input-rounded" formControlName="mainCategoryId">
                   <option value="" disabled>{{ mainCategoryPlaceholder() }}</option>
                   <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
                   <option *ngFor="let category of mainCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
@@ -182,7 +182,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.subCategory') }}</span>
-                <select formControlName="categoryId" [disabled]="!selectedMainCategory()">
+                <select class="form-input-rounded" formControlName="categoryId" [disabled]="!selectedMainCategory()">
                   <option value="" disabled>{{ subCategoryPlaceholder() }}</option>
                   <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
                   <option *ngFor="let category of subCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
@@ -207,7 +207,7 @@
               <label class="field">
                 <span>{{ i18n.translate('accounts.transferFrom') }}</span>
                 <select
-                  class="transfer-select"
+                  class="form-input-rounded transfer-select"
                   formControlName="transferFromAccountId">
                   <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
                   <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
@@ -219,7 +219,7 @@
               <label class="field">
                 <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
                 <select
-                  class="transfer-select"
+                  class="form-input-rounded transfer-select"
                   [class.placeholder-active]="!transactionForm.controls.transferToAccountId.value"
                   formControlName="transferToAccountId"
                   [disabled]="!hasTransferDestinationTargets()">
@@ -260,7 +260,7 @@
               <label class="field">
                 <span>{{ i18n.translate('accounts.transferAmount') }}</span>
                 <div class="amount-input-row">
-                  <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                  <input class="form-input-rounded amount-input" type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
                   <button
                     type="button"
                     class="calculator-button"
@@ -288,7 +288,7 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
-                <input type="date" formControlName="transactionDate" />
+                <input class="form-input-rounded" type="date" formControlName="transactionDate" />
               </label>
 
               <label class="field field-wide">
@@ -334,7 +334,7 @@
           <div class="form-grid">
             <label class="field field-wide">
               <span>{{ i18n.translate('transactions.transactionType') }}</span>
-              <select formControlName="type">
+              <select class="form-input-rounded" formControlName="type">
                 <option value="EXPENSE">{{ i18n.translate('transactions.typeExpense') }}</option>
                 <option value="INCOME">{{ i18n.translate('transactions.typeIncome') }}</option>
               </select>
@@ -342,7 +342,7 @@
 
             <label class="field field-wide" *ngIf="categoryMode() === 'sub'">
               <span>{{ i18n.translate('transactions.parentCategory') }}</span>
-              <select formControlName="parentCategoryId">
+              <select class="form-input-rounded" formControlName="parentCategoryId">
                 <option value="">{{ i18n.translate('transactions.selectMainCategory') }}</option>
                 <option *ngFor="let category of categoryParentOptions()" [value]="category.id">{{ category.name }}</option>
               </select>
@@ -350,7 +350,14 @@
 
             <label class="field field-wide">
               <span>{{ i18n.translate('transactions.categoryName') }}</span>
-              <input type="text" formControlName="name" />
+              <input class="form-input-rounded" type="text" formControlName="name" />
+            </label>
+
+            <label class="field field-wide">
+              <span>{{ i18n.translate('categories.group') }}</span>
+              <select class="form-input-rounded" formControlName="group">
+                <option *ngFor="let group of categoryGroupOptions()" [value]="group.value">{{ group.label }}</option>
+              </select>
             </label>
           </div>
 

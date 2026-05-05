@@ -6,46 +6,52 @@
     </div>
 
     <div class="filters-bar">
-      <label class="field">
-        <span>{{ i18n.translate('statistics.year') }}</span>
-        <select class="filter-control" [ngModel]="selectedYear()" (ngModelChange)="onYearChange($event)">
-          <option *ngFor="let year of yearOptions()" [ngValue]="year">{{ year }}</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>{{ i18n.translate('statistics.monthFilter') }}</span>
-        <select class="filter-control" [ngModel]="selectedMonth()" (ngModelChange)="onMonthChange($event)">
-          <option [ngValue]="null">{{ i18n.translate('statistics.allMonths') }}</option>
-          <option *ngFor="let month of monthOptions()" [ngValue]="month.value">{{ month.label }}</option>
-        </select>
-      </label>
-
-      <label class="field" *ngIf="showUserFilter()">
-        <span>{{ i18n.translate('statistics.userFilter') }}</span>
-        <select class="filter-control" [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
-          <option [ngValue]="null" *ngIf="currentUserRole !== 'CHILD'">{{ i18n.translate('statistics.allUsers') }}</option>
-          <option *ngFor="let user of userOptions()" [ngValue]="user.id">
-            {{ formatUserLabel(user) }}
-          </option>
-        </select>
-      </label>
-
-      <label class="field account-field">
-        <span>{{ i18n.translate('statistics.accountFilter') }}</span>
-        <select class="filter-control" [ngModel]="selectedAccountId()" (ngModelChange)="onAccountChange($event)">
-          <option [ngValue]="null">{{ i18n.translate('statistics.allAccounts') }}</option>
-          <option *ngFor="let account of accountOptions(); trackBy: trackByAccountId" [ngValue]="account.id">
-            {{ formatAccountLabel(account) }}
-          </option>
-        </select>
-      </label>
-
-      <div class="filters-actions">
-        <button type="button" class="filter-action" (click)="clearFilters()">
-          {{ i18n.translate('transactions.clearFilters') }}
-        </button>
+      <div class="filter-group">
+        <label class="field">
+          <span>{{ i18n.translate('statistics.year') }}</span>
+          <select class="filter-control" [ngModel]="selectedYear()" (ngModelChange)="onYearChange($event)">
+            <option *ngFor="let year of yearOptions()" [ngValue]="year">{{ year }}</option>
+          </select>
+        </label>
       </div>
+
+      <div class="filter-group">
+        <label class="field">
+          <span>{{ i18n.translate('statistics.monthFilter') }}</span>
+          <select class="filter-control" [ngModel]="selectedMonth()" (ngModelChange)="onMonthChange($event)">
+            <option [ngValue]="null">{{ i18n.translate('statistics.allMonths') }}</option>
+            <option *ngFor="let month of monthOptions()" [ngValue]="month.value">{{ month.label }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-group" *ngIf="showUserFilter()">
+        <label class="field">
+          <span>{{ i18n.translate('statistics.userFilter') }}</span>
+          <select class="filter-control" [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
+            <option [ngValue]="null" *ngIf="currentUserRole !== 'CHILD'">{{ i18n.translate('statistics.allUsers') }}</option>
+            <option *ngFor="let user of userOptions()" [ngValue]="user.id">
+              {{ formatUserLabel(user) }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-group account-field">
+        <label class="field">
+          <span>{{ i18n.translate('statistics.accountFilter') }}</span>
+          <select class="filter-control" [ngModel]="selectedAccountId()" (ngModelChange)="onAccountChange($event)">
+            <option [ngValue]="null">{{ i18n.translate('statistics.allAccounts') }}</option>
+            <option *ngFor="let account of accountOptions(); trackBy: trackByAccountId" [ngValue]="account.id">
+              {{ formatAccountLabel(account) }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <button type="button" class="filter-action" [class.is-active]="hasActiveFilters()" [disabled]="!hasActiveFilters()" (click)="clearFilters()">
+        {{ i18n.translate('transactions.clearFilters') }}
+      </button>
     </div>
   </header>
 

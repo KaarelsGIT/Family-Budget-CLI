@@ -117,6 +117,15 @@ export class TransactionsPageComponent {
 
   readonly hasPreviousPage = computed(() => this.filters().page > 0);
   readonly hasNextPage = computed(() => this.filters().page + 1 < this.pageCount());
+  readonly hasActiveFilters = computed(() => {
+    const filters = this.filters();
+    return filters.userId !== this.currentUserId
+      || filters.type !== null
+      || filters.mainCategoryId !== null
+      || filters.subCategoryId !== null
+      || filters.fromDate !== ''
+      || filters.toDate !== '';
+  });
 
   constructor() {
     this.loadFilterOptions();
@@ -309,6 +318,12 @@ export class TransactionsPageComponent {
     this.loadTransactions();
   }
 
+  onDateInput(field: DateFieldKey, value: string): void {
+    if (value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      this.onDateChange(field, value);
+    }
+  }
+
   clearFilters(): void {
     this.filters.set({
       page: 0,
@@ -329,6 +344,7 @@ export class TransactionsPageComponent {
     this.calendarMode.set('month');
     this.calendarMonthAnchor.set(this.getCalendarAnchorDate(field));
     this.yearGridStart.set(this.getYearGridStart(this.calendarMonthAnchor().getFullYear()));
+    queueMicrotask(() => this.focusDatePicker(field));
   }
 
   closeDatePicker(): void {
@@ -475,6 +491,14 @@ export class TransactionsPageComponent {
     return left.getFullYear() === right.getFullYear()
       && left.getMonth() === right.getMonth()
       && left.getDate() === right.getDate();
+  }
+
+  private focusDatePicker(field: DateFieldKey): void {
+    const selector = field === 'fromDate'
+      ? '[data-date-field="fromDate"]'
+      : '[data-date-field="toDate"]';
+    const input = document.querySelector(selector) as HTMLInputElement | null;
+    input?.focus();
   }
 
   changePage(direction: -1 | 1): void {

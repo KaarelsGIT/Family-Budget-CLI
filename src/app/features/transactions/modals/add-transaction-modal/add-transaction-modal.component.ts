@@ -18,6 +18,7 @@ import { TransactionsService } from '../../services/transactions.service';
 type ModalView = 'transaction' | 'category';
 type CategoryMode = 'main' | 'sub';
 type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
+type CategoryGroup = 'FAMILY' | 'CHILD' | 'PARENT';
 type TransferTargetKind = 'user' | 'account';
 
 const ADD_CATEGORY_VALUE = '__add_category__';
@@ -31,6 +32,11 @@ interface CategoryOption {
 
 interface TypeOption {
   value: TransactionType;
+  label: string;
+}
+
+interface CategoryGroupOption {
+  value: CategoryGroup;
   label: string;
 }
 
@@ -81,6 +87,23 @@ export class AddTransactionModalComponent {
   readonly categoryMode = signal<CategoryMode>('main');
   readonly transactionType = signal<TransactionType>('EXPENSE');
   readonly categoryFormType = signal<TransactionType>('EXPENSE');
+  readonly categoryGroupOptions = computed<CategoryGroupOption[]>(() => {
+    const role = this.authService.getRole();
+    const groups: CategoryGroup[] = role === 'ADMIN'
+      ? ['FAMILY', 'CHILD', 'PARENT']
+      : role === 'PARENT'
+        ? ['FAMILY', 'PARENT']
+        : ['CHILD'];
+
+    return groups.map((value) => ({
+      value,
+      label: value === 'FAMILY'
+        ? this.i18n.translate('categories.groupFamily')
+        : value === 'CHILD'
+          ? this.i18n.translate('categories.groupChild')
+          : this.i18n.translate('categories.groupParent')
+    }));
+  });
   readonly selectedMainCategoryId = signal<number | null>(null);
   readonly selectedCategoryId = signal<number | null>(null);
   readonly selectedTransferFromAccountId = signal<number | null>(null);
@@ -120,7 +143,8 @@ export class AddTransactionModalComponent {
   readonly categoryForm = this.formBuilder.nonNullable.group({
     type: ['EXPENSE' as TransactionType, Validators.required],
     name: ['', [Validators.required, Validators.maxLength(120)]],
-    parentCategoryId: ['']
+    parentCategoryId: [''],
+    group: ['FAMILY' as 'FAMILY' | 'CHILD' | 'PARENT', Validators.required]
   });
 
   readonly mainCategoryOptions = computed(() =>
@@ -313,7 +337,8 @@ export class AddTransactionModalComponent {
     this.categoryForm.patchValue({
       type: fallbackType,
       name: '',
-      parentCategoryId: ''
+      parentCategoryId: '',
+      group: this.getDefaultCategoryGroup()
     }, { emitEvent: false });
 
     this.view.set('category');
@@ -331,7 +356,8 @@ export class AddTransactionModalComponent {
     this.categoryForm.patchValue({
       type: selectedMainCategory?.type ?? fallbackType,
       name: '',
-      parentCategoryId: selectedMainCategory ? String(selectedMainCategory.id) : ''
+      parentCategoryId: selectedMainCategory ? String(selectedMainCategory.id) : '',
+      group: this.getDefaultCategoryGroup()
     }, { emitEvent: false });
 
     this.view.set('category');
@@ -616,7 +642,7 @@ export class AddTransactionModalComponent {
       return;
     }
 
-    const { name, parentCategoryId } = this.categoryForm.getRawValue();
+    const { name, parentCategoryId, group } = this.categoryForm.getRawValue();
     const trimmedName = name.trim();
     const categoryType = this.normalizeType(this.categoryForm.controls.type.getRawValue());
     const parsedParentCategoryId = this.categoryMode() === 'sub' ? this.parseNumber(parentCategoryId) : null;
@@ -638,7 +664,7 @@ export class AddTransactionModalComponent {
       name: trimmedName,
       type: categoryType,
       parentCategoryId: parsedParentCategoryId,
-      group: this.authService.getRole() === 'CHILD' ? 'CHILD' : 'FAMILY'
+      group
     }).pipe(
       finalize(() => this.isSubmittingCategory.set(false))
     ).subscribe({
@@ -679,6 +705,17 @@ export class AddTransactionModalComponent {
         this.categoryErrorMessage.set(error.error?.message || this.i18n.translate('transactions.categoryCreateFailed'));
       }
     });
+  }
+
+  getDefaultCategoryGroup(): CategoryGroup {
+    const role = this.authService.getRole();
+    if (role === 'ADMIN') {
+      return 'FAMILY';
+    }
+    if (role === 'PARENT') {
+      return 'PARENT';
+    }
+    return 'CHILD';
   }
 
   getModalTitle(): string {

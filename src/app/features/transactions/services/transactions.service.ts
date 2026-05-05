@@ -50,7 +50,7 @@ interface CategoryApiResponse {
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   parentCategoryId: number | null;
   parentCategoryName: string | null;
-  group: 'FAMILY' | 'CHILD';
+  group: 'FAMILY' | 'CHILD' | 'PARENT';
 }
 
 interface UserApiResponse {

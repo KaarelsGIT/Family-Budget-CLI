@@ -8,7 +8,7 @@ import { TransactionsService } from '../../../transactions/services/transactions
 import { CategoryEditorModalComponent } from '../../modals/category-editor-modal/category-editor-modal.component';
 
 type TransactionType = 'INCOME' | 'EXPENSE';
-type CategoryGroup = 'FAMILY' | 'CHILD';
+type CategoryGroup = 'FAMILY' | 'CHILD' | 'PARENT';
 
 interface CategoryNode {
   category: TransactionCategory;
@@ -45,6 +45,7 @@ export class CategoryManagementPageComponent {
   readonly createType = signal<TransactionType>('EXPENSE');
   readonly createGroup = signal<CategoryGroup>('FAMILY');
   readonly collapsedCategoryRoots = signal<Record<number, boolean>>({});
+  readonly currentUserId = computed(() => this.authService.getUserId());
 
   readonly allowGroupSelection = computed(() => this.authService.isAdmin());
 
@@ -141,9 +142,13 @@ export class CategoryManagementPageComponent {
   }
 
   getGroupLabel(group: CategoryGroup): string {
-    return group === 'FAMILY'
-      ? this.i18n.translate('categories.groupFamily')
-      : this.i18n.translate('categories.groupChild');
+    if (group === 'FAMILY') {
+      return this.i18n.translate('categories.groupFamily');
+    }
+    if (group === 'CHILD') {
+      return this.i18n.translate('categories.groupChild');
+    }
+    return this.i18n.translate('categories.groupParent');
   }
 
   getTypeLabel(type: TransactionCategory['type']): string {
@@ -158,6 +163,11 @@ export class CategoryManagementPageComponent {
 
   canAddSubcategory(node: CategoryNode): boolean {
     return node.depth === 0;
+  }
+
+  canManageCategory(category: TransactionCategory): boolean {
+    const currentUserId = this.currentUserId();
+    return currentUserId !== null && category.userId === currentUserId;
   }
 
   isCategoryVisible(node: CategoryNode): boolean {
@@ -208,12 +218,7 @@ export class CategoryManagementPageComponent {
     }
 
     const sortCategories = (items: TransactionCategory[]): TransactionCategory[] => [...items].sort((left, right) => {
-      const groupOrder: Record<CategoryGroup, number> = { FAMILY: 0, CHILD: 1 };
-      if (left.group !== right.group) {
-        return groupOrder[left.group] - groupOrder[right.group];
-      }
-
-      return left.name.localeCompare(right.name);
+      return left.name.localeCompare(right.name, this.i18n.language(), { sensitivity: 'base' });
     });
 
     const result: CategoryNode[] = [];

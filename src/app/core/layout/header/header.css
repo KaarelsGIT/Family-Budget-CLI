@@ -605,6 +605,27 @@ header {
     min-height: 44px !important;
   }
 
+  .tools-dropdown-item,
+  .tools-dropdown-link,
+  .language-option,
+  .notification-clear-button,
+  .notification-action-button {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .tools-dropdown-item .dropdown-icon,
+  .tools-dropdown-link .dropdown-icon,
+  .language-option .dropdown-icon,
+  .notification-clear-button svg,
+  .notification-action-button svg {
+    order: 0 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
   .notification-trigger {
     align-items: center !important;
     justify-content: center !important;

@@ -159,14 +159,34 @@
   color: #244131;
 }
 
-.field input,
-.field select,
-.field textarea {
+.form-input-rounded {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 14px;
   border: 1px solid #cfd8d3;
   border-radius: 12px;
-  padding: 10px 12px;
   font: inherit;
   background: #fff;
+  color: #17361f;
+  line-height: 1.2;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.field select.form-input-rounded,
+.transfer-select.form-input-rounded {
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #2c3f33 50%),
+    linear-gradient(135deg, #2c3f33 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 18px,
+    calc(100% - 12px) 18px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
 }
 
 .amount-input-row {
@@ -178,6 +198,12 @@
 .amount-input-row input {
   flex: 1;
   min-width: 0;
+  height: 44px;
+}
+
+.amount-input-row .form-input-rounded {
+  flex: 1;
+  min-width: 0;
 }
 
 .calculator-button {
@@ -185,6 +211,7 @@
   align-items: center;
   justify-content: center;
   width: 44px;
+  height: 44px;
   flex: 0 0 44px;
   border: 1px solid #cfd8d3;
   border-radius: 12px;
@@ -214,6 +241,11 @@
 }
 
 .field textarea {
+  border: 1px solid #cfd8d3;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
   resize: vertical;
   min-height: 88px;
 }
@@ -226,9 +258,16 @@
 
 .field input:focus,
 .field select:focus,
-.field textarea:focus {
+.field textarea:focus,
+.form-input-rounded:focus {
   outline: 2px solid rgba(34, 139, 34, 0.18);
   border-color: forestgreen;
+}
+
+.field .form-input-rounded:disabled {
+  background: #f0f3f1;
+  color: #7f8d84;
+  cursor: not-allowed;
 }
 
 .transfer-grid {
@@ -461,14 +500,9 @@ button.secondary:disabled {
     gap: 8px;
   }
 
-  .field input,
-  .field select,
-  .field textarea {
-    font-size: 16px;
-  }
-
   .calculator-button {
     width: 48px;
+    height: 48px;
     flex-basis: 48px;
   }
 }

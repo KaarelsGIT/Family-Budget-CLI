@@ -23,7 +23,7 @@ export interface TransactionCategory {
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   parentCategoryId: number | null;
   parentCategoryName: string | null;
-  group: 'FAMILY' | 'CHILD';
+  group: 'FAMILY' | 'CHILD' | 'PARENT';
   isRecurring: boolean;
   dueDayOfMonth: number | null;
   recurringAmount: number | null;
@@ -73,7 +73,7 @@ export interface CreateTransactionCategoryPayload {
   name: string;
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   parentCategoryId: number | null;
-  group: 'FAMILY' | 'CHILD';
+  group: 'FAMILY' | 'CHILD' | 'PARENT';
 }
 
 export interface TransactionOpenRequest {

@@ -38,8 +38,9 @@
         <input
           class="filter-control date-trigger"
           type="text"
-          readonly
-          [value]="getDisplayedDate('fromDate')"
+          [attr.data-date-field]="'fromDate'"
+          [value]="filters().fromDate"
+          (input)="onDateInput('fromDate', $any($event.target).value)"
           (click)="$event.stopPropagation(); openDatePicker('fromDate')"
           [placeholder]="i18n.translate('transactions.filterFrom')" />
         <div class="date-picker-shell" *ngIf="isDatePickerOpen('fromDate')">
@@ -84,8 +85,9 @@
         <input
           class="filter-control date-trigger"
           type="text"
-          readonly
-          [value]="getDisplayedDate('toDate')"
+          [attr.data-date-field]="'toDate'"
+          [value]="filters().toDate"
+          (input)="onDateInput('toDate', $any($event.target).value)"
           (click)="$event.stopPropagation(); openDatePicker('toDate')"
           [placeholder]="i18n.translate('transactions.filterTo')" />
         <div class="date-picker-shell" *ngIf="isDatePickerOpen('toDate')">
@@ -126,7 +128,7 @@
       </label>
 
       <div class="filters-actions">
-        <button type="button" class="filter-action" (click)="clearFilters()">
+        <button type="button" class="filter-action" [class.is-active]="hasActiveFilters()" [disabled]="!hasActiveFilters()" (click)="clearFilters()">
           {{ i18n.translate('transactions.clearFilters') }}
         </button>
       </div>

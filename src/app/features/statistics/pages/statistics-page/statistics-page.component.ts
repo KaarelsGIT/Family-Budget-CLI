@@ -149,6 +149,12 @@ export class StatisticsPageComponent {
       || statistics.categories.expenses.length > 0;
   });
 
+  readonly hasActiveFilters = computed(() =>
+    this.selectedMonth() !== null
+    || this.selectedUserId() !== this.currentUserId
+    || this.selectedAccountId() !== null
+  );
+
   constructor() {
     this.loadFilterOptions();
     this.loadStatistics();

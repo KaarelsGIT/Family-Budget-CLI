@@ -51,6 +51,7 @@
 
             <div class="node-actions">
               <button
+                *ngIf="canManageCategory(node.category)"
                 type="button"
                 class="icon-button edit-button"
                 (click)="openEditCategory(node.category)"
@@ -72,6 +73,7 @@
                 </svg>
               </button>
               <button
+                *ngIf="canManageCategory(node.category)"
                 type="button"
                 class="icon-button danger-icon-button"
                 (click)="deleteCategory(node.category)"
