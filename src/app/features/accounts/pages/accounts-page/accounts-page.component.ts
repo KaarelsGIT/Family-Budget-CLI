@@ -98,6 +98,13 @@ export class AccountsPageComponent {
     this.accountService.getAccounts().subscribe({
       next: (accounts) => {
         this.accounts.set(accounts);
+        const selectedAdjustBalanceAccount = this.selectedAdjustBalanceAccount();
+        if (selectedAdjustBalanceAccount) {
+          const refreshedAccount = accounts.find((account) => account.id === selectedAdjustBalanceAccount.id);
+          if (refreshedAccount) {
+            this.selectedAdjustBalanceAccount.set(refreshedAccount);
+          }
+        }
         this.isLoading.set(false);
       },
       error: (error: { error?: { message?: string } }) => {

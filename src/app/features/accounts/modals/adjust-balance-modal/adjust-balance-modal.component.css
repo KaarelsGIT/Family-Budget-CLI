@@ -16,11 +16,14 @@
 .modal-card {
   position: relative;
   z-index: 1;
-  width: min(460px, calc(100vw - 32px));
+  width: min(560px, calc(100vw - 32px));
   background: #ffffff;
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+  max-height: min(90vh, 760px);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -46,9 +49,24 @@
 }
 
 .modal-form {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modal-body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 0;
+}
+
+.form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
 }
 
 .field {
@@ -71,9 +89,122 @@
   font-size: 14px;
 }
 
+.amount-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.amount-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.calculator-button {
+  border: 1px solid #cfd8d3;
+  background: #f7faf8;
+  border-radius: 8px;
+  width: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #223128;
+}
+
+.calculator-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.calculator-button:hover {
+  background: #eef3f0;
+}
+
 .readonly-field {
   background: #f7faf8;
   color: #223128;
+}
+
+.adjustment-log {
+  border-top: 1px solid #e2e9e4;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.log-header h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.log-count {
+  font-size: 12px;
+  color: #66736d;
+}
+
+.log-table-wrap {
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid #e2e9e4;
+  border-radius: 10px;
+}
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.log-table th,
+.log-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #edf2ef;
+  vertical-align: top;
+}
+
+.log-table th {
+  background: #f7faf8;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.log-table td:nth-child(1) {
+  white-space: nowrap;
+}
+
+.log-table td:nth-child(2) {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.log-table td:nth-child(3) {
+  color: #34423c;
+}
+
+.positive {
+  color: #1e7a3f;
+}
+
+.negative {
+  color: #a13b2d;
+}
+
+.empty-message {
+  margin: 0;
+  font-size: 13px;
+  color: #66736d;
 }
 
 .field input:focus,

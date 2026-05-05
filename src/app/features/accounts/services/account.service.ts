@@ -46,6 +46,12 @@ interface AdjustBalancePayload {
   amount: number;
   comment: string;
 }
+interface AccountBalanceAdjustmentApiResponse {
+  id: number;
+  amount: number | string;
+  comment: string;
+  createdAt: string;
+}
 interface ShareAccountPayload {
   userId: number;
   role: 'EDITOR' | 'VIEWER';
@@ -70,6 +76,13 @@ export interface SelectableUser {
 
 export interface TransferTargets {
   users: SelectableUser[];
+}
+
+export interface AccountBalanceAdjustment {
+  id: number;
+  amount: number;
+  comment: string;
+  createdAt: string;
 }
 
 @Injectable({
@@ -99,6 +112,17 @@ export class AccountService {
   adjustBalance(id: number, payload: AdjustBalancePayload): Observable<Account> {
     return this.http.patch<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}/adjust-balance`, payload).pipe(
       map((response) => this.mapAccount(response.data))
+    );
+  }
+
+  getRecentBalanceAdjustments(id: number): Observable<AccountBalanceAdjustment[]> {
+    return this.http.get<ApiResponse<AccountBalanceAdjustmentApiResponse[]>>(`${environment.apiUrl}/accounts/${id}/adjust-balance-history`).pipe(
+      map((response) => response.data.map((item) => ({
+        id: item.id,
+        amount: typeof item.amount === 'number' ? item.amount : Number(item.amount),
+        comment: item.comment,
+        createdAt: item.createdAt
+      })))
     );
   }
 
