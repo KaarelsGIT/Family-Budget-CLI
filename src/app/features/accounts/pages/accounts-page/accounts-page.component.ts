@@ -9,6 +9,8 @@ import { ShareAccountModalComponent } from '../../modals/share-account-modal/sha
 import { AddTransactionModalComponent } from '../../../transactions/modals/add-transaction-modal/add-transaction-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
+import { TransactionsService } from '../../../transactions/services/transactions.service';
+import { TransactionCategory } from '../../../transactions/models/transaction.model';
 import { TransactionDraftService } from '../../../transactions/services/transaction-draft.service';
 import { formatMoney } from '../../../shared/utils/money-format';
 
@@ -40,11 +42,13 @@ interface AccountSection {
 })
 export class AccountsPageComponent {
   private readonly accountService = inject(AccountService);
+  private readonly transactionsService = inject(TransactionsService);
   private readonly transactionDraftService = inject(TransactionDraftService);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly accounts = signal<Account[]>([]);
+  readonly categories = signal<TransactionCategory[]>([]);
   readonly isLoading = signal(false);
   readonly isModalOpen = signal(false);
   readonly isTransactionModalOpen = signal(false);
@@ -84,6 +88,7 @@ export class AccountsPageComponent {
 
   constructor() {
     this.loadAccounts();
+    this.loadCategories();
   }
 
   loadAccounts(): void {
@@ -98,6 +103,17 @@ export class AccountsPageComponent {
       error: (error: { error?: { message?: string } }) => {
         this.errorMessage.set(error.error?.message || this.i18n.translate('accounts.loadFailed'));
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  loadCategories(): void {
+    this.transactionsService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: () => {
+        this.categories.set([]);
       }
     });
   }

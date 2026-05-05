@@ -75,7 +75,7 @@
 
   <app-add-transaction-modal
     *ngIf="isTransactionModalOpen()"
-    [categories]="[]"
+    [categories]="categories()"
     (closed)="closeTransactionModal()"
     (created)="handleAccountsChanged()"
     (categoryCreated)="handleAccountsChanged()" />

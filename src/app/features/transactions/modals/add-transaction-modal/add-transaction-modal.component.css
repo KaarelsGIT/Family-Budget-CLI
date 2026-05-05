@@ -232,7 +232,7 @@
 
 .transfer-select.placeholder-active {
   color: #6f7f75;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .transfer-select.placeholder-active option {
@@ -351,7 +351,7 @@
 
 .account-name {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   color: #17361f;
 }
 
@@ -393,7 +393,7 @@
   background: #fff;
   padding: 12px 14px;
   font: inherit;
-  font-weight: 700;
+  font-weight: 500;
   color: #17361f;
   cursor: pointer;
 }
