@@ -55,6 +55,11 @@ interface ChartTick {
   label: string;
 }
 
+interface MonthOption {
+  value: number;
+  label: string;
+}
+
 @Component({
   selector: 'app-statistics-page',
   standalone: true,
@@ -69,6 +74,7 @@ export class StatisticsPageComponent {
   readonly i18n = inject(TranslationService);
 
   readonly currentYear = new Date().getFullYear();
+  readonly selectedMonth = signal<number | null>(null);
   readonly currentUserId = this.authService.getUserId();
   readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
@@ -90,6 +96,28 @@ export class StatisticsPageComponent {
       years.push(year);
     }
     return years;
+  });
+
+  readonly monthOptions = computed<MonthOption[]>(() =>
+    Array.from({ length: 12 }, (_, index) => {
+      const value = index + 1;
+      return {
+        value,
+        label: new Intl.DateTimeFormat(this.i18n.language(), { month: 'long' }).format(new Date(this.currentYear, index, 1))
+      };
+    })
+  );
+
+  readonly statisticsTitle = computed(() => {
+    const year = this.selectedYear();
+    const month = this.selectedMonth();
+    if (month === null) {
+      return `${this.i18n.translate('statistics.yearOverview')} ${year}`;
+    }
+
+    const monthLabel = this.monthOptions().find((option) => option.value === month)?.label
+      ?? new Intl.DateTimeFormat(this.i18n.language(), { month: 'long' }).format(new Date(year, month - 1, 1));
+    return `${monthLabel} ${year}`;
   });
 
   readonly userOptions = computed(() => this.selectableUsers());
@@ -136,6 +164,12 @@ export class StatisticsPageComponent {
     this.loadStatistics();
   }
 
+  onMonthChange(value: any): void {
+    const parsed = value === null || value === '' ? null : Number(value);
+    this.selectedMonth.set(parsed);
+    this.loadStatistics();
+  }
+
   onUserChange(value: number | string | null): void {
     const parsed = value === null || value === '' ? null : Number(value);
     this.selectedUserId.set(parsed);
@@ -172,6 +206,10 @@ export class StatisticsPageComponent {
   }
 
   formatPercent(value: number): string {
+    if (!Number.isFinite(value)) {
+      return '0.0 %';
+    }
+
     return `${value.toFixed(1)} %`;
   }
 
@@ -235,7 +273,7 @@ export class StatisticsPageComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.statisticsService.getYearly(this.selectedYear(), this.selectedUserId(), this.selectedAccountId())
+    this.statisticsService.getYearly(this.selectedYear(), this.selectedMonth(), this.selectedUserId(), this.selectedAccountId())
       .pipe(finalize(() => {
         this.isLoading.set(false);
       }))

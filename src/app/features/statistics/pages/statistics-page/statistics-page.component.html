@@ -2,8 +2,7 @@
   <header class="page-header">
     <div>
       <p class="eyebrow">{{ i18n.translate('header.statistics') }}</p>
-      <h1>{{ i18n.translate('statistics.title') }}</h1>
-      <p class="page-copy">{{ i18n.translate('statistics.copy') }}</p>
+      <h1>{{ statisticsTitle() }}</h1>
     </div>
 
     <div class="filters-bar">
@@ -11,6 +10,14 @@
         <span>{{ i18n.translate('statistics.year') }}</span>
         <select [ngModel]="selectedYear()" (ngModelChange)="onYearChange($event)">
           <option *ngFor="let year of yearOptions()" [ngValue]="year">{{ year }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('statistics.monthFilter') }}</span>
+        <select [ngModel]="selectedMonth()" (ngModelChange)="onMonthChange($event)">
+          <option [ngValue]="null">{{ i18n.translate('statistics.allMonths') }}</option>
+          <option *ngFor="let month of monthOptions()" [ngValue]="month.value">{{ month.label }}</option>
         </select>
       </label>
 
