@@ -6,3 +6,12 @@
 .app-shell {
   padding-top: 110px;
 }
+
+@media (max-width: 768px) {
+  .app-shell {
+    padding-top: 92px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 80px;
+  }
+}

@@ -1,1 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
+
+@media (max-width: 768px) {
+  body {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 80px;
+  }
+
+  button,
+  input,
+  select,
+  textarea,
+  a {
+    min-height: 44px;
+  }
+}
