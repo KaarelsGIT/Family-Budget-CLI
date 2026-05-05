@@ -48,6 +48,9 @@ export class CalculatorComponent {
         this.delete();
         break;
       case 'Escape':
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        event.preventDefault();
         this.close();
         break;
       case 'c':

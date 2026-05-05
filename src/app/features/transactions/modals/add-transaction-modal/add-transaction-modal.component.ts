@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { formatMoney, parseMoneyInput } from '../../../shared/utils/money-format';
+import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
@@ -48,7 +49,7 @@ interface SelectedTransferTarget {
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent],
   templateUrl: './add-transaction-modal.component.html',
   styleUrl: './add-transaction-modal.component.css'
 })
@@ -87,6 +88,7 @@ export class AddTransactionModalComponent {
   readonly selectedTransferTarget = signal<SelectedTransferTarget | null>(null);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
+  readonly isCalculatorVisible = signal(false);
 
   private dragging = false;
   private dragStartX = 0;
@@ -149,12 +151,16 @@ export class AddTransactionModalComponent {
   readonly subCategoryPlaceholder = computed(() => this.i18n.translate('transactions.selectSubCategory'));
 
   readonly ownAccounts = computed(() => {
-    if (this.authService.getUserId() === null) {
+    const currentUserId = this.authService.getUserId();
+    if (currentUserId === null) {
       return [];
     }
 
     const filteredAccounts = [...this.accounts()]
-      .filter((account) => this.canUseAccount(account))
+      .filter((account) =>
+        account.ownerId === currentUserId ||
+        account.sharedUsers?.some((sharedUser) => sharedUser.userId === currentUserId && sharedUser.role === 'EDITOR')
+      )
       .sort((left, right) => {
         const typeOrder: Record<Account['type'], number> = {
           MAIN: 0,
@@ -242,6 +248,7 @@ export class AddTransactionModalComponent {
   }
 
   close(): void {
+    this.isCalculatorVisible.set(false);
     this.closed.emit();
   }
 
@@ -276,6 +283,23 @@ export class AddTransactionModalComponent {
   @HostListener('document:pointercancel')
   endDrag(): void {
     this.dragging = false;
+  }
+
+  openCalculator(): void {
+    this.isCalculatorVisible.set(true);
+  }
+
+  closeCalculator(): void {
+    this.isCalculatorVisible.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    if (this.isCalculatorVisible()) {
+      return;
+    }
+
+    this.close();
   }
 
   openMainCategoryForm(): void {
@@ -439,7 +463,11 @@ export class AddTransactionModalComponent {
       const parsedFromAccountId = this.parseNumber(transferFromAccountId);
       const parsedToAccountId = this.parseNumber(transferToAccountId);
       const selectedTarget = this.selectedTransferTarget();
-      const selectedTargetKind = selectedTarget?.id === parsedToAccountId ? selectedTarget.kind : null;
+      const selectedTargetKind = selectedTarget?.id === parsedToAccountId || selectedTarget?.id === Math.abs(parsedToAccountId ?? 0)
+        ? selectedTarget.kind
+        : null;
+      const targetUserId = selectedTargetKind === 'user' && parsedToAccountId !== null ? Math.abs(parsedToAccountId) : null;
+      const targetAccountId = selectedTargetKind === 'account' ? parsedToAccountId : null;
 
       if (
         parsedFromAccountId === null ||
@@ -468,8 +496,8 @@ export class AddTransactionModalComponent {
       this.accountService.createTransfer({
         amount: parsedAmount,
         fromAccountId: parsedFromAccountId,
-        targetUserId: selectedTargetKind === 'user' ? parsedToAccountId : null,
-        toAccountId: selectedTargetKind === 'account' ? parsedToAccountId : null,
+        targetUserId,
+        toAccountId: targetAccountId,
         transactionDate,
         comment: trimmedComment,
         reminderId: null
@@ -753,6 +781,31 @@ export class AddTransactionModalComponent {
 
   getTransferAccountDetails(account: Account): string {
     return `${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
+  getTransferSourceOptionLabel(account: Account): string {
+    return `${account.name} · ${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
+  getTransferTargetGroupLabel(user: TransferTargetUser): string {
+    return user.isCurrentUser
+      ? this.i18n.translate('accounts.myAccounts')
+      : this.i18n.translate('accounts.otherUsers');
+  }
+
+  getTransferTargetAccountLabel(account: Account): string {
+    return `${account.name} · ${account.ownerUsername} · ${formatMoney(account.balance)}`;
+  }
+
+  getTransferTargetPlaceholder(): string {
+    switch (this.i18n.language()) {
+      case 'et':
+        return 'Vali kasutaja või konto';
+      case 'fi':
+        return 'Valitse käyttäjä tai tili';
+      default:
+        return 'Select user or account';
+    }
   }
 
   normalizeMoneyInput(event: Event): void {
@@ -1171,10 +1224,11 @@ export class AddTransactionModalComponent {
 
     const draft = this.draftService.value();
     const preferredAccountId = draft.transferToAccountId ?? draft.toAccountId;
-    const preferredSelection = preferredAccountId !== null && this.isValidTransferTargetValue(preferredAccountId)
-      && preferredAccountId !== this.selectedTransferSourceAccount()?.id
+    const preferredSelection = preferredAccountId !== null &&
+      this.isValidTransferTargetValue(preferredAccountId) &&
+      preferredAccountId !== this.selectedTransferSourceAccount()?.id
       ? preferredAccountId
-      : this.findFallbackTransferTargetValue(destinationUsers);
+      : null;
 
     if (preferredSelection !== null) {
       this.transactionForm.patchValue({ transferToAccountId: String(preferredSelection) }, { emitEvent: false });
@@ -1351,6 +1405,10 @@ export class AddTransactionModalComponent {
   }
 
   private isValidTransferTargetValue(value: number): boolean {
+    if (value < 0) {
+      return this.transferTargetUsers().some((user) => !user.isCurrentUser && user.id === Math.abs(value));
+    }
+
     if (this.isOwnTransferTarget(value)) {
       return true;
     }
@@ -1367,6 +1425,10 @@ export class AddTransactionModalComponent {
   }
 
   private resolveTransferTargetKind(value: number): TransferTargetKind {
+    if (value < 0) {
+      return 'user';
+    }
+
     const currentUserTarget = this.transferTargetUsers().find((user) => user.isCurrentUser) ?? null;
     if (currentUserTarget?.accounts.some((account) => account.id === value)) {
       return 'account';

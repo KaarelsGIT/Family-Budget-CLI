@@ -1,7 +1,7 @@
 <div class="modal-overlay" *ngIf="isOpen()">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recurring-payment-title" [style.transform]="getModalTransform()">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recurring-payment-title" [style.transform]="getModalTransform()" (keydown.escape)="close()">
     <div class="modal-header" (pointerdown)="startDrag($event)">
       <h2 id="recurring-payment-title">
         {{ isEditMode() ? i18n.translate('recurringPayments.editTitle') : i18n.translate('recurringPayments.createTitle') }}
@@ -9,7 +9,7 @@
       <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
-    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault(); submit()">
       <label class="field">
         <span>{{ i18n.translate('recurringPayments.formName') }}</span>
         <input type="text" formControlName="name" />

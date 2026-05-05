@@ -1,7 +1,7 @@
 <div class="modal-overlay" *ngIf="isOpen">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true">
+  <section class="modal-card" role="dialog" aria-modal="true" (keydown.escape)="close()">
     <div class="modal-header">
       <div>
         <p class="eyebrow">{{ i18n.translate('app.name') }}</p>
@@ -11,7 +11,7 @@
       <button type="button" class="close-button" (click)="close()">x</button>
     </div>
 
-    <form [formGroup]="form" class="login-form" (ngSubmit)="submit()">
+    <form [formGroup]="form" class="login-form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault(); submit()">
       <label class="field">
         <span>{{ i18n.translate('login.username') }}</span>
         <input type="text" formControlName="username" autocomplete="username" />

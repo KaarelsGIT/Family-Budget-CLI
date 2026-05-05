@@ -6,7 +6,8 @@
       class="modal-card salary-card"
       role="dialog"
       aria-modal="true"
-      [style.transform]="getModalTransform()">
+      [style.transform]="getModalTransform()"
+      (keydown.escape)="close()">
       <div class="modal-header salary-header" (pointerdown)="startDrag($event)">
         <div>
           <p class="eyebrow">{{ i18n.translate('salaryCalculator.eyebrow') }}</p>

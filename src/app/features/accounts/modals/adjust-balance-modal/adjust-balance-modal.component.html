@@ -1,13 +1,13 @@
 <div class="modal-overlay">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="adjust-balance-title">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="adjust-balance-title" (keydown.escape)="close()">
     <div class="modal-header">
       <h2 id="adjust-balance-title">{{ i18n.translate('accounts.adjustBalanceTitle') }}</h2>
       <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
-    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault(); submit()">
       <label class="field">
         <span>{{ i18n.translate('accounts.adjustBalanceCurrent') }}</span>
         <div class="readonly-field">{{ formatBalance(account().balance) }}</div>

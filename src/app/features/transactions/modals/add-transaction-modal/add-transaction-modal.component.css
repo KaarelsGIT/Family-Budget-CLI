@@ -169,6 +169,50 @@
   background: #fff;
 }
 
+.amount-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.amount-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.calculator-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  flex: 0 0 44px;
+  border: 1px solid #cfd8d3;
+  border-radius: 12px;
+  background: #fff;
+  color: #17361f;
+  cursor: pointer;
+}
+
+.calculator-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.field select,
+.transfer-select {
+  width: 100%;
+}
+
+.transfer-select.placeholder-active {
+  color: #6f7f75;
+  font-weight: 600;
+}
+
+.transfer-select.placeholder-active option {
+  color: #17361f;
+  font-weight: 400;
+}
+
 .field textarea {
   resize: vertical;
   min-height: 88px;
@@ -192,6 +236,10 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 16px;
   min-height: 0;
+}
+
+.transfer-select-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .transfer-column {
@@ -413,61 +461,15 @@ button.secondary:disabled {
     gap: 8px;
   }
 
-  .transfer-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-  }
-
-  .transfer-column {
-    position: relative;
-    padding: 10px;
-    border-radius: 14px;
-  }
-
-  .transfer-column::after {
-    content: '';
-    position: absolute;
-    inset: auto 14px 12px 14px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(34, 139, 34, 0.12), transparent);
-    pointer-events: none;
-  }
-
-  .account-scroll {
-    max-height: min(24vh, 220px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 4px;
-    overscroll-behavior: contain;
-    gap: 8px;
-  }
-
-  .group-toggle {
-    min-height: 38px;
-    padding: 9px 12px;
-    font-size: 13px;
-  }
-
-  .account-option {
-    padding: 8px 10px;
-    gap: 8px;
-  }
-
-  .account-name {
-    font-size: 13px;
-  }
-
-  .account-meta {
-    font-size: 11px;
-  }
-
   .field input,
   .field select,
   .field textarea {
     font-size: 16px;
+  }
+
+  .calculator-button {
+    width: 48px;
+    flex-basis: 48px;
   }
 }
 
@@ -504,16 +506,7 @@ button.secondary:disabled {
     width: 100%;
   }
 
-  .transfer-column {
-    min-width: 220px;
-    padding: 10px;
-  }
-
-  .account-scroll {
-    max-height: min(22vh, 180px);
-  }
-
-  .account-option {
-    padding: 7px 10px;
+  .transfer-select-grid {
+    grid-template-columns: 1fr;
   }
 }

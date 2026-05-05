@@ -1,7 +1,7 @@
 <div class="modal-overlay" *ngIf="isOpen()">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="category-editor-title">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="category-editor-title" (keydown.escape)="close()">
     <div class="modal-header">
       <h2 id="category-editor-title">
         {{ isEditMode() ? i18n.translate('categories.editTitle') : i18n.translate('categories.createTitle') }}
@@ -9,7 +9,7 @@
       <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
-    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault(); submit()">
       <p class="helper-copy" *ngIf="isCreateSubMode() && parentCategory() as parent">
         {{ i18n.translate('categories.parentCategory') }}: <strong>{{ parent.name }}</strong>
       </p>

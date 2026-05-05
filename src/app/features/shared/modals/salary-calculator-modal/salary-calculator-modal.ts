@@ -154,6 +154,11 @@ export class SalaryCalculatorModal {
     this.dragging = false;
   }
 
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    this.close();
+  }
+
   getModalTransform(): string {
     return `translate3d(${this.modalOffsetX}px, ${this.modalOffsetY}px, 0)`;
   }

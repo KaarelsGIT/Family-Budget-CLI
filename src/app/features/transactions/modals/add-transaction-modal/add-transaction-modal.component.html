@@ -1,7 +1,7 @@
 <div class="modal-overlay">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="transaction-modal-title" [style.transform]="getModalTransform()">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="transaction-modal-title" [style.transform]="getModalTransform()" (keydown.escape)="close()">
     <div class="modal-header" (pointerdown)="startDrag($event)">
       <h2 id="transaction-modal-title">{{ getModalTitle() }}</h2>
       <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
@@ -40,7 +40,7 @@
         </button>
       </nav>
 
-    <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()">
+    <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()" (keydown.enter)="$event.preventDefault(); submitTransaction()">
       <input type="hidden" formControlName="reminderId" />
       <div class="modal-scroll">
           <section class="tab-panel" *ngIf="transactionType() === 'EXPENSE'">
@@ -66,7 +66,28 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-                <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                <div class="amount-input-row">
+                  <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                  <button
+                    type="button"
+                    class="calculator-button"
+                    (click)="openCalculator()"
+                    [attr.aria-label]="i18n.translate('header.calculator')"
+                    [attr.title]="i18n.translate('header.calculator')">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="11" x2="8" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="11" x2="12" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="11" x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="15" x2="8" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="15" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                </div>
                 <p class="error-message" *ngIf="transactionType() === 'EXPENSE' && !isExpenseAmountWithinBalance() && transactionForm.controls.amount.value">
                   {{ i18n.translate('transactions.balanceWouldGoNegative') }}
                 </p>
@@ -124,7 +145,28 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-                <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                <div class="amount-input-row">
+                  <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                  <button
+                    type="button"
+                    class="calculator-button"
+                    (click)="openCalculator()"
+                    [attr.aria-label]="i18n.translate('header.calculator')"
+                    [attr.title]="i18n.translate('header.calculator')">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="11" x2="8" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="11" x2="12" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="11" x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="15" x2="8" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="15" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                </div>
               </label>
 
               <label class="field">
@@ -161,78 +203,84 @@
               {{ i18n.translate('accounts.transferAccountHint') }}
             </p>
 
-            <div class="transfer-grid">
-              <article class="transfer-column">
-                <div class="section-header">
-                  <span>{{ i18n.translate('accounts.transferFrom') }}</span>
-                </div>
+            <div class="form-grid transfer-select-grid">
+              <label class="field">
+                <span>{{ i18n.translate('accounts.transferFrom') }}</span>
+                <select
+                  class="transfer-select"
+                  formControlName="transferFromAccountId">
+                  <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
+                  <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
+                    {{ getTransferSourceOptionLabel(account) }}
+                  </option>
+                </select>
+              </label>
 
-                <div class="account-scroll">
-                  <label
-                    class="account-option"
-                    *ngFor="let account of transferSourceAccounts(); trackBy: trackByAccountId"
-                    [class.selected]="isTransferSourceSelected(account)">
-                    <input type="radio" formControlName="transferFromAccountId" [value]="account.id" />
-                    <span class="account-label">
-                      <span class="account-name">{{ getAccountLabel(account) }}</span>
-                      <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
-                    </span>
-                  </label>
-                </div>
-              </article>
-
-              <article class="transfer-column">
-                <div class="section-header">
-                  <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
-                </div>
-
-                <div class="account-scroll" *ngIf="hasTransferDestinationTargets(); else noTransferTargets">
-                  <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferUser">
-                    <ng-container *ngIf="!user.isCurrentUser; else currentUserTransferTarget">
-                      <label
-                        class="account-option"
-                        [class.selected]="isTargetSelected(user.id, 'user')">
-                        <input type="radio" formControlName="transferToAccountId" [value]="user.id" [checked]="isTargetSelected(user.id, 'user')" (change)="selectTransferTarget(user.id, 'user')" />
-                        <span class="account-label">
-                          <span class="account-name">{{ user.username }}</span>
-                        </span>
-                      </label>
+              <label class="field">
+                <span>{{ i18n.translate('accounts.shareSelectUser') }}</span>
+                <select
+                  class="transfer-select"
+                  [class.placeholder-active]="!transactionForm.controls.transferToAccountId.value"
+                  formControlName="transferToAccountId"
+                  [disabled]="!hasTransferDestinationTargets()">
+                  <option value="">{{ getTransferTargetPlaceholder() }}</option>
+                  <optgroup
+                    *ngIf="transferTargetUsers().some((user) => user.isCurrentUser && shouldShowMyAccountsSection(user))"
+                    [label]="i18n.translate('accounts.myAccounts')">
+                    <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferUser">
+                      <ng-container *ngIf="user.isCurrentUser">
+                        <ng-container *ngFor="let account of user.accounts; trackBy: trackByAccountId">
+                          <option *ngIf="selectedTransferSourceAccount()?.id !== account.id" [value]="'' + account.id">
+                            {{ getTransferTargetAccountLabel(account) }}
+                          </option>
+                        </ng-container>
+                      </ng-container>
                     </ng-container>
-                    <ng-template #currentUserTransferTarget>
-                      <div class="user-group current-user-group" *ngIf="shouldShowMyAccountsSection(user); else hiddenCurrentUserTarget">
-                        <button type="button" class="group-toggle" (click)="toggleTransferTargetExpansion(user)">
-                          <span>{{ i18n.translate('accounts.myAccounts') }}</span>
-                          <span class="group-state">{{ isExpandedTransferTarget(user) ? '▾' : '▸' }}</span>
-                        </button>
+                  </optgroup>
 
-                        <div class="group-accounts" *ngIf="isExpandedTransferTarget(user)">
-                          <label
-                            class="account-option"
-                            *ngFor="let account of user.accounts; trackBy: trackByAccountId"
-                            [class.selected]="isTargetSelected(account.id, 'account')">
-                            <input type="radio" formControlName="transferToAccountId" [value]="account.id" [checked]="isTargetSelected(account.id, 'account')" (change)="selectTransferTarget(account.id, 'account')" />
-                            <span class="account-label">
-                              <span class="account-name">{{ account.name }}</span>
-                              <span class="account-meta">{{ getTransferAccountDetails(account) }}</span>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </ng-template>
-                    <ng-template #hiddenCurrentUserTarget></ng-template>
-                  </ng-container>
-                </div>
-
-                <ng-template #noTransferTargets>
-                  <p class="empty-message">{{ i18n.translate('accounts.noTransferTargets') }}</p>
-                </ng-template>
-              </article>
+                  <optgroup
+                    *ngIf="transferTargetUsers().some((user) => !user.isCurrentUser)"
+                    [label]="i18n.translate('accounts.otherUsers')">
+                    <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferUser">
+                      <ng-container *ngIf="!user.isCurrentUser">
+                        <option [value]="'' + (0 - user.id)">
+                          {{ user.username }}
+                        </option>
+                      </ng-container>
+                    </ng-container>
+                  </optgroup>
+                </select>
+                <p class="empty-message" *ngIf="!hasTransferDestinationTargets()">
+                  {{ i18n.translate('accounts.noTransferTargets') }}
+                </p>
+              </label>
             </div>
 
             <div class="form-grid transfer-details-grid">
               <label class="field">
                 <span>{{ i18n.translate('accounts.transferAmount') }}</span>
-                <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                <div class="amount-input-row">
+                  <input type="text" min="0.01" step="0.01" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+                  <button
+                    type="button"
+                    class="calculator-button"
+                    (click)="openCalculator()"
+                    [attr.aria-label]="i18n.translate('header.calculator')"
+                    [attr.title]="i18n.translate('header.calculator')">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="11" x2="8" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="11" x2="12" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="11" x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="15" x2="8" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="12" y1="15" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="16" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                </div>
                 <p class="error-message" *ngIf="!isTransferAmountWithinBalance() && transactionForm.controls.amount.value">
                   {{ i18n.translate('transactions.balanceWouldGoNegative') }}
                 </p>
@@ -268,7 +316,7 @@
     </ng-container>
 
     <ng-template #categoryFormView>
-      <form [formGroup]="categoryForm" class="modal-shell" (ngSubmit)="submitCategory()">
+      <form [formGroup]="categoryForm" class="modal-shell" (ngSubmit)="submitCategory()" (keydown.enter)="$event.preventDefault(); submitCategory()">
         <div class="modal-scroll">
           <p class="helper-copy">
             {{ categoryMode() === 'main' ? i18n.translate('transactions.addMainCategoryCopy') : i18n.translate('transactions.addSubcategoryCopy') }}
@@ -321,3 +369,8 @@
     </ng-template>
   </section>
 </div>
+
+<app-calculator
+  [isVisible]="isCalculatorVisible()"
+  (closeCalculator)="closeCalculator()">
+</app-calculator>
