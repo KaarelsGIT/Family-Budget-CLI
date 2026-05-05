@@ -14,6 +14,7 @@ interface CategoryNode {
   category: TransactionCategory;
   depth: number;
   hasChildren: boolean;
+  rootId: number;
 }
 
 interface CategorySection {
@@ -43,19 +44,20 @@ export class CategoryManagementPageComponent {
   readonly selectedParentCategory = signal<TransactionCategory | null>(null);
   readonly createType = signal<TransactionType>('EXPENSE');
   readonly createGroup = signal<CategoryGroup>('FAMILY');
+  readonly collapsedCategoryRoots = signal<Record<number, boolean>>({});
 
   readonly allowGroupSelection = computed(() => this.authService.isAdmin());
 
   readonly categorySections = computed<CategorySection[]>(() => [
     {
-      type: 'EXPENSE',
-      label: this.i18n.translate('categories.expenseSection'),
-      nodes: this.buildCategoryTree('EXPENSE')
-    },
-    {
       type: 'INCOME',
       label: this.i18n.translate('categories.incomeSection'),
       nodes: this.buildCategoryTree('INCOME')
+    },
+    {
+      type: 'EXPENSE',
+      label: this.i18n.translate('categories.expenseSection'),
+      nodes: this.buildCategoryTree('EXPENSE')
     }
   ]);
 
@@ -158,6 +160,25 @@ export class CategoryManagementPageComponent {
     return node.depth === 0;
   }
 
+  isCategoryVisible(node: CategoryNode): boolean {
+    return node.depth === 0 || !this.collapsedCategoryRoots()[node.rootId];
+  }
+
+  isCategoryCollapsed(node: CategoryNode): boolean {
+    return node.depth === 0 && !!this.collapsedCategoryRoots()[node.category.id];
+  }
+
+  toggleCategory(node: CategoryNode): void {
+    if (node.depth !== 0 || !node.hasChildren) {
+      return;
+    }
+
+    this.collapsedCategoryRoots.update((current) => ({
+      ...current,
+      [node.category.id]: !current[node.category.id]
+    }));
+  }
+
   private loadCategories(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
@@ -196,19 +217,20 @@ export class CategoryManagementPageComponent {
     });
 
     const result: CategoryNode[] = [];
-    const visit = (parentId: number | null, depth: number): void => {
+    const visit = (parentId: number | null, depth: number, rootId: number | null): void => {
       for (const category of sortCategories(categoriesByParent.get(parentId) ?? [])) {
         const children = categoriesByParent.get(category.id) ?? [];
         result.push({
           category,
           depth,
-          hasChildren: children.length > 0
+          hasChildren: children.length > 0,
+          rootId: rootId ?? category.id
         });
-        visit(category.id, depth + 1);
+        visit(category.id, depth + 1, rootId ?? category.id);
       }
     };
 
-    visit(null, 0);
+    visit(null, 0, null);
     return result;
   }
 

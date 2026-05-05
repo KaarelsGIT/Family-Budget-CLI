@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
@@ -31,6 +30,22 @@ type TransactionFilterType = TransactionItem['type'] | null;
 interface CategoryFilterOption {
   id: number;
   label: string;
+}
+
+type DateFieldKey = 'fromDate' | 'toDate';
+type CalendarMode = 'month' | 'year';
+
+interface YearOption {
+  year: number;
+}
+
+interface CalendarDay {
+  date: string;
+  label: number;
+  isCurrentMonth: boolean;
+  isSelected: boolean;
+  isToday: boolean;
+  isDisabled: boolean;
 }
 
 @Component({
@@ -65,6 +80,10 @@ export class TransactionsPageComponent {
   readonly totalItems = signal(0);
   readonly sortConfig = signal<SortConfigItem[]>(this.loadSortConfig());
   readonly isTransactionsMenuOpen = signal(false);
+  readonly activeDatePicker = signal<DateFieldKey | null>(null);
+  readonly calendarMode = signal<CalendarMode>('month');
+  readonly calendarMonthAnchor = signal(new Date());
+  readonly yearGridStart = signal(0);
 
   readonly filters = signal({
     page: 0,
@@ -113,8 +132,9 @@ export class TransactionsPageComponent {
   @HostListener('document:click', ['$event'])
   handleDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;
-    if (!target?.closest('.transactions-menu')) {
+    if (!target?.closest('.transactions-menu') && !target?.closest('.date-picker-shell')) {
       this.closeTransactionsMenu();
+      this.closeDatePicker();
     }
   }
 
@@ -304,6 +324,121 @@ export class TransactionsPageComponent {
     this.loadTransactions();
   }
 
+  openDatePicker(field: DateFieldKey): void {
+    this.activeDatePicker.set(field);
+    this.calendarMode.set('month');
+    this.calendarMonthAnchor.set(this.getCalendarAnchorDate(field));
+    this.yearGridStart.set(this.getYearGridStart(this.calendarMonthAnchor().getFullYear()));
+  }
+
+  closeDatePicker(): void {
+    this.activeDatePicker.set(null);
+    this.calendarMode.set('month');
+  }
+
+  toggleCalendarYearMode(): void {
+    this.calendarMode.update((mode) => mode === 'month' ? 'year' : 'month');
+    if (this.calendarMode() === 'year') {
+      this.yearGridStart.set(this.getYearGridStart(this.calendarMonthAnchor().getFullYear()));
+    }
+  }
+
+  previousCalendarMonth(): void {
+    this.calendarMonthAnchor.update((date) => new Date(date.getFullYear(), date.getMonth() - 1, 1));
+  }
+
+  nextCalendarMonth(): void {
+    this.calendarMonthAnchor.update((date) => new Date(date.getFullYear(), date.getMonth() + 1, 1));
+  }
+
+  selectCalendarYear(year: number): void {
+    this.calendarMonthAnchor.update((date) => new Date(year, date.getMonth(), 1));
+    this.calendarMode.set('month');
+  }
+
+  changeYearGrid(offset: number): void {
+    this.yearGridStart.update((start) => start + offset);
+  }
+
+  selectCalendarDate(day: CalendarDay): void {
+    if (!day.isCurrentMonth || day.isDisabled) {
+      return;
+    }
+
+    const field = this.activeDatePicker();
+    if (!field) {
+      return;
+    }
+
+    this.onDateChange(field, day.date);
+    this.closeDatePicker();
+  }
+
+  getDisplayedDate(field: DateFieldKey): string {
+    const value = this.filters()[field];
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat(this.i18n.language(), {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  isDatePickerOpen(field: DateFieldKey): boolean {
+    return this.activeDatePicker() === field;
+  }
+
+  monthTitle(): string {
+    return new Intl.DateTimeFormat(this.i18n.language(), { month: 'long', year: 'numeric' }).format(this.calendarMonthAnchor());
+  }
+
+  yearOptions(): YearOption[] {
+    const start = this.yearGridStart();
+    return Array.from({ length: 12 }, (_, index) => ({ year: start + index }));
+  }
+
+  calendarDays(): CalendarDay[] {
+    const anchor = this.calendarMonthAnchor();
+    const currentDate = new Date();
+    const selectedField = this.activeDatePicker();
+    const selectedValue = selectedField ? this.filters()[selectedField] : '';
+    const selectedIso = selectedValue || '';
+    const year = anchor.getFullYear();
+    const month = anchor.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const startDay = firstDayOfMonth.getDay();
+    const offset = (startDay + 6) % 7;
+    const startDate = new Date(year, month, 1 - offset);
+
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + index);
+      const iso = this.toIsoDate(date);
+      return {
+        date: iso,
+        label: date.getDate(),
+        isCurrentMonth: date.getMonth() === month,
+        isSelected: iso === selectedIso,
+        isToday: this.isSameDate(date, currentDate),
+        isDisabled: false
+      };
+    });
+  }
+
+  weekDayLabels(): string[] {
+    const fmt = new Intl.DateTimeFormat(this.i18n.language(), { weekday: 'short' });
+    const base = new Date(2024, 0, 1); // Monday
+    return Array.from({ length: 7 }, (_, index) => fmt.format(new Date(base.getFullYear(), base.getMonth(), base.getDate() + index)));
+  }
+
   setSort(field: SortField, event?: MouseEvent): void {
     const isShift = !!event?.shiftKey;
     this.sortConfig.update((current) => this.updateSortConfig(current, field, isShift));
@@ -313,6 +448,33 @@ export class TransactionsPageComponent {
       page: 0
     }));
     this.loadTransactions();
+  }
+
+  private getCalendarAnchorDate(field: DateFieldKey): Date {
+    const value = this.filters()[field];
+    if (!value) {
+      return new Date();
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  }
+
+  private getYearGridStart(year: number): number {
+    return Math.max(1900, Math.floor(year / 12) * 12);
+  }
+
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private isSameDate(left: Date, right: Date): boolean {
+    return left.getFullYear() === right.getFullYear()
+      && left.getMonth() === right.getMonth()
+      && left.getDate() === right.getDate();
   }
 
   changePage(direction: -1 | 1): void {

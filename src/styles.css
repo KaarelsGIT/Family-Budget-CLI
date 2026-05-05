@@ -19,6 +19,10 @@
   -moz-appearance: none;
 }
 
+.date-trigger {
+  cursor: pointer;
+}
+
 .filter-control:hover {
   border-color: #b6c7bb;
 }

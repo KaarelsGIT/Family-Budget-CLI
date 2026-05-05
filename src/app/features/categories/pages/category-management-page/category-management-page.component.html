@@ -1,18 +1,16 @@
 <section class="categories-page">
   <header class="page-header">
     <div>
-      <p class="eyebrow">{{ i18n.translate('categories.eyebrow') }}</p>
       <h1>{{ i18n.translate('categories.title') }}</h1>
-      <p class="page-copy">{{ i18n.translate('categories.copy') }}</p>
     </div>
-
   </header>
 
   <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('categories.loading') }}</p>
   <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
   <ng-container *ngIf="!isLoading() && !errorMessage()">
-    <section class="type-section" *ngFor="let section of categorySections()">
+    <div class="categories-grid">
+      <section class="type-section" *ngFor="let section of categorySections()">
       <div class="type-header">
         <div>
           <h2>{{ section.label }}</h2>
@@ -32,17 +30,23 @@
         <article
           class="category-node"
           *ngFor="let node of section.nodes; trackBy: trackByCategoryId"
-          [style.marginLeft.px]="node.depth * 24">
+          [class.parent-node]="node.depth === 0"
+          [class.child-node]="node.depth > 0"
+          [class.is-hidden]="!isCategoryVisible(node)">
           <div class="node-main">
               <div class="node-info">
-                <div class="node-title-row">
+                <button
+                  type="button"
+                  class="node-title-row node-title-button"
+                  [class.node-title-button--expandable]="node.depth === 0 && node.hasChildren"
+                  (click)="toggleCategory(node)"
+                  [attr.aria-expanded]="node.depth === 0 ? !isCategoryCollapsed(node) : null"
+                  [attr.aria-label]="node.depth === 0 && node.hasChildren ? (isCategoryCollapsed(node) ? i18n.translate('categories.expand') : i18n.translate('categories.collapse')) : null">
+                  <span class="node-toggle" *ngIf="node.depth === 0 && node.hasChildren" [class.is-open]="!isCategoryCollapsed(node)" aria-hidden="true"></span>
+                  <span class="node-connector" *ngIf="node.depth > 0" aria-hidden="true"></span>
                   <strong>{{ node.category.name }}</strong>
                   <span class="badge group-badge">{{ getGroupLabel(node.category.group) }}</span>
-                </div>
-                <div class="node-meta">
-                  <span class="badge type-badge">{{ getTypeLabel(node.category.type) }}</span>
-                  <span class="badge depth-badge" *ngIf="node.depth > 0">{{ i18n.translate('categories.subcategory') }}</span>
-                </div>
+                </button>
               </div>
 
             <div class="node-actions">
@@ -81,7 +85,8 @@
           </div>
         </article>
       </div>
-    </section>
+      </section>
+    </div>
   </ng-container>
 
   <app-category-editor-modal

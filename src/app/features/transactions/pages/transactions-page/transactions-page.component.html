@@ -27,20 +27,102 @@
 
       <label class="field">
         <span>{{ i18n.translate('transactions.subCategory') }}</span>
-        <select class="filter-control" [ngModel]="filters().subCategoryId" (ngModelChange)="onSubCategoryChange($event)" [disabled]="filters().type === 'TRANSFER' || subCategoryFilterOptions().length === 0">
+        <select class="filter-control" [ngModel]="filters().subCategoryId" (ngModelChange)="onSubCategoryChange($event)" [disabled]="filters().type === 'TRANSFER' || filters().mainCategoryId === null || subCategoryFilterOptions().length === 0">
           <option [ngValue]="null">{{ i18n.translate('transactions.selectSubCategory') }}</option>
           <option *ngFor="let category of subCategoryFilterOptions(); trackBy: trackByCategoryId" [ngValue]="category.id">{{ category.label }}</option>
         </select>
       </label>
 
-      <label class="field">
+      <label class="field date-field">
         <span>{{ i18n.translate('transactions.filterFrom') }}</span>
-        <input class="filter-control" type="date" [ngModel]="filters().fromDate" (ngModelChange)="onDateChange('fromDate', $event)" />
+        <input
+          class="filter-control date-trigger"
+          type="text"
+          readonly
+          [value]="getDisplayedDate('fromDate')"
+          (click)="$event.stopPropagation(); openDatePicker('fromDate')"
+          [placeholder]="i18n.translate('transactions.filterFrom')" />
+        <div class="date-picker-shell" *ngIf="isDatePickerOpen('fromDate')">
+          <div class="date-picker">
+            <button type="button" class="date-nav" (click)="previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
+            <button type="button" class="date-picker-title" (click)="toggleCalendarYearMode()">{{ monthTitle() }}</button>
+            <button type="button" class="date-nav" (click)="nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
+          </div>
+
+          <div class="year-grid" *ngIf="calendarMode() === 'year'">
+            <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (click)="selectCalendarYear(option.year)">
+              {{ option.year }}
+            </button>
+            <div class="year-grid-actions">
+              <button type="button" class="date-nav" (click)="changeYearGrid(-12)">‹</button>
+              <button type="button" class="date-nav" (click)="changeYearGrid(12)">›</button>
+            </div>
+          </div>
+
+          <ng-container *ngIf="calendarMode() === 'month'">
+            <div class="weekday-row">
+              <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+            </div>
+            <div class="day-grid">
+              <button
+                type="button"
+                class="day-cell"
+                *ngFor="let day of calendarDays()"
+                [class.is-outside]="!day.isCurrentMonth"
+                [class.is-selected]="day.isSelected"
+                [class.is-today]="day.isToday"
+                (click)="selectCalendarDate(day)">
+                {{ day.label }}
+              </button>
+            </div>
+          </ng-container>
+        </div>
       </label>
 
-      <label class="field">
+      <label class="field date-field">
         <span>{{ i18n.translate('transactions.filterTo') }}</span>
-        <input class="filter-control" type="date" [ngModel]="filters().toDate" (ngModelChange)="onDateChange('toDate', $event)" />
+        <input
+          class="filter-control date-trigger"
+          type="text"
+          readonly
+          [value]="getDisplayedDate('toDate')"
+          (click)="$event.stopPropagation(); openDatePicker('toDate')"
+          [placeholder]="i18n.translate('transactions.filterTo')" />
+        <div class="date-picker-shell" *ngIf="isDatePickerOpen('toDate')">
+          <div class="date-picker">
+            <button type="button" class="date-nav" (click)="previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
+            <button type="button" class="date-picker-title" (click)="toggleCalendarYearMode()">{{ monthTitle() }}</button>
+            <button type="button" class="date-nav" (click)="nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
+          </div>
+
+          <div class="year-grid" *ngIf="calendarMode() === 'year'">
+            <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (click)="selectCalendarYear(option.year)">
+              {{ option.year }}
+            </button>
+            <div class="year-grid-actions">
+              <button type="button" class="date-nav" (click)="changeYearGrid(-12)">‹</button>
+              <button type="button" class="date-nav" (click)="changeYearGrid(12)">›</button>
+            </div>
+          </div>
+
+          <ng-container *ngIf="calendarMode() === 'month'">
+            <div class="weekday-row">
+              <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+            </div>
+            <div class="day-grid">
+              <button
+                type="button"
+                class="day-cell"
+                *ngFor="let day of calendarDays()"
+                [class.is-outside]="!day.isCurrentMonth"
+                [class.is-selected]="day.isSelected"
+                [class.is-today]="day.isToday"
+                (click)="selectCalendarDate(day)">
+                {{ day.label }}
+              </button>
+            </div>
+          </ng-container>
+        </div>
       </label>
 
       <div class="filters-actions">
