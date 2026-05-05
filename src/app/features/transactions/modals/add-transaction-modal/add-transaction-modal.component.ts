@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
+import { CategoryEditorModalComponent } from '../../../categories/modals/category-editor-modal/category-editor-modal.component';
 import { formatMoney, parseMoneyInput } from '../../../shared/utils/money-format';
 import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
 import { Account } from '../../../accounts/models/account.model';
@@ -18,6 +19,7 @@ import { TransactionsService } from '../../services/transactions.service';
 type ModalView = 'transaction' | 'category';
 type CategoryMode = 'main' | 'sub';
 type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
+type CategoryEditorType = 'INCOME' | 'EXPENSE';
 type CategoryGroup = 'FAMILY' | 'CHILD' | 'PARENT';
 type TransferTargetKind = 'user' | 'account';
 
@@ -55,7 +57,7 @@ interface SelectedTransferTarget {
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent],
+  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent, CategoryEditorModalComponent],
   templateUrl: './add-transaction-modal.component.html',
   styleUrl: './add-transaction-modal.component.css'
 })
@@ -82,9 +84,12 @@ export class AddTransactionModalComponent {
   readonly isSubmittingCategory = signal(false);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
-  readonly categoryErrorMessage = signal('');
+  readonly isCategoryEditorOpen = signal(false);
+  readonly categoryEditorMode = signal<'create-main' | 'create-sub'>('create-main');
+  readonly categoryEditorParentCategory = signal<TransactionCategory | null>(null);
+  readonly categoryEditorDefaultType = signal<CategoryEditorType>('EXPENSE');
+  readonly categoryEditorDefaultGroup = signal<CategoryGroup>('FAMILY');
   readonly view = signal<ModalView>('transaction');
-  readonly categoryMode = signal<CategoryMode>('main');
   readonly transactionType = signal<TransactionType>('EXPENSE');
   readonly categoryFormType = signal<TransactionType>('EXPENSE');
   readonly categoryGroupOptions = computed<CategoryGroupOption[]>(() => {
@@ -138,13 +143,6 @@ export class AddTransactionModalComponent {
     transactionDate: ['', Validators.required],
     amount: ['', Validators.required],
     comment: ['', [Validators.maxLength(500)]]
-  });
-
-  readonly categoryForm = this.formBuilder.nonNullable.group({
-    type: ['EXPENSE' as TransactionType, Validators.required],
-    name: ['', [Validators.required, Validators.maxLength(120)]],
-    parentCategoryId: [''],
-    group: ['FAMILY' as 'FAMILY' | 'CHILD' | 'PARENT', Validators.required]
   });
 
   readonly mainCategoryOptions = computed(() =>
@@ -273,6 +271,7 @@ export class AddTransactionModalComponent {
 
   close(): void {
     this.isCalculatorVisible.set(false);
+    this.isCategoryEditorOpen.set(false);
     this.closed.emit();
   }
 
@@ -319,6 +318,10 @@ export class AddTransactionModalComponent {
 
   @HostListener('document:keydown.escape')
   handleEscape(): void {
+    if (this.isCategoryEditorOpen()) {
+      return;
+    }
+
     if (this.isCalculatorVisible()) {
       return;
     }
@@ -327,40 +330,28 @@ export class AddTransactionModalComponent {
   }
 
   openMainCategoryForm(): void {
-    this.categoryMode.set('main');
-    this.categoryErrorMessage.set('');
+    const fallbackType: CategoryEditorType = this.transactionType() === 'INCOME' ? 'INCOME' : 'EXPENSE';
+    this.categoryEditorMode.set('create-main');
+    this.categoryEditorParentCategory.set(null);
+    this.categoryEditorDefaultType.set(fallbackType);
+    this.categoryEditorDefaultGroup.set(this.getDefaultCategoryGroup());
+    this.isCategoryEditorOpen.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
-
-    const fallbackType = this.transactionType() === 'TRANSFER' ? 'EXPENSE' : this.transactionType();
-    this.categoryFormType.set(fallbackType);
-    this.categoryForm.patchValue({
-      type: fallbackType,
-      name: '',
-      parentCategoryId: '',
-      group: this.getDefaultCategoryGroup()
-    }, { emitEvent: false });
-
-    this.view.set('category');
   }
 
   openSubcategoryForm(): void {
     const selectedMainCategory = this.selectedMainCategory();
-    const fallbackType = this.transactionType() === 'TRANSFER' ? 'EXPENSE' : this.transactionType();
+    const fallbackType: CategoryEditorType = this.transactionType() === 'INCOME' ? 'INCOME' : 'EXPENSE';
+    const selectedType: CategoryEditorType = selectedMainCategory?.type === 'INCOME' ? 'INCOME' : 'EXPENSE';
 
-    this.categoryMode.set('sub');
-    this.categoryErrorMessage.set('');
+    this.categoryEditorMode.set('create-sub');
+    this.categoryEditorParentCategory.set(selectedMainCategory);
+    this.categoryEditorDefaultType.set(selectedMainCategory ? selectedType : fallbackType);
+    this.categoryEditorDefaultGroup.set(this.getDefaultCategoryGroup());
+    this.isCategoryEditorOpen.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
-    this.categoryFormType.set(selectedMainCategory?.type ?? fallbackType);
-    this.categoryForm.patchValue({
-      type: selectedMainCategory?.type ?? fallbackType,
-      name: '',
-      parentCategoryId: selectedMainCategory ? String(selectedMainCategory.id) : '',
-      group: this.getDefaultCategoryGroup()
-    }, { emitEvent: false });
-
-    this.view.set('category');
   }
 
   onTransactionTypeChange(value: string): void {
@@ -471,7 +462,6 @@ export class AddTransactionModalComponent {
 
   backToTransactionForm(): void {
     this.view.set('transaction');
-    this.categoryErrorMessage.set('');
     this.errorMessage.set('');
   }
 
@@ -635,76 +625,45 @@ export class AddTransactionModalComponent {
     });
   }
 
-  submitCategory(): void {
-    if (this.categoryForm.invalid || this.isSubmittingCategory()) {
-      this.categoryForm.markAllAsTouched();
-      this.categoryErrorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
+  onCategoryEditorClosed(): void {
+    this.isCategoryEditorOpen.set(false);
+  }
+
+  onCategoryEditorSaved(category: TransactionCategory): void {
+    const mode = this.categoryEditorMode();
+    const parentCategory = this.categoryEditorParentCategory();
+    this.isCategoryEditorOpen.set(false);
+
+    if (mode === 'create-main') {
+      this.transactionType.set(category.type);
+      this.categoryFormType.set(category.type);
+      this.selectedMainCategoryId.set(category.id);
+      this.selectedCategoryId.set(null);
+      this.transactionForm.patchValue({
+        type: category.type,
+        mainCategoryId: String(category.id),
+        categoryId: ''
+      }, { emitEvent: false });
+      this.syncTransactionControlsForType(category.type);
+      this.draftService.update({
+        type: category.type,
+        mainCategoryId: category.id,
+        categoryId: null
+      });
+      this.ensureDefaultIncomeExpenseAccount();
+      this.categoryCreated.emit(category);
       return;
     }
 
-    const { name, parentCategoryId, group } = this.categoryForm.getRawValue();
-    const trimmedName = name.trim();
-    const categoryType = this.normalizeType(this.categoryForm.controls.type.getRawValue());
-    const parsedParentCategoryId = this.categoryMode() === 'sub' ? this.parseNumber(parentCategoryId) : null;
-
-    if (!trimmedName) {
-      this.categoryErrorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
-      return;
-    }
-
-    if (this.categoryMode() === 'sub' && parsedParentCategoryId === null) {
-      this.categoryErrorMessage.set(this.i18n.translate('transactions.selectMainCategoryFirst'));
-      return;
-    }
-
-    this.categoryErrorMessage.set('');
-    this.isSubmittingCategory.set(true);
-
-    this.transactionsService.createCategory({
-      name: trimmedName,
-      type: categoryType,
-      parentCategoryId: parsedParentCategoryId,
-      group
-    }).pipe(
-      finalize(() => this.isSubmittingCategory.set(false))
-    ).subscribe({
-      next: (category) => {
-        if (this.categoryMode() === 'main') {
-          this.transactionType.set(category.type);
-          this.categoryFormType.set(category.type);
-          this.selectedMainCategoryId.set(category.id);
-          this.selectedCategoryId.set(null);
-          this.transactionForm.patchValue({
-            type: category.type,
-            mainCategoryId: String(category.id),
-            categoryId: ''
-          }, { emitEvent: false });
-          this.syncTransactionControlsForType(category.type);
-          this.draftService.update({
-            type: category.type,
-            mainCategoryId: category.id,
-            categoryId: null
-          });
-          this.backToTransactionForm();
-          this.ensureDefaultIncomeExpenseAccount();
-          this.categoryCreated.emit(category);
-          return;
-        }
-
-        this.setSelectedCategory(parsedParentCategoryId ?? category.id, category.id, category.type);
-        this.draftService.update({
-          type: this.transactionType(),
-          mainCategoryId: parsedParentCategoryId,
-          categoryId: category.id
-        });
-        this.backToTransactionForm();
-        this.ensureDefaultIncomeExpenseAccount();
-        this.categoryCreated.emit(category);
-      },
-      error: (error: { error?: { message?: string } }) => {
-        this.categoryErrorMessage.set(error.error?.message || this.i18n.translate('transactions.categoryCreateFailed'));
-      }
+    const parentCategoryId = parentCategory?.id ?? null;
+    this.setSelectedCategory(parentCategoryId ?? category.id, category.id, category.type);
+    this.draftService.update({
+      type: this.transactionType(),
+      mainCategoryId: parentCategoryId,
+      categoryId: category.id
     });
+    this.ensureDefaultIncomeExpenseAccount();
+    this.categoryCreated.emit(category);
   }
 
   getDefaultCategoryGroup(): CategoryGroup {
@@ -962,16 +921,6 @@ export class AddTransactionModalComponent {
       .subscribe((type) => {
         this.onTransactionTypeChange(type);
       });
-
-    this.categoryForm.controls.type.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((type) => {
-        const normalizedType = this.normalizeType(type);
-        this.categoryFormType.set(normalizedType);
-        this.categoryForm.patchValue({
-          parentCategoryId: ''
-        }, { emitEvent: false });
-      });
   }
 
   private loadAccounts(): void {
@@ -1039,7 +988,6 @@ export class AddTransactionModalComponent {
     if (request.categoryId === null || request.categoryId === undefined) {
       const resolvedType = this.normalizeType(request.type ?? this.transactionType());
       this.view.set('transaction');
-      this.categoryErrorMessage.set('');
       this.errorMessage.set('');
       this.successMessage.set('');
 
@@ -1082,13 +1030,11 @@ export class AddTransactionModalComponent {
     const resolvedType = this.normalizeType(request.type ?? category.type);
 
     this.view.set('transaction');
-    this.categoryErrorMessage.set('');
     this.errorMessage.set('');
     this.successMessage.set('');
 
     this.transactionType.set(resolvedType);
     this.categoryFormType.set(resolvedType === 'TRANSFER' ? 'EXPENSE' : resolvedType);
-    this.categoryMode.set(category.parentCategoryId === null ? 'main' : 'sub');
 
     this.transactionForm.patchValue({
       type: resolvedType,

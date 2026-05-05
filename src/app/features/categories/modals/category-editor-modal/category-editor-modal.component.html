@@ -1,10 +1,10 @@
 <div class="modal-overlay" *ngIf="isOpen()">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="category-editor-title" [style.transform]="getModalTransform()" (keydown.escape)="close()">
+  <section #modalCard class="modal-card" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="category-editor-title" [style.transform]="getModalTransform()" (keydown.escape)="onEscape($event)">
     <div class="modal-header" (pointerdown)="startDrag($event)">
       <h2 id="category-editor-title">
-        {{ isEditMode() ? i18n.translate('categories.editTitle') : i18n.translate('categories.createTitle') }}
+        {{ getTitle() }}
       </h2>
       <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
@@ -48,7 +48,7 @@
         <button type="submit" class="primary" [disabled]="isSubmitting()">
           {{ isSubmitting()
             ? (isEditMode() ? i18n.translate('categories.saving') : i18n.translate('categories.creating'))
-            : (isEditMode() ? i18n.translate('categories.save') : i18n.translate('categories.create')) }}
+            : getSubmitLabel() }}
         </button>
       </div>
     </form>

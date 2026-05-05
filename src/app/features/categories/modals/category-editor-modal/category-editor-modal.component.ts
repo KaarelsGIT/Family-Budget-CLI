@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, effect, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -50,6 +50,7 @@ export class CategoryEditorModalComponent {
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
   readonly allowedGroups = signal<CategoryGroup[]>(this.getAllowedGroups());
+  @ViewChild('modalCard') private modalCard?: ElementRef<HTMLElement>;
 
   private dragging = false;
   private dragStartX = 0;
@@ -66,6 +67,7 @@ export class CategoryEditorModalComponent {
       }
 
       this.initializeForm();
+      queueMicrotask(() => this.modalCard?.nativeElement.focus());
     }, { allowSignalWrites: true });
   }
 
@@ -90,8 +92,10 @@ export class CategoryEditorModalComponent {
     this.dragOriginY = this.modalOffsetY();
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
+  onEscape(event: Event): void {
+    const keyboardEvent = event as KeyboardEvent;
+    keyboardEvent.preventDefault();
+    keyboardEvent.stopPropagation();
     this.close();
   }
 
@@ -197,6 +201,32 @@ export class CategoryEditorModalComponent {
 
   getAllowedGroupOptions(): CategoryGroup[] {
     return this.allowedGroups();
+  }
+
+  getTitle(): string {
+    if (this.isCreateMainMode()) {
+      return this.i18n.translate('categories.createMainTitle');
+    }
+
+    if (this.isCreateSubMode()) {
+      return this.i18n.translate('categories.createSubTitle', {
+        name: this.parentCategory()?.name ?? ''
+      });
+    }
+
+    return this.i18n.translate('categories.editTitle');
+  }
+
+  getSubmitLabel(): string {
+    if (this.isEditMode()) {
+      return this.i18n.translate('categories.save');
+    }
+
+    if (this.isCreateMainMode()) {
+      return this.i18n.translate('categories.create');
+    }
+
+    return this.i18n.translate('categories.createSubcategory');
   }
 
   private initializeForm(): void {
