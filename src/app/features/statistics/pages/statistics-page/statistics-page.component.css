@@ -34,7 +34,7 @@
 
 .filters-bar {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: flex-end;
   flex-wrap: wrap;
 }
@@ -44,20 +44,13 @@
   flex-direction: column;
   gap: 6px;
   min-width: 180px;
+  flex: 1 1 180px;
 }
 
 .field span {
   font-size: 13px;
   font-weight: 700;
   color: #304238;
-}
-
-.field input,
-.field select {
-  border: 1px solid #cdd8cf;
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: white;
 }
 
 .summary-grid,
@@ -323,4 +316,17 @@
   .summary-card strong {
     font-size: 21px;
   }
+
+  .filters-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    align-items: end;
+  }
+
+  .filters-bar .field {
+    min-width: 0;
+    flex: initial;
+  }
+
 }

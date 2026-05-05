@@ -181,6 +181,13 @@ export class StatisticsPageComponent {
     this.loadStatistics();
   }
 
+  clearFilters(): void {
+    this.selectedMonth.set(null);
+    this.selectedUserId.set(this.currentUserId);
+    this.selectedAccountId.set(null);
+    this.loadStatistics();
+  }
+
   setCategoryTab(tab: CategoryTab): void {
     this.selectedCategoryTab.set(tab);
   }

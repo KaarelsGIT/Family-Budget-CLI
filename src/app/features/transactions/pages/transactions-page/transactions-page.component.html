@@ -12,14 +12,14 @@
     <div class="filters-grid">
       <label class="field">
         <span>{{ i18n.translate('transactions.filterUser') }}</span>
-        <select [ngModel]="filters().userId" (ngModelChange)="onUserChange($event)">
+        <select class="filter-control" [ngModel]="filters().userId" (ngModelChange)="onUserChange($event)">
           <option *ngFor="let user of filterUsers()" [ngValue]="user.id">{{ user.username }}</option>
         </select>
       </label>
 
       <label class="field">
         <span>{{ i18n.translate('transactions.mainCategory') }}</span>
-        <select [ngModel]="filters().mainCategoryId" (ngModelChange)="onMainCategoryChange($event)" [disabled]="filters().type === 'TRANSFER'">
+        <select class="filter-control" [ngModel]="filters().mainCategoryId" (ngModelChange)="onMainCategoryChange($event)" [disabled]="filters().type === 'TRANSFER'">
           <option [ngValue]="null">{{ i18n.translate('transactions.selectMainCategory') }}</option>
           <option *ngFor="let category of categoryFilterOptions(); trackBy: trackByCategoryId" [ngValue]="category.id">{{ category.label }}</option>
         </select>
@@ -27,7 +27,7 @@
 
       <label class="field">
         <span>{{ i18n.translate('transactions.subCategory') }}</span>
-        <select [ngModel]="filters().subCategoryId" (ngModelChange)="onSubCategoryChange($event)" [disabled]="filters().type === 'TRANSFER' || subCategoryFilterOptions().length === 0">
+        <select class="filter-control" [ngModel]="filters().subCategoryId" (ngModelChange)="onSubCategoryChange($event)" [disabled]="filters().type === 'TRANSFER' || subCategoryFilterOptions().length === 0">
           <option [ngValue]="null">{{ i18n.translate('transactions.selectSubCategory') }}</option>
           <option *ngFor="let category of subCategoryFilterOptions(); trackBy: trackByCategoryId" [ngValue]="category.id">{{ category.label }}</option>
         </select>
@@ -35,16 +35,16 @@
 
       <label class="field">
         <span>{{ i18n.translate('transactions.filterFrom') }}</span>
-        <input type="date" [ngModel]="filters().fromDate" (ngModelChange)="onDateChange('fromDate', $event)" />
+        <input class="filter-control" type="date" [ngModel]="filters().fromDate" (ngModelChange)="onDateChange('fromDate', $event)" />
       </label>
 
       <label class="field">
         <span>{{ i18n.translate('transactions.filterTo') }}</span>
-        <input type="date" [ngModel]="filters().toDate" (ngModelChange)="onDateChange('toDate', $event)" />
+        <input class="filter-control" type="date" [ngModel]="filters().toDate" (ngModelChange)="onDateChange('toDate', $event)" />
       </label>
 
       <div class="filters-actions">
-        <button type="button" class="secondary" (click)="clearFilters()">
+        <button type="button" class="filter-action" (click)="clearFilters()">
           {{ i18n.translate('transactions.clearFilters') }}
         </button>
       </div>

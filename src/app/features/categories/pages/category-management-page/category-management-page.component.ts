@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
@@ -26,7 +25,7 @@ interface CategorySection {
 @Component({
   selector: 'app-category-management-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, CategoryEditorModalComponent],
+  imports: [CommonModule, CategoryEditorModalComponent],
   templateUrl: './category-management-page.component.html',
   styleUrl: './category-management-page.component.css'
 })

@@ -8,14 +8,14 @@
     <div class="filters-bar">
       <label class="field">
         <span>{{ i18n.translate('statistics.year') }}</span>
-        <select [ngModel]="selectedYear()" (ngModelChange)="onYearChange($event)">
+        <select class="filter-control" [ngModel]="selectedYear()" (ngModelChange)="onYearChange($event)">
           <option *ngFor="let year of yearOptions()" [ngValue]="year">{{ year }}</option>
         </select>
       </label>
 
       <label class="field">
         <span>{{ i18n.translate('statistics.monthFilter') }}</span>
-        <select [ngModel]="selectedMonth()" (ngModelChange)="onMonthChange($event)">
+        <select class="filter-control" [ngModel]="selectedMonth()" (ngModelChange)="onMonthChange($event)">
           <option [ngValue]="null">{{ i18n.translate('statistics.allMonths') }}</option>
           <option *ngFor="let month of monthOptions()" [ngValue]="month.value">{{ month.label }}</option>
         </select>
@@ -23,7 +23,7 @@
 
       <label class="field" *ngIf="showUserFilter()">
         <span>{{ i18n.translate('statistics.userFilter') }}</span>
-        <select [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
+        <select class="filter-control" [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
           <option [ngValue]="null" *ngIf="currentUserRole !== 'CHILD'">{{ i18n.translate('statistics.allUsers') }}</option>
           <option *ngFor="let user of userOptions()" [ngValue]="user.id">
             {{ formatUserLabel(user) }}
@@ -33,13 +33,19 @@
 
       <label class="field account-field">
         <span>{{ i18n.translate('statistics.accountFilter') }}</span>
-        <select [ngModel]="selectedAccountId()" (ngModelChange)="onAccountChange($event)">
+        <select class="filter-control" [ngModel]="selectedAccountId()" (ngModelChange)="onAccountChange($event)">
           <option [ngValue]="null">{{ i18n.translate('statistics.allAccounts') }}</option>
           <option *ngFor="let account of accountOptions(); trackBy: trackByAccountId" [ngValue]="account.id">
             {{ formatAccountLabel(account) }}
           </option>
         </select>
       </label>
+
+      <div class="filters-actions">
+        <button type="button" class="filter-action" (click)="clearFilters()">
+          {{ i18n.translate('transactions.clearFilters') }}
+        </button>
+      </div>
     </div>
   </header>
 

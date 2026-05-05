@@ -6,9 +6,6 @@
       <p class="page-copy">{{ i18n.translate('categories.copy') }}</p>
     </div>
 
-    <a routerLink="/transactions" class="secondary-link">
-      {{ i18n.translate('categories.backToTransactions') }}
-    </a>
   </header>
 
   <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('categories.loading') }}</p>
