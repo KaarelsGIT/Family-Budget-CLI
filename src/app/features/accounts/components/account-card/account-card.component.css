@@ -64,6 +64,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   padding-bottom: 2px;
+  min-height: 36px;
 }
 
 .card-meta {
@@ -178,6 +179,7 @@
     overflow-x: visible;
     flex-wrap: nowrap;
     gap: 4px;
+    min-height: 32px;
   }
 
   .header-icon-button {

@@ -211,6 +211,10 @@ export class AccountsPageComponent {
       this.addAccountToGroup(groups, account.ownerId, account.ownerUsername, account.ownerRole, account);
 
       for (const sharedUser of account.sharedUsers ?? []) {
+        if (sharedUser.userId !== currentUserId) {
+          continue;
+        }
+
         this.addAccountToGroup(groups, sharedUser.userId, sharedUser.username, null, account);
       }
     }
