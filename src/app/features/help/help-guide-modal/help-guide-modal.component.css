@@ -15,9 +15,10 @@
 }
 
 .help-guide-modal {
-  width: min(1080px, calc(100vw - 32px));
+  width: min(1120px, calc(100vw - 32px));
+  height: min(920px, calc(100vh - 32px));
   max-height: calc(100vh - 32px);
-  overflow: auto;
+  overflow: hidden;
   position: relative;
   z-index: 1;
   background: linear-gradient(180deg, #f6fff6 0%, #eef8ee 100%);
@@ -25,18 +26,82 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
   border-radius: 22px;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.header-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #2f6b2f;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #184d18;
+  font-size: 28px;
+}
+
+.close-button {
+  border: none;
+  background: #edf5f9;
+  color: #24506a;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+
+.close-button:hover {
+  background: #e1edf3;
+  color: #17364a;
+}
+
+.help-guide-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  gap: 16px;
 }
 
 .guide-subtitle {
-  margin: 0 0 18px;
+  margin: 0;
   color: #617266;
+  flex: 0 0 auto;
 }
 
 .guide-layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1 1 auto;
 }
 
 .guide-toc {
@@ -81,6 +146,10 @@
   flex-direction: column;
   gap: 14px;
   min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  max-height: 100%;
+  padding-right: 4px;
 }
 
 .guide-section {
@@ -121,6 +190,7 @@
   display: flex;
   justify-content: flex-end;
   padding-top: 4px;
+  padding-bottom: 2px;
 }
 
 .secondary-button {
@@ -135,6 +205,16 @@
 }
 
 @media (max-width: 900px) {
+  .help-guide-modal {
+    height: calc(100vh - 24px);
+    max-height: calc(100vh - 24px);
+    padding: 18px;
+  }
+
+  .modal-header {
+    margin-bottom: 14px;
+  }
+
   .guide-layout {
     grid-template-columns: 1fr;
   }
@@ -146,6 +226,18 @@
 
 @media (max-width: 640px) {
   .help-guide-modal {
-    width: min(100vw - 24px, 1080px);
+    width: min(100vw - 20px, 1080px);
+    height: calc(100vh - 20px);
+    max-height: calc(100vh - 20px);
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .modal-header h2 {
+    font-size: 24px;
+  }
+
+  .guide-content {
+    padding-right: 0;
   }
 }

@@ -277,18 +277,28 @@ export class HelpGuideModalComponent {
   readonly closed = output<void>();
 
   readonly activeSectionId = signal(helpContent.et.sections[0]?.id ?? 'overview');
+  readonly modalOffsetX = signal(0);
+  readonly modalOffsetY = signal(0);
+
   readonly content = computed(() => {
     const language = this.i18n.language() as HelpLanguage;
     return helpContent[language] ?? helpContent.et;
   });
 
   private wasOpen = false;
+  private dragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragOriginX = 0;
+  private dragOriginY = 0;
 
   constructor() {
     effect(() => {
       const open = this.isOpen();
       if (open && !this.wasOpen) {
         this.activeSectionId.set(this.content().sections[0]?.id ?? 'overview');
+        this.modalOffsetX.set(0);
+        this.modalOffsetY.set(0);
       }
       this.wasOpen = open;
     }, { allowSignalWrites: true });
@@ -305,15 +315,58 @@ export class HelpGuideModalComponent {
     this.closed.emit();
   }
 
+  startDrag(event: PointerEvent): void {
+    if (event.button !== 0 || !this.isOpen()) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (!target || target.closest('button, a, input, select, textarea')) {
+      return;
+    }
+
+    this.dragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragOriginX = this.modalOffsetX();
+    this.dragOriginY = this.modalOffsetY();
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
+  }
+
+  onDrag(event: PointerEvent): void {
+    if (!this.dragging) {
+      return;
+    }
+
+    this.modalOffsetX.set(this.dragOriginX + (event.clientX - this.dragStartX));
+    this.modalOffsetY.set(this.dragOriginY + (event.clientY - this.dragStartY));
+  }
+
+  stopDrag(event?: PointerEvent): void {
+    if (event?.currentTarget) {
+      try {
+        (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+      } catch {
+        // Ignore pointer capture release errors.
+      }
+    }
+
+    this.dragging = false;
+  }
+
   scrollToSection(sectionId: string): void {
     this.activeSectionId.set(sectionId);
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   scrollToTop(): void {
-    const card = document.querySelector('.help-guide-modal .modal-card');
-    if (card instanceof HTMLElement) {
-      card.scrollTo({ top: 0, behavior: 'smooth' });
+    const content = document.querySelector('.help-guide-modal .guide-content');
+    if (content instanceof HTMLElement) {
+      content.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  getModalTransform(): string {
+    return `translate3d(${this.modalOffsetX()}px, ${this.modalOffsetY()}px, 0)`;
   }
 }
