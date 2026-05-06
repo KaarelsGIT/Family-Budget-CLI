@@ -15,8 +15,8 @@
 }
 
 .help-guide-modal {
-  width: min(1120px, calc(100vw - 32px));
-  height: min(920px, calc(100vh - 32px));
+  width: min(980px, calc(100vw - 32px));
+  height: min(900px, calc(100vh - 32px));
   max-height: calc(100vh - 32px);
   overflow: hidden;
   position: relative;
@@ -186,24 +186,6 @@
   gap: 8px;
 }
 
-.guide-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 4px;
-  padding-bottom: 2px;
-}
-
-.secondary-button {
-  border: 1px solid #c3d3c8;
-  background: #fff;
-  color: #1f5b35;
-  border-radius: 10px;
-  min-height: 40px;
-  padding: 0 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 @media (max-width: 900px) {
   .help-guide-modal {
     height: calc(100vh - 24px);
@@ -226,7 +208,7 @@
 
 @media (max-width: 640px) {
   .help-guide-modal {
-    width: min(100vw - 20px, 1080px);
+    width: min(100vw - 20px, 980px);
     height: calc(100vh - 20px);
     max-height: calc(100vh - 20px);
     padding: 14px;

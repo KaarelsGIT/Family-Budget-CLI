@@ -46,7 +46,8 @@
               class="guide-section"
               *ngFor="let section of content().sections"
               [id]="section.id"
-              [class.is-active]="activeSectionId() === section.id">
+              [class.is-active]="activeSectionId() === section.id"
+              [hidden]="activeSectionId() !== section.id">
               <h3>{{ section.title }}</h3>
               <p class="guide-intro">{{ section.intro }}</p>
               <ul class="guide-points">
@@ -54,11 +55,6 @@
               </ul>
             </section>
 
-            <div class="guide-footer">
-              <button type="button" class="secondary-button" (click)="scrollToTop()">
-                {{ content().backToTop }}
-              </button>
-            </div>
           </div>
         </div>
       </div>
