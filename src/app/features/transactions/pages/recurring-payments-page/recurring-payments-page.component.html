@@ -3,26 +3,26 @@
     <div>
       <h1>{{ i18n.translate('recurringPayments.title') }}</h1>
     </div>
-
-    <div class="header-actions">
-      <button
-        type="button"
-        class="primary-action"
-        (click)="openCreateModal()"
-        [disabled]="!hasRecurringCategoryOptions()"
-        [attr.title]="!hasRecurringCategoryOptions() ? i18n.translate('recurringPayments.noEligibleCategories') : i18n.translate('recurringPayments.addAction')">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="plus-icon">
-          <path d="M11 5h2v14h-2zM5 11h14v2H5z"></path>
-        </svg>
-        <span>{{ i18n.translate('recurringPayments.addAction') }}</span>
-      </button>
-    </div>
   </header>
 
   <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('recurringPayments.loading') }}</p>
   <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
   <section class="table-card" *ngIf="!isLoading() && !errorMessage()">
+    <div class="table-toolbar">
+      <button
+        type="button"
+        class="icon-button add-recurring-button"
+        (click)="openCreateModal()"
+        [disabled]="!hasRecurringCategoryOptions()"
+        [attr.title]="!hasRecurringCategoryOptions() ? i18n.translate('recurringPayments.noEligibleCategories') : i18n.translate('recurringPayments.addAction')"
+        [attr.aria-label]="i18n.translate('recurringPayments.addAction')">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M11 5h2v14h-2zM5 11h14v2H5z"></path>
+        </svg>
+      </button>
+    </div>
+
     <div class="table-summary">
       <strong>{{ i18n.translate('recurringPayments.totalItems') }}: {{ totalItems() }}</strong>
     </div>

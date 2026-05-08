@@ -16,11 +16,18 @@
 .modal-card {
   position: relative;
   z-index: 1;
-  width: min(520px, calc(100vw - 32px));
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+  width: min(980px, calc(100vw - 24px));
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at top right, rgba(34, 139, 34, 0.08), transparent 32%),
+    #ffffff;
+  border: 1px solid rgba(199, 214, 202, 0.8);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
   will-change: transform;
 }
 
@@ -39,29 +46,41 @@
   margin: 0;
   font-size: 22px;
   color: #17361f;
+  letter-spacing: -0.02em;
 }
 
 .close-button {
   border: none;
-  background: #f1f5f2;
-  border-radius: 8px;
-  width: 36px;
-  height: 36px;
+  background: #eff5ef;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
+  color: #23442f;
 }
 
 .modal-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .checkbox-field {
@@ -71,7 +90,7 @@
 }
 
 .field span {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #244131;
 }
@@ -80,15 +99,79 @@
 .field select,
 .field textarea {
   border: 1px solid #cfd8d3;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 12px;
   font: inherit;
+  box-sizing: border-box;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 14px;
+  background: #fff;
+  color: #17361f;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.field select:disabled {
+  background: #f5f7f6;
+  color: #6f7f75;
+}
+
+.field select.form-input-rounded {
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #2c3f33 50%),
+    linear-gradient(135deg, #2c3f33 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 18px,
+    calc(100% - 12px) 18px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
 }
 
 .field input[type='checkbox'] {
   width: 18px;
   height: 18px;
   padding: 0;
+  min-height: 18px;
+  height: 18px;
+}
+
+.amount-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.amount-input-row .amount-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.amount-input-row .amount-input,
+.category-grid .form-input-rounded {
+  height: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.calculator-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid #cfd8d3;
+  border-radius: 12px;
+  background: #fff;
+  color: #17361f;
+  cursor: pointer;
+}
+
+.calculator-button svg {
+  width: 18px;
+  height: 18px;
 }
 
 .field input:focus,
@@ -185,6 +268,19 @@ button.secondary:disabled {
   .field textarea {
     font-size: 16px;
     padding: 12px; /* Suurem ala vajutamiseks */
+  }
+
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .amount-input-row {
+    gap: 8px;
+  }
+
+  .calculator-button {
+    width: 44px;
+    flex-basis: 44px;
   }
 
   /* 4. Checkbox rida - teeme selle selgemaks */

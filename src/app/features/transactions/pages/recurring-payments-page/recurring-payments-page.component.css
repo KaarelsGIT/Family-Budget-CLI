@@ -12,13 +12,6 @@
   gap: 16px;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .page-header h1 {
   margin: 0 0 8px;
   font-size: 32px;
@@ -49,40 +42,6 @@
   background: #f1f7f3;
 }
 
-button.primary-action {
-  background: #1f7a1f;
-  color: white;
-  border: none;
-  min-height: 42px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 15px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(31, 122, 31, 0.24);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-
-button.primary-action:hover:not(:disabled) {
-  background: #176017;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(31, 122, 31, 0.3);
-}
-
-.plus-icon {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-button.primary-action:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .table-card {
   background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
   border: 1px solid #dce9e0;
@@ -102,12 +61,21 @@ button.primary-action:disabled {
   width: 42px;
   height: 42px;
   border-radius: 12px;
+  background: #fff;
+  border: 1px solid #cbd8cf;
+  color: #1f5b35;
+  box-shadow: none;
+  padding: 0;
 }
 
 .add-recurring-button svg {
   width: 18px;
   height: 18px;
   fill: currentColor;
+}
+
+.add-recurring-button:hover:not(:disabled) {
+  background: #f1f7f3;
 }
 
 .table-summary {
