@@ -40,9 +40,13 @@
         </button>
       </nav>
 
-    <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()" (keydown.enter)="$event.preventDefault(); submitTransaction()">
-      <input type="hidden" formControlName="reminderId" />
-      <div class="modal-scroll">
+      <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()" (keydown.enter)="$event.preventDefault(); submitTransaction()">
+        <!-- Need peidetud väljad tagavad, et väärtused ei ole kunagi null -->
+        <input type="hidden" formControlName="reminderId" />
+        <input type="hidden" formControlName="useMicroSavings" />
+        <input type="hidden" formControlName="multiplier" />
+
+        <div class="modal-scroll">
           <section class="tab-panel" *ngIf="transactionType() === 'EXPENSE'">
             <p class="helper-copy">
               {{ i18n.translate('transactions.typeExpense') }}

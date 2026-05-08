@@ -147,7 +147,9 @@ export class AddTransactionModalComponent {
     categoryId: ['', Validators.required],
     transactionDate: ['', Validators.required],
     amount: ['', Validators.required],
-    comment: ['', [Validators.maxLength(500)]]
+    comment: ['', [Validators.maxLength(500)]],
+    useMicroSavings: [false],
+    multiplier: [1 as 1 | 2]
   });
 
   readonly mainCategoryOptions = computed(() =>
