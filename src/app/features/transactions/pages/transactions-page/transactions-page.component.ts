@@ -147,6 +147,13 @@ export class TransactionsPageComponent {
     }
   }
 
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    if (this.pendingDeleteTransaction()) {
+      this.closeDeleteConfirmation();
+    }
+  }
+
   openTransactionModal(request: { type: 'INCOME' | 'EXPENSE' | 'TRANSFER'; preselectedFromAccount?: number | null }): void {
     this.selectedTransactionToEdit.set(null);
     this.transactionDraftService.openTransactionModal(request);

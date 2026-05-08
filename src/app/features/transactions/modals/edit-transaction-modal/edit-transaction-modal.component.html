@@ -7,7 +7,7 @@
       <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
-    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault(); submit()">
+    <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
       <div class="summary-grid">
         <label class="field">
           <span>{{ i18n.translate('transactions.columnType') }}</span>

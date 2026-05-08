@@ -157,6 +157,26 @@ export class EditTransactionModalComponent {
     this.dragging = false;
   }
 
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    this.close();
+  }
+
+  @HostListener('document:keydown.enter', ['$event'])
+  handleEnter(event: Event): void {
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (target?.tagName === 'TEXTAREA') {
+      return;
+    }
+
+    event.preventDefault();
+    this.submit();
+  }
+
   submit(): void {
     if (this.form.invalid || this.isSubmitting()) {
       this.form.markAllAsTouched();
