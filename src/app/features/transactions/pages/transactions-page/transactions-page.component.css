@@ -638,6 +638,16 @@ tbody tr:hover {
   margin-top: 20px;
 }
 
+.confirm-modal .danger-action {
+  border-color: #e4c0ba;
+  color: #9e3a2c;
+}
+
+.confirm-modal .danger-action:hover:not(:disabled) {
+  background: #fff5f3;
+  border-color: #d9ada4;
+}
+
 .pagination {
   display: flex;
   justify-content: space-between;

@@ -347,7 +347,7 @@
         <button type="button" class="secondary" (click)="closeDeleteConfirmation()">
           {{ i18n.translate('login.cancel') }}
         </button>
-        <button type="button" class="primary danger-action" [disabled]="isDeleting()" (click)="confirmDeleteTransaction()">
+        <button type="button" class="secondary danger-action" [disabled]="isDeleting()" (click)="confirmDeleteTransaction()">
           {{ isDeleting() ? i18n.translate('transactions.deleting') : i18n.translate('transactions.deleteTransaction') }}
         </button>
       </div>

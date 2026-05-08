@@ -93,6 +93,41 @@
                 </p>
               </label>
 
+              <div class="field field-wide" *ngIf="savingsAccountAvailable()">
+                <label class="toggle-card">
+                  <div class="toggle-header">
+                    <input
+                      type="checkbox"
+                      [checked]="useMicroSavings()"
+                      (change)="onMicroSavingsToggle($any($event.target).checked)" />
+                    <span class="toggle-copy">
+                      <strong>{{ i18n.translate('transactions.microSavingsEnable') }}</strong>
+                      <small>{{ i18n.translate('transactions.microSavingsHint') }}</small>
+                    </span>
+                    <div class="multiplier-options" *ngIf="useMicroSavings()">
+                      <label class="pill-option">
+                        <input
+                          type="radio"
+                          name="microSavingsMultiplier"
+                          [checked]="microSavingsMultiplier() === 1"
+                          value="1"
+                          (change)="onMicroSavingsMultiplierChange('1')" />
+                        <span>1x</span>
+                      </label>
+                      <label class="pill-option">
+                        <input
+                          type="radio"
+                          name="microSavingsMultiplier"
+                          [checked]="microSavingsMultiplier() === 2"
+                          value="2"
+                          (change)="onMicroSavingsMultiplierChange('2')" />
+                        <span>2x</span>
+                      </label>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
               <label class="field">
                 <span>{{ i18n.translate('transactions.mainCategory') }}</span>
                 <select class="form-input-rounded" formControlName="mainCategoryId">

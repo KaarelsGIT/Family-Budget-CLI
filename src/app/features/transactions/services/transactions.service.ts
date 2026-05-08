@@ -25,6 +25,11 @@ interface ApiResponse<T> {
   data: T;
 }
 
+interface TransactionCreateResponseApiResponse {
+  expense: TransactionApiResponse;
+  microSavingsAmount: number | string | null;
+}
+
 interface TransactionApiResponse {
   id: number;
   amount: number | string | null;
@@ -121,7 +126,7 @@ export class TransactionsService {
     );
   }
 
-  createTransaction(payload: CreateTransactionPayload): Observable<TransactionItem> {
+  createTransaction(payload: CreateTransactionPayload): Observable<{ expense: TransactionItem; microSavingsAmount: number }> {
     const isTransfer = payload.type === 'TRANSFER';
     const body = {
       amount: payload.amount,
@@ -135,11 +140,18 @@ export class TransactionsService {
       categoryId: payload.categoryId,
       transactionDate: payload.transactionDate,
       comment: payload.comment || null,
-      reminderId: payload.reminderId ?? null
+      reminderId: payload.reminderId ?? null,
+      useMicroSavings: payload.useMicroSavings ?? false,
+      multiplier: payload.multiplier ?? null
     };
 
-    return this.http.post<ApiResponse<TransactionApiResponse>>(`${environment.apiUrl}/transactions`, body).pipe(
-      map((response) => this.mapTransaction(response.data))
+    return this.http.post<ApiResponse<TransactionCreateResponseApiResponse>>(`${environment.apiUrl}/transactions`, body).pipe(
+      map((response) => ({
+        expense: this.mapTransaction(response.data.expense),
+        microSavingsAmount: typeof response.data.microSavingsAmount === 'number'
+          ? response.data.microSavingsAmount
+          : Number(response.data.microSavingsAmount ?? 0)
+      }))
     );
   }
 

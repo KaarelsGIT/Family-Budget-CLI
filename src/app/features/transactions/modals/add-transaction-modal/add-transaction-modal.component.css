@@ -256,6 +256,74 @@
   padding: 0;
 }
 
+.toggle-card,
+.pill-option {
+  border: 1px solid #cfd8d3;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.toggle-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.toggle-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.toggle-header > input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.toggle-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #244131;
+  min-width: 0;
+}
+
+.toggle-copy small,
+.micro-savings-hint {
+  color: #617266;
+}
+
+.multiplier-options {
+  display: flex;
+  gap: 10px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.pill-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #17361f;
+  white-space: nowrap;
+}
+
+.pill-option input {
+  margin: 0;
+}
+
+.micro-savings-hint {
+  margin: 0;
+  font-size: 13px;
+}
+
 .field input:focus,
 .field select:focus,
 .field textarea:focus,

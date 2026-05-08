@@ -67,6 +67,8 @@ export interface CreateTransactionPayload {
   transactionDate: string;
   comment?: string | null;
   reminderId?: number | null;
+  useMicroSavings?: boolean;
+  multiplier?: number | null;
 }
 
 export interface CreateTransactionCategoryPayload {

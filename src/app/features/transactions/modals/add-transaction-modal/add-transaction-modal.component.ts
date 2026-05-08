@@ -114,9 +114,14 @@ export class AddTransactionModalComponent {
   readonly selectedTransferFromAccountId = signal<number | null>(null);
   readonly selectedTransferToAccountId = signal<number | null>(null);
   readonly selectedTransferTarget = signal<SelectedTransferTarget | null>(null);
+  readonly useMicroSavings = signal(false);
+  readonly microSavingsMultiplier = signal<1 | 2>(1);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
   readonly isCalculatorVisible = signal(false);
+  readonly savingsAccountAvailable = computed(() =>
+    this.accounts().some((account) => account.type === 'SAVINGS' && account.ownerId === this.authService.getUserId())
+  );
 
   private dragging = false;
   private dragStartX = 0;
@@ -246,6 +251,7 @@ export class AddTransactionModalComponent {
   });
 
   constructor() {
+    this.restoreMicroSavingsPreference();
     this.patchFromDraft();
     this.initializeSignalsFromDraft();
     this.setupSubscriptions();
@@ -371,6 +377,16 @@ export class AddTransactionModalComponent {
     this.syncIncomeExpenseSelection();
     this.ensureDefaultIncomeExpenseAccount();
     this.persistDraft();
+  }
+
+  onMicroSavingsToggle(value: boolean): void {
+    this.useMicroSavings.set(value);
+    this.persistMicroSavingsPreference();
+  }
+
+  onMicroSavingsMultiplierChange(value: string): void {
+    this.microSavingsMultiplier.set(value === '2' ? 2 : 1);
+    this.persistMicroSavingsPreference();
   }
 
   onMainCategoryChange(value: string): void {
@@ -588,6 +604,9 @@ export class AddTransactionModalComponent {
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
+    const useMicroSavings = this.transactionType() === 'EXPENSE' && this.savingsAccountAvailable() && this.useMicroSavings();
+    const multiplier = useMicroSavings ? this.microSavingsMultiplier() : null;
+
     const createTransaction = () => this.transactionsService.createTransaction({
       amount: parsedAmount,
       type,
@@ -595,14 +614,16 @@ export class AddTransactionModalComponent {
       categoryId: parsedCategoryId,
       transactionDate,
       comment: trimmedComment,
-      reminderId: parsedReminderId
+      reminderId: parsedReminderId,
+      useMicroSavings,
+      multiplier
     });
 
     createTransaction().pipe(
       finalize(() => this.isSubmitting.set(false))
     ).subscribe({
-      next: () => {
-        this.showSuccessMessage(this.i18n.translate('transaction.add.success'));
+      next: (response) => {
+        this.showSuccessMessage(this.buildSuccessMessage(response.microSavingsAmount));
         this.draftService.update({
           type,
           accountId: selectedAccountId,
@@ -616,6 +637,7 @@ export class AddTransactionModalComponent {
           comment: '',
           reminderId: ''
         }, { emitEvent: false });
+        this.useMicroSavings.set(false);
         this.loadAccounts();
         this.created.emit();
       },
@@ -1385,6 +1407,36 @@ export class AddTransactionModalComponent {
     window.setTimeout(() => {
       this.successMessage.set('');
     }, 2500);
+  }
+
+  private buildSuccessMessage(savingsAmount: number): string {
+    if (savingsAmount <= 0) {
+      return this.i18n.translate('transaction.add.success');
+    }
+
+    const formattedSavings = formatMoney(savingsAmount);
+    if (this.i18n.language() === 'et') {
+      return `Kulu lisatud! Mikrokogumisega säästeti lisaks ${formattedSavings} €.`;
+    }
+
+    return `Expense added! You saved an extra ${formattedSavings} € via micro-savings.`;
+  }
+
+  private restoreMicroSavingsPreference(): void {
+    this.microSavingsMultiplier.set(this.getStoredMicroSavingsMultiplier());
+  }
+
+  private getStoredMicroSavingsMultiplier(): 1 | 2 {
+    return localStorage.getItem(this.getMicroSavingsStorageKey()) === '2' ? 2 : 1;
+  }
+
+  private persistMicroSavingsPreference(): void {
+    localStorage.setItem(this.getMicroSavingsStorageKey(), String(this.microSavingsMultiplier()));
+  }
+
+  private getMicroSavingsStorageKey(): string {
+    const userId = this.authService.getUserId() ?? 'anonymous';
+    return `family_budget_micro_savings_multiplier_${userId}`;
   }
 
   private isValidTransferTargetValue(value: number): boolean {
