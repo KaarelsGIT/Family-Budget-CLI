@@ -85,6 +85,10 @@ export interface AccountBalanceAdjustment {
   createdAt: string;
 }
 
+interface SelectionApiResponse {
+  data: number[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -183,6 +187,20 @@ export class AccountService {
           ? user.defaultMainAccountId
           : null
       })))
+    );
+  }
+
+  getFamilyDashboardSelection(): Observable<number[]> {
+    return this.http.get<SelectionApiResponse>(`${environment.apiUrl}/users/me/family-dashboard-selection`).pipe(
+      map((response) => Array.isArray(response.data) ? response.data : [])
+    );
+  }
+
+  updateFamilyDashboardSelection(selectedUserIds: number[]): Observable<number[]> {
+    return this.http.put<SelectionApiResponse>(`${environment.apiUrl}/users/me/family-dashboard-selection`, {
+      selectedUserIds
+    }).pipe(
+      map((response) => Array.isArray(response.data) ? response.data : [])
     );
   }
 

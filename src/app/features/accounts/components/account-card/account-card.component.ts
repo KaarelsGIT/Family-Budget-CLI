@@ -24,6 +24,7 @@ export class AccountCardComponent {
   readonly account = input.required<Account>();
   readonly accentColor = input<string | null>(null);
   readonly changed = output<void>();
+  readonly hovered = output<boolean>();
   readonly transferRequested = output<Account>();
   readonly adjustBalanceRequested = output<Account>();
   readonly shareRequested = output<Account>();
@@ -137,6 +138,14 @@ export class AccountCardComponent {
 
   hasAccentColor(): boolean {
     return !!this.accentColor();
+  }
+
+  onMouseEnter(): void {
+    this.hovered.emit(true);
+  }
+
+  onMouseLeave(): void {
+    this.hovered.emit(false);
   }
 
 }

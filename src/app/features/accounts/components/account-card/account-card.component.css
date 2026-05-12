@@ -17,18 +17,22 @@
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "main meta"
+    "actions actions";
+  gap: 10px 12px;
+  align-items: start;
 }
 
 .card-main {
+  grid-area: main;
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .card-title-row {
@@ -58,23 +62,25 @@
 }
 
 .card-tools {
+  grid-area: actions;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  flex-wrap: wrap;
   min-height: 36px;
 }
 
 .card-meta {
+  grid-area: meta;
   display: flex;
   justify-content: flex-end;
+  align-items: flex-start;
 }
 
 .account-balance {
+  order: 3;
   font-size: 22px;
-  margin-top: 8px;
+  margin-top: 0;
   color: #14351c;
   font-weight: 700;
 }
@@ -132,7 +138,11 @@
   }
 
   .card-header {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "meta"
+      "main"
+      "actions";
   }
 
   .card-main,
@@ -141,63 +151,15 @@
   }
 
   .card-tools {
-    overflow-x: visible;
-    flex-wrap: wrap;
-  }
-
-  .card-meta {
-    width: 100%;
     justify-content: flex-start;
   }
-}
 
-@media (max-width: 640px) {
-  :host {
-    flex: 1 1 100%; /* Võtab täislaiuse, aga ei suru fikseeritud pikkust */
-    width: 100%;
-  }
-
-  .account-card {
-    padding: 12px; /* Vähendame siseäärt */
-    gap: 8px;      /* Vähendame vahesid */
-  }
-
-  /* Hoiame logo/pealkirja ja nupud ühel real */
-  .card-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .account-title {
-    font-size: 16px; /* Veidi väiksem font */
-  }
-
-  /* Nupud olgu kompaktsed ja reas */
-  .card-tools {
-    width: auto;
-    overflow-x: visible;
-    flex-wrap: nowrap;
-    gap: 4px;
-    min-height: 32px;
-  }
-
-  .header-icon-button {
-    width: 32px;  /* Vähendame nuppude suurust */
-    height: 32px;
-  }
-
-  /* Saldo ja badge ühele reale kõrvuti */
   .card-meta {
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 4px;
+    justify-content: flex-end;
+    padding-top: 4px;
   }
-
   .account-balance {
-    font-size: 18px; /* Kompaktsem saldo */
-    margin-top: 0;
+    font-size: 18px;
   }
 }

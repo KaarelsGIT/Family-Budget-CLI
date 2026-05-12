@@ -79,8 +79,13 @@ export class TransactionsService {
     if (query.userId !== null) {
       params = params.set('userId', query.userId);
     }
-    if (query.type !== null) {
-      params = params.set('type', query.type);
+    if (query.userType !== null) {
+      params = params.set('userType', query.userType);
+    }
+    if (query.types.length > 0) {
+      for (const type of query.types) {
+        params = params.append('type', type);
+      }
     }
     if (query.mainCategoryId !== null) {
       params = params.set('mainCategoryId', query.mainCategoryId);

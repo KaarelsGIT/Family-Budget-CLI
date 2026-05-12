@@ -3,15 +3,16 @@ import { LanguageCode } from '../../../core/services/i18n/translation.service';
 const MONEY_LOCALE = 'et-EE';
 
 export function formatMoney(value: number): string {
+  const numericValue = typeof value === 'number' ? value : Number(value);
   return new Intl.NumberFormat(MONEY_LOCALE, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true
   })
-    .formatToParts(value)
+    .formatToParts(Number.isFinite(numericValue) ? numericValue : 0)
     .map((part) => (part.type === 'group' ? ' ' : part.value))
     .join('')
-    .replace(/\s+/g, ' ');
+    .replace(/\s+/g, ' ') + ' €';
 }
 
 export function parseMoneyInput(value: string | number | null | undefined): number {
@@ -32,5 +33,5 @@ export function parseMoneyInput(value: string | number | null | undefined): numb
 }
 
 export function formatEuroAmount(value: number, language: LanguageCode): string {
-  return `${formatMoney(value)} €`;
+  return formatMoney(value);
 }

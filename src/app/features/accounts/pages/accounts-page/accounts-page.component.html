@@ -1,4 +1,53 @@
 <section class="accounts-container">
+  <section class="family-dashboard" *ngIf="isPrivilegedUser() && familyDashboardUsers().length > 0">
+    <div class="dashboard-chart">
+      <svg viewBox="0 0 140 140" class="pie-chart pie-chart--family" aria-hidden="true" focusable="false">
+        <circle class="pie-chart-base" cx="50" cy="50" r="44"></circle>
+        <ng-container *ngIf="familyDashboardSlices().length > 0; else emptyFamilyChart">
+          <path
+            *ngFor="let slice of familyDashboardSlices(); trackBy: trackByChartSliceId"
+            [attr.d]="slice.path"
+            [attr.fill]="slice.color"
+            stroke="#ffffff"
+            stroke-width="1.8"></path>
+        </ng-container>
+        <ng-template #emptyFamilyChart>
+          <circle class="pie-chart-empty" cx="50" cy="50" r="44"></circle>
+        </ng-template>
+        <circle class="pie-chart-hole" cx="50" cy="50" r="30"></circle>
+        <text x="50" y="48" text-anchor="middle" class="pie-center-value">{{ formatBalance(familyDashboardTotal()) }}</text>
+        <text x="50" y="58" text-anchor="middle" class="pie-center-label">{{ i18n.translate('accounts.familyTotal') }}</text>
+      </svg>
+    </div>
+
+    <div class="family-legend">
+      <button
+        type="button"
+        class="family-legend-item"
+        *ngFor="let user of familyDashboardUsers(); trackBy: trackByFamilyUserId"
+        [class.is-selected]="familyDashboardSelectedUsers().some((item) => item.userId === user.userId)"
+        [class.is-hovered]="hoveredFamilyUserId() === user.userId"
+        [attr.aria-pressed]="familyDashboardSelectedUsers().some((item) => item.userId === user.userId)"
+        (mouseenter)="setHoveredFamilyUser(user.userId)"
+        (mouseleave)="setHoveredFamilyUser(null)"
+        (focus)="setHoveredFamilyUser(user.userId)"
+        (blur)="setHoveredFamilyUser(null)"
+        (click)="toggleFamilyUser(user.userId, !familyDashboardSelectedUsers().some((item) => item.userId === user.userId))">
+        <span class="avatar" [style.background]="user.color">{{ user.initials }}</span>
+        <div class="family-legend-copy">
+          <div class="family-legend-topline">
+            <span class="name">{{ user.username }}</span>
+            <span class="value">{{ formatBalance(user.total) }}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="getFamilyUserProgress(user)" [style.background]="user.color"></div>
+          </div>
+        </div>
+        <span class="percent">{{ user.share | number:'1.0-0' }}%</span>
+      </button>
+    </div>
+  </section>
+
   <header class="header">
     <div class="header-copy">
       <h1>{{ i18n.translate('accounts.myAccounts') }}</h1>
@@ -24,7 +73,7 @@
           <div class="owner-group-header">
             <div class="owner-group-title">
               <h3>{{ i18n.translate('accounts.ownerLabel', { username: group.ownerUsername }) }}</h3>
-              <div class="owner-group-total" *ngIf="section.key === 'currentUser'">
+              <div class="owner-group-total">
                 {{ i18n.translate('accounts.groupTotal') }}: {{ formatBalance(getGroupTotal(group.accounts)) }}
               </div>
             </div>
@@ -48,11 +97,12 @@
           </div>
 
           <div class="account-grid owner-accounts">
-              <app-account-card
+            <app-account-card
               *ngFor="let account of group.accounts; trackBy: trackByAccountId"
               [account]="account"
               [accentColor]="getAccountColor(group.accounts, account)"
               (changed)="handleAccountsChanged()"
+              (hovered)="setHoveredAccount($event ? account.id : null)"
               (transferRequested)="openTransactionModal({ type: 'TRANSFER', preselectedFromAccount: $event.id })"
               (adjustBalanceRequested)="openAdjustBalanceModal($event)"
               (shareRequested)="openShareModal($event)" />

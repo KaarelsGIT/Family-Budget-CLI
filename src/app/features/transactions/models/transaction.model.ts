@@ -40,7 +40,8 @@ export interface TransactionQuery {
   size: number;
   sort: string;
   userId: number | null;
-  type: 'INCOME' | 'EXPENSE' | 'TRANSFER' | null;
+  userType: 'ADMIN' | 'PARENT' | 'CHILD' | null;
+  types: Array<'INCOME' | 'EXPENSE' | 'TRANSFER'>;
   mainCategoryId: number | null;
   subCategoryId: number | null;
   categoryId?: number | null;

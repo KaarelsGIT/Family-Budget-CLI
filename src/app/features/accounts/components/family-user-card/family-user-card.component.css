@@ -1,0 +1,29 @@
+.family-user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
+  border: 1px solid #dce9e0;
+  box-shadow: 0 10px 24px rgba(17, 43, 24, 0.06);
+}
+
+.family-user-card__header h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #244131;
+}
+
+.family-user-card__total {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f5b35;
+}
+
+.family-user-card__accounts {
+  margin-top: 0;
+}

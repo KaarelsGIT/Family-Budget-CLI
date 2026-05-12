@@ -37,6 +37,17 @@
         </label>
       </div>
 
+      <div class="filter-group" *ngIf="currentUserRole === 'PARENT' || currentUserRole === 'ADMIN'">
+        <label class="field">
+          <span>{{ i18n.translate('statistics.userTypeFilter') }}</span>
+          <select class="filter-control" [ngModel]="selectedUserType()" (ngModelChange)="onUserTypeChange($event)">
+            <option [ngValue]="null">{{ i18n.translate('statistics.userTypeAll') }}</option>
+            <option [ngValue]="'CHILD'">{{ i18n.translate('statistics.userTypeChildren') }}</option>
+            <option [ngValue]="'PARENT'">{{ i18n.translate('statistics.userTypeParents') }}</option>
+          </select>
+        </label>
+      </div>
+
       <div class="filter-group account-field">
         <label class="field">
           <span>{{ i18n.translate('statistics.accountFilter') }}</span>

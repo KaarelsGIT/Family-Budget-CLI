@@ -109,9 +109,9 @@ tr {
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 16px;
-  align-items: end;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(124px, 0.7fr);
+  gap: 10px;
+  align-items: start;
 }
 
 .toggle-group {
@@ -121,6 +121,7 @@ tr {
   padding: 4px;
   border-radius: 999px;
   background: #eef4ef;
+  width: fit-content;
 }
 
 .toggle-button {
@@ -142,7 +143,16 @@ tr {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field .filter-control {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  border-radius: 10px;
 }
 
 .date-field {
@@ -152,6 +162,8 @@ tr {
 .field span {
   font-weight: 700;
   color: #244131;
+  white-space: nowrap;
+  font-size: 13px;
 }
 
 .field .filter-control:disabled {
@@ -171,11 +183,13 @@ tr {
 
 .filters-actions {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
+  align-items: flex-start;
+  justify-content: flex-start;
   min-height: 42px;
   position: relative;
   z-index: 2;
+  min-width: 124px;
+  padding-top: 22px;
 }
 
 button.secondary,
@@ -183,7 +197,7 @@ button.danger,
 button.primary-action,
 .secondary-action {
   min-height: 42px;
-  padding: 0 16px;
+  padding: 0 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -382,6 +396,14 @@ button.danger:hover:not(:disabled) {
 @media (max-width: 900px) {
   .date-picker-shell {
     width: min(320px, calc(100vw - 48px));
+  }
+
+  .filters-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters-actions {
+    min-width: 0;
   }
 }
 
@@ -667,7 +689,8 @@ tbody tr:hover {
 }
 
 @media (max-width: 900px) {
-  .filters-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .filters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters-grid .filters-actions { grid-column: 1 / -1; padding-top: 0; }
   .pagination { flex-direction: column; align-items: stretch; }
 }
 
@@ -726,6 +749,7 @@ tbody tr:hover {
 
   .filters-grid .filters-actions {
     grid-column: 1 / -1;
+    padding-top: 0;
   }
 
   .field span {

@@ -21,6 +21,7 @@ import {
 } from '../../services/statistics.service';
 
 type CategoryTab = 'income' | 'expenses';
+type UserTypeFilter = 'PARENT' | 'CHILD' | null;
 
 interface MonthlyBarGroup {
   month: number;
@@ -79,6 +80,7 @@ export class StatisticsPageComponent {
   readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
   readonly selectedUserId = signal<number | null>(this.currentUserId);
+  readonly selectedUserType = signal<UserTypeFilter>(null);
   readonly selectedAccountId = signal<number | null>(null);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);
@@ -152,6 +154,7 @@ export class StatisticsPageComponent {
   readonly hasActiveFilters = computed(() =>
     this.selectedMonth() !== null
     || this.selectedUserId() !== this.currentUserId
+    || this.selectedUserType() !== null
     || this.selectedAccountId() !== null
   );
 
@@ -179,6 +182,13 @@ export class StatisticsPageComponent {
   onUserChange(value: number | string | null): void {
     const parsed = value === null || value === '' ? null : Number(value);
     this.selectedUserId.set(parsed);
+    this.selectedUserType.set(null);
+    this.loadStatistics();
+  }
+
+  onUserTypeChange(value: UserTypeFilter): void {
+    this.selectedUserType.set(value);
+    this.selectedUserId.set(value === null ? this.currentUserId : null);
     this.loadStatistics();
   }
 
@@ -190,6 +200,7 @@ export class StatisticsPageComponent {
   clearFilters(): void {
     this.selectedMonth.set(null);
     this.selectedUserId.set(this.currentUserId);
+    this.selectedUserType.set(null);
     this.selectedAccountId.set(null);
     this.loadStatistics();
   }
@@ -286,7 +297,7 @@ export class StatisticsPageComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.statisticsService.getYearly(this.selectedYear(), this.selectedMonth(), this.selectedUserId(), this.selectedAccountId())
+    this.statisticsService.getYearly(this.selectedYear(), this.selectedMonth(), this.selectedUserId(), this.selectedUserType(), this.selectedAccountId())
       .pipe(finalize(() => {
         this.isLoading.set(false);
       }))

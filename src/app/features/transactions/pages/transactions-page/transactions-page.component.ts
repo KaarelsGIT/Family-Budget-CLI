@@ -26,7 +26,8 @@ interface SortConfigItem {
   field: SortField;
   direction: SortDirection;
 }
-type TransactionFilterType = TransactionItem['type'] | null;
+type TransactionFilterType = TransactionItem['type'];
+type TransactionUserTypeFilter = 'PARENT' | 'CHILD' | null;
 interface CategoryFilterOption {
   id: number;
   label: string;
@@ -89,7 +90,8 @@ export class TransactionsPageComponent {
     page: 0,
     size: 25,
     userId: this.currentUserId,
-    type: null as TransactionFilterType,
+    userType: null as TransactionUserTypeFilter,
+    types: [] as TransactionFilterType[],
     mainCategoryId: null as number | null,
     subCategoryId: null as number | null,
     fromDate: '',
@@ -99,11 +101,11 @@ export class TransactionsPageComponent {
   readonly filterUsers = computed(() => this.buildUserFilterOptions(this.users()));
 
   readonly categoryFilterOptions = computed<CategoryFilterOption[]>(() =>
-    this.buildMainCategoryOptions(this.categories(), this.filters().type)
+    this.buildMainCategoryOptions(this.categories(), this.filters().types)
   );
 
   readonly subCategoryFilterOptions = computed<CategoryFilterOption[]>(() =>
-    this.buildSubCategoryOptions(this.categories(), this.filters().type, this.filters().mainCategoryId)
+    this.buildSubCategoryOptions(this.categories(), this.filters().types, this.filters().mainCategoryId)
   );
 
   readonly pageCount = computed(() => {
@@ -120,7 +122,8 @@ export class TransactionsPageComponent {
   readonly hasActiveFilters = computed(() => {
     const filters = this.filters();
     return filters.userId !== this.currentUserId
-      || filters.type !== null
+      || filters.userType !== null
+      || filters.types.length > 0
       || filters.mainCategoryId !== null
       || filters.subCategoryId !== null
       || filters.fromDate !== ''
@@ -273,16 +276,55 @@ export class TransactionsPageComponent {
     this.filters.update((state) => ({
       ...state,
       page: 0,
+      userType: null,
       userId: value
     }));
     this.loadTransactions();
   }
 
-  onTypeChange(value: TransactionFilterType): void {
+  onUserTypeChange(value: TransactionUserTypeFilter): void {
     this.filters.update((state) => ({
       ...state,
       page: 0,
-      type: value,
+      userType: value,
+      userId: value === null ? this.currentUserId : null
+    }));
+    this.loadTransactions();
+  }
+
+  onTypeChange(value: TransactionFilterType): void {
+    this.onTypeChangeWithEvent(value);
+  }
+
+  onTypeChangeWithEvent(value: TransactionFilterType, event?: MouseEvent): void {
+    const isMulti = !!event?.metaKey || !!event?.ctrlKey;
+    this.filters.update((state) => {
+      let nextTypes: TransactionFilterType[] = [];
+
+      if (isMulti) {
+        nextTypes = state.types.includes(value)
+          ? state.types.filter((type) => type !== value)
+          : [...state.types, value];
+      } else {
+        nextTypes = state.types.length === 1 && state.types[0] === value ? [] : [value];
+      }
+
+      return {
+        ...state,
+        page: 0,
+        types: nextTypes,
+        mainCategoryId: null,
+        subCategoryId: null
+      };
+    });
+    this.loadTransactions();
+  }
+
+  clearTypeFilters(): void {
+    this.filters.update((state) => ({
+      ...state,
+      page: 0,
+      types: [],
       mainCategoryId: null,
       subCategoryId: null
     }));
@@ -336,7 +378,8 @@ export class TransactionsPageComponent {
       page: 0,
       size: 25,
       userId: this.currentUserId,
-      type: null,
+      userType: null,
+      types: [],
       mainCategoryId: null,
       subCategoryId: null,
       fromDate: '',
@@ -698,7 +741,8 @@ export class TransactionsPageComponent {
       size: filters.size,
       sort,
       userId: filters.userId ?? this.currentUserId,
-      type: filters.type,
+      userType: filters.userType,
+      types: filters.types,
       mainCategoryId: filters.mainCategoryId,
       subCategoryId: filters.subCategoryId,
       from: filters.fromDate || null,
@@ -804,15 +848,15 @@ export class TransactionsPageComponent {
     return users;
   }
 
-  private buildMainCategoryOptions(categories: TransactionCategory[], type: TransactionFilterType): CategoryFilterOption[] {
-    if (type === 'TRANSFER') {
+  private buildMainCategoryOptions(categories: TransactionCategory[], types: TransactionFilterType[]): CategoryFilterOption[] {
+    if (types.includes('TRANSFER')) {
       return [];
     }
 
     return categories
       .filter((category) => category.parentCategoryId === null)
       .filter((category) => category.type !== 'TRANSFER')
-      .filter((category) => type === null || category.type === type)
+      .filter((category) => types.length === 0 || types.includes(category.type))
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((category) => ({
         id: category.id,
@@ -822,10 +866,10 @@ export class TransactionsPageComponent {
 
   private buildSubCategoryOptions(
     categories: TransactionCategory[],
-    type: TransactionFilterType,
+    types: TransactionFilterType[],
     mainCategoryId: number | null
   ): CategoryFilterOption[] {
-    if (type === 'TRANSFER' || mainCategoryId === null) {
+    if (types.includes('TRANSFER') || mainCategoryId === null) {
       return [];
     }
 
@@ -837,7 +881,7 @@ export class TransactionsPageComponent {
     return categories
       .filter((category) => category.parentCategoryId === mainCategoryId)
       .filter((category) => category.type !== 'TRANSFER')
-      .filter((category) => type === null || category.type === type)
+      .filter((category) => types.length === 0 || types.includes(category.type))
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((category) => ({
         id: category.id,

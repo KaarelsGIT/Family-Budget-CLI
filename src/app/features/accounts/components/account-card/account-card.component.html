@@ -1,4 +1,4 @@
-<article class="account-card" [style.--accent-color]="accentColor() || null">
+<article class="account-card" [style.--accent-color]="accentColor() || null" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <div class="card-header">
     <div class="card-main">
       <div class="card-title-row">
@@ -15,8 +15,7 @@
           </span>
         </div>
       </div>
-
-      <div class="card-tools">
+      <div class="card-actions">
         <button
           type="button"
           class="header-icon-button"

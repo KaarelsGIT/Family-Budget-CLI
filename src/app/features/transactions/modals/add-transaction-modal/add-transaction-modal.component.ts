@@ -639,7 +639,6 @@ export class AddTransactionModalComponent {
           comment: '',
           reminderId: ''
         }, { emitEvent: false });
-        this.useMicroSavings.set(false);
         this.loadAccounts();
         this.created.emit();
       },
@@ -1426,6 +1425,7 @@ export class AddTransactionModalComponent {
 
   private restoreMicroSavingsPreference(): void {
     this.microSavingsMultiplier.set(this.getStoredMicroSavingsMultiplier());
+    this.useMicroSavings.set(this.getStoredMicroSavingsEnabled());
   }
 
   private getStoredMicroSavingsMultiplier(): 1 | 2 {
@@ -1433,12 +1433,22 @@ export class AddTransactionModalComponent {
   }
 
   private persistMicroSavingsPreference(): void {
+    localStorage.setItem(this.getMicroSavingsEnabledStorageKey(), String(this.useMicroSavings()));
     localStorage.setItem(this.getMicroSavingsStorageKey(), String(this.microSavingsMultiplier()));
   }
 
   private getMicroSavingsStorageKey(): string {
     const userId = this.authService.getUserId() ?? 'anonymous';
     return `family_budget_micro_savings_multiplier_${userId}`;
+  }
+
+  private getMicroSavingsEnabledStorageKey(): string {
+    const userId = this.authService.getUserId() ?? 'anonymous';
+    return `family_budget_micro_savings_enabled_${userId}`;
+  }
+
+  private getStoredMicroSavingsEnabled(): boolean {
+    return localStorage.getItem(this.getMicroSavingsEnabledStorageKey()) === 'true';
   }
 
   private isValidTransferTargetValue(value: number): boolean {

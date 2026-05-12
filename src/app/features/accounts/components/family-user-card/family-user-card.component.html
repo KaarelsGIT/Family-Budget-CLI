@@ -1,0 +1,21 @@
+<section class="family-user-card">
+  <div class="family-user-card__header">
+    <div>
+      <h3>{{ i18n.translate('accounts.ownerLabel', { username: user().ownerUsername }) }}</h3>
+      <div class="family-user-card__total">
+        {{ i18n.translate('accounts.groupTotal') }}: {{ formatBalance(total()) }}
+      </div>
+    </div>
+  </div>
+
+  <div class="account-grid family-user-card__accounts">
+    <app-account-card
+      *ngFor="let account of user().accounts; trackBy: trackByAccountId; let index = index"
+      [account]="account"
+      [accentColor]="getAccountColor(index)"
+      (changed)="changed.emit()"
+      (transferRequested)="transferRequested.emit($event)"
+      (adjustBalanceRequested)="adjustBalanceRequested.emit($event)"
+      (shareRequested)="shareRequested.emit($event)" />
+  </div>
+</section>

@@ -19,6 +19,7 @@ interface AccountOwnerGroup {
   ownerUsername: string;
   ownerRole: Account['ownerRole'] | null;
   accounts: Account[];
+  hoveredAccountId: number | null;
 }
 
 interface AccountChartSlice {
@@ -31,6 +32,15 @@ interface AccountSection {
   key: 'currentUser' | 'otherFamilyMembers';
   titleKey: 'accounts.sectionCurrentUser' | 'accounts.sectionOtherFamilyMembers';
   groups: AccountOwnerGroup[];
+}
+
+interface FamilyDashboardUser {
+  userId: number;
+  username: string;
+  total: number;
+  color: string;
+  initials: string;
+  share: number;
 }
 
 @Component({
@@ -55,6 +65,41 @@ export class AccountsPageComponent {
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedShareAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
+  readonly selectedFamilyUserIds = signal<number[]>([]);
+  readonly hoveredFamilyUserId = signal<number | null>(null);
+  readonly hoveredAccountId = signal<number | null>(null);
+  readonly isPrivilegedUser = computed(() => this.authService.getRole() === 'PARENT' || this.authService.getRole() === 'ADMIN');
+  readonly familyDashboardUsers = computed<FamilyDashboardUser[]>(() => {
+    if (!this.isPrivilegedUser()) {
+      return [];
+    }
+
+    const currentUserId = this.authService.getUserId() ?? -1;
+    const currentUserUsername = this.authService.getUsername() ?? '';
+    const groups = this.groupByVisibleUser(this.accounts(), currentUserId, currentUserUsername);
+    const rawUsers = [...groups.values()]
+      .map((group, index) => ({
+        userId: group.ownerId,
+        username: group.ownerUsername,
+        total: this.getGroupTotal(group.accounts),
+        color: this.getChartColor(index),
+        initials: this.getInitials(group.ownerUsername),
+        share: 0
+      }))
+      .sort((a, b) => a.username.localeCompare(b.username));
+    const rawTotal = rawUsers.reduce((sum, user) => sum + user.total, 0);
+
+    return rawUsers.map((user) => ({
+      ...user,
+      share: rawTotal > 0 ? (user.total / rawTotal) * 100 : 0
+    }));
+  });
+  readonly familyDashboardSelectedUsers = computed(() => {
+    const selected = new Set(this.selectedFamilyUserIds());
+    return this.familyDashboardUsers().filter((user) => selected.has(user.userId));
+  });
+  readonly familyDashboardTotal = computed(() => this.familyDashboardSelectedUsers().reduce((sum, user) => sum + user.total, 0));
+  readonly familyDashboardSlices = computed(() => this.buildFamilyDashboardSlices());
   readonly sections = computed<AccountSection[]>(() => {
     const currentUserId = this.authService.getUserId();
     const currentUserUsername = this.authService.getUsername();
@@ -89,6 +134,7 @@ export class AccountsPageComponent {
   constructor() {
     this.loadAccounts();
     this.loadCategories();
+    this.loadFamilySelection();
   }
 
   loadAccounts(): void {
@@ -98,6 +144,7 @@ export class AccountsPageComponent {
     this.accountService.getAccounts().subscribe({
       next: (accounts) => {
         this.accounts.set(accounts);
+        this.ensureFamilySelection(accounts);
         const selectedAdjustBalanceAccount = this.selectedAdjustBalanceAccount();
         if (selectedAdjustBalanceAccount) {
           const refreshedAccount = accounts.find((account) => account.id === selectedAdjustBalanceAccount.id);
@@ -178,12 +225,29 @@ export class AccountsPageComponent {
     return formatMoney(value);
   }
 
+  toggleFamilyUser(userId: number, checked: boolean): void {
+    const next = checked
+      ? Array.from(new Set([...this.selectedFamilyUserIds(), userId]))
+      : this.selectedFamilyUserIds().filter((id) => id !== userId);
+    this.selectedFamilyUserIds.set(next);
+    this.accountService.updateFamilyDashboardSelection(next).subscribe({
+      next: (selection) => this.selectedFamilyUserIds.set(selection),
+      error: () => {
+        // Keep the local toggle responsive even if persistence fails.
+      }
+    });
+  }
+
+  setHoveredFamilyUser(userId: number | null): void {
+    this.hoveredFamilyUserId.set(userId);
+  }
+
   getGroupTotal(accounts: Account[]): number {
     return accounts.reduce((sum, account) => sum + account.balance, 0);
   }
 
   getChartColor(index: number): string {
-    const colors = ['#2f7d46', '#3f9155', '#52a363', '#68b372', '#7cc07f', '#99cd93'];
+    const colors = ['#1f6f4a', '#2d8a64', '#4aa36f', '#77b255', '#d07c3e', '#b13f5f', '#4969c4', '#8a52c8'];
     return colors[index % colors.length];
   }
 
@@ -200,8 +264,16 @@ export class AccountsPageComponent {
     return section.key;
   }
 
+  trackByFamilyUserId(_index: number, user: FamilyDashboardUser): number {
+    return user.userId;
+  }
+
   trackByOwnerId(_index: number, group: AccountOwnerGroup): number {
     return group.ownerId;
+  }
+
+  setHoveredAccount(accountId: number | null): void {
+    this.hoveredAccountId.set(accountId);
   }
 
   private groupByVisibleUser(accounts: Account[], currentUserId: number, currentUserUsername: string): Map<number, AccountOwnerGroup> {
@@ -224,12 +296,52 @@ export class AccountsPageComponent {
         ownerId: currentUserId,
         ownerUsername: currentUserUsername,
         ownerRole: null,
-        accounts: []
+        accounts: [],
+        hoveredAccountId: null
       });
     }
 
     return groups;
   }
+
+  private loadFamilySelection(): void {
+    this.accountService.getFamilyDashboardSelection().subscribe({
+      next: (selection) => {
+        if (selection.length > 0) {
+          this.selectedFamilyUserIds.set(selection);
+        }
+      },
+      error: () => {
+        // Fallback is handled after accounts are loaded.
+      }
+    });
+  }
+
+  private ensureFamilySelection(accounts: Account[]): void {
+    if (!this.isPrivilegedUser()) {
+      return;
+    }
+
+    if (this.selectedFamilyUserIds().length > 0) {
+      return;
+    }
+
+    const currentUserId = this.authService.getUserId() ?? -1;
+    const currentUserUsername = this.authService.getUsername() ?? '';
+    const fallback = [...this.groupByVisibleUser(accounts, currentUserId, currentUserUsername).keys()];
+    if (fallback.length === 0) {
+      return;
+    }
+
+    this.selectedFamilyUserIds.set(fallback);
+    this.accountService.updateFamilyDashboardSelection(fallback).subscribe({
+      next: (saved) => this.selectedFamilyUserIds.set(saved),
+      error: () => {
+        // Keep the local fallback if persistence fails.
+      }
+    });
+  }
+
 
   private addAccountToGroup(
     groups: Map<number, AccountOwnerGroup>,
@@ -253,7 +365,8 @@ export class AccountsPageComponent {
       ownerId: userId,
       ownerUsername: username,
       ownerRole: role,
-      accounts: [account]
+      accounts: [account],
+      hoveredAccountId: null
     });
   }
 
@@ -277,6 +390,7 @@ export class AccountsPageComponent {
   buildAccountChartSlices(accounts: Account[]): AccountChartSlice[] {
     const positiveBalances = accounts.map((account) => Math.max(0, account.balance));
     const total = positiveBalances.reduce((sum, value) => sum + value, 0);
+    const hoveredAccountId = this.hoveredAccountId();
 
     if (total <= 0) {
       return [];
@@ -310,11 +424,55 @@ export class AccountsPageComponent {
 
       return [{
         accountId: account.id,
-        color: this.getChartColor(index),
+        color: hoveredAccountId === null || hoveredAccountId === account.id
+          ? this.getChartColor(index)
+          : 'rgba(183, 228, 199, 0.24)',
         path: this.describePieSlice(50, 50, 42, startAngle, endAngle)
       }];
     });
   }
+
+  buildFamilyDashboardSlices(): AccountChartSlice[] {
+    const selected = this.familyDashboardSelectedUsers();
+    const total = selected.reduce((sum, user) => sum + user.total, 0);
+    const hoveredUserId = this.hoveredFamilyUserId();
+
+    if (total <= 0) {
+      return [];
+    }
+
+    let currentAngle = -90;
+    return selected.flatMap((user) => {
+      if (user.total <= 0) {
+        return [];
+      }
+
+      const sweep = (user.total / total) * 360;
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + sweep;
+      currentAngle = endAngle;
+
+      return [{
+        accountId: user.userId,
+        color: hoveredUserId === null || hoveredUserId === user.userId ? user.color : 'rgba(183, 228, 199, 0.26)',
+        path: this.describePieSlice(50, 50, 42, startAngle, endAngle)
+      }];
+    });
+  }
+
+  getFamilyUserProgress(user: FamilyDashboardUser): number {
+    return Math.max(0, Math.min(100, user.share));
+  }
+
+  private getInitials(username: string): string {
+    const parts = username.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('');
+  }
+
 
   private describePieSlice(cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string {
     const start = this.polarToCartesian(cx, cy, radius, endAngle);
