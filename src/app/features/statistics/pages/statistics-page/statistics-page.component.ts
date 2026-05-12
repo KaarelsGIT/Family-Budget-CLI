@@ -21,8 +21,6 @@ import {
 } from '../../services/statistics.service';
 
 type CategoryTab = 'income' | 'expenses';
-type UserTypeFilter = 'PARENT' | 'CHILD' | null;
-
 interface MonthlyBarGroup {
   month: number;
   label: string;
@@ -61,6 +59,12 @@ interface MonthOption {
   label: string;
 }
 
+interface UserFilterGroup {
+  value: number | '__parent__' | '__child__' | null;
+  label: string;
+  options: SelectableUser[];
+}
+
 @Component({
   selector: 'app-statistics-page',
   standalone: true,
@@ -80,7 +84,8 @@ export class StatisticsPageComponent {
   readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
   readonly selectedUserId = signal<number | null>(this.currentUserId);
-  readonly selectedUserType = signal<UserTypeFilter>(null);
+  readonly selectedUserType = signal<'PARENT' | 'CHILD' | null>(null);
+  readonly selectedUserFilter = signal<number | '__parent__' | '__child__' | null>(this.currentUserId);
   readonly selectedAccountId = signal<number | null>(null);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);
@@ -123,6 +128,7 @@ export class StatisticsPageComponent {
   });
 
   readonly userOptions = computed(() => this.selectableUsers());
+  readonly userFilterOptions = computed(() => this.buildUserFilterOptions(this.selectableUsers()));
 
   readonly accountOptions = computed(() => {
     return [...this.accounts()].sort((left, right) => left.name.localeCompare(right.name));
@@ -180,15 +186,31 @@ export class StatisticsPageComponent {
   }
 
   onUserChange(value: number | string | null): void {
+    if (value === '__parent__') {
+      this.onUserGroupChange('PARENT');
+      return;
+    }
+
+    if (value === '__child__') {
+      this.onUserGroupChange('CHILD');
+      return;
+    }
+
     const parsed = value === null || value === '' ? null : Number(value);
+    this.selectedUserFilter.set(parsed);
     this.selectedUserId.set(parsed);
     this.selectedUserType.set(null);
     this.loadStatistics();
   }
 
-  onUserTypeChange(value: UserTypeFilter): void {
+  onUserGroupChange(value: 'PARENT' | 'CHILD' | null): void {
+    this.selectedUserFilter.set(value === null ? this.currentUserId : value === 'PARENT' ? '__parent__' : '__child__');
     this.selectedUserType.set(value);
-    this.selectedUserId.set(value === null ? this.currentUserId : null);
+    if (value === null) {
+      this.selectedUserId.set(this.currentUserId);
+    } else {
+      this.selectedUserId.set(null);
+    }
     this.loadStatistics();
   }
 
@@ -201,6 +223,7 @@ export class StatisticsPageComponent {
     this.selectedMonth.set(null);
     this.selectedUserId.set(this.currentUserId);
     this.selectedUserType.set(null);
+    this.selectedUserFilter.set(this.currentUserId);
     this.selectedAccountId.set(null);
     this.loadStatistics();
   }
@@ -230,11 +253,16 @@ export class StatisticsPageComponent {
   }
 
   formatPercent(value: number): string {
-    if (!Number.isFinite(value)) {
+    const parsed = typeof value === 'string' ? parseFloat(value) : Number(value);
+    if (!Number.isFinite(parsed)) {
       return '0.0 %';
     }
 
-    return `${value.toFixed(1)} %`;
+    return `${parsed.toFixed(1)} %`;
+  }
+
+  trackByUserId(_index: number, user: SelectableUser): number {
+    return user.id;
   }
 
   formatMonth(month: number): string {
@@ -327,6 +355,30 @@ export class StatisticsPageComponent {
           }))
       }))
       .sort((left, right) => left.parentCategory.localeCompare(right.parentCategory));
+  }
+
+  private buildUserFilterOptions(users: SelectableUser[]): UserFilterGroup[] {
+    if (this.currentUserRole === 'CHILD') {
+      return [{
+        value: this.currentUserId,
+        label: this.i18n.translate('statistics.currentUser'),
+        options: users.filter((user) => user.id === this.currentUserId)
+      }];
+    }
+
+    const sortedUsers = [...users].sort((left, right) => left.username.localeCompare(right.username));
+    return [
+      {
+        value: '__parent__',
+        label: this.i18n.translate('transactions.userTypeParents'),
+        options: sortedUsers.filter((user) => user.role === 'PARENT')
+      },
+      {
+        value: '__child__',
+        label: this.i18n.translate('transactions.userTypeChildren'),
+        options: sortedUsers.filter((user) => user.role === 'CHILD')
+      }
+    ];
   }
 
   private buildCategoryTableCategories(): CategoryTableNode[] {

@@ -28,22 +28,13 @@
       <div class="filter-group" *ngIf="showUserFilter()">
         <label class="field">
           <span>{{ i18n.translate('statistics.userFilter') }}</span>
-          <select class="filter-control" [ngModel]="selectedUserId()" (ngModelChange)="onUserChange($event)">
-            <option [ngValue]="null" *ngIf="currentUserRole !== 'CHILD'">{{ i18n.translate('statistics.allUsers') }}</option>
-            <option *ngFor="let user of userOptions()" [ngValue]="user.id">
-              {{ formatUserLabel(user) }}
-            </option>
-          </select>
-        </label>
-      </div>
-
-      <div class="filter-group" *ngIf="currentUserRole === 'PARENT' || currentUserRole === 'ADMIN'">
-        <label class="field">
-          <span>{{ i18n.translate('statistics.userTypeFilter') }}</span>
-          <select class="filter-control" [ngModel]="selectedUserType()" (ngModelChange)="onUserTypeChange($event)">
-            <option [ngValue]="null">{{ i18n.translate('statistics.userTypeAll') }}</option>
-            <option [ngValue]="'CHILD'">{{ i18n.translate('statistics.userTypeChildren') }}</option>
-            <option [ngValue]="'PARENT'">{{ i18n.translate('statistics.userTypeParents') }}</option>
+          <select class="filter-control" [ngModel]="selectedUserFilter()" (ngModelChange)="onUserChange($event)">
+            <ng-container *ngFor="let group of userFilterOptions()">
+              <option [ngValue]="group.value">{{ group.label }}</option>
+              <option *ngFor="let user of group.options; trackBy: trackByUserId" [ngValue]="user.id">
+                &nbsp;&nbsp;{{ formatUserLabel(user) }}
+              </option>
+            </ng-container>
           </select>
         </label>
       </div>

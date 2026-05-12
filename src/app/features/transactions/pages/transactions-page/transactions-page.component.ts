@@ -27,10 +27,15 @@ interface SortConfigItem {
   direction: SortDirection;
 }
 type TransactionFilterType = TransactionItem['type'];
-type TransactionUserTypeFilter = 'PARENT' | 'CHILD' | null;
 interface CategoryFilterOption {
   id: number;
   label: string;
+}
+
+interface UserFilterGroup {
+  value: number | '__parent__' | '__child__' | null;
+  label: string;
+  options: TransactionUserOption[];
 }
 
 type DateFieldKey = 'fromDate' | 'toDate';
@@ -90,7 +95,7 @@ export class TransactionsPageComponent {
     page: 0,
     size: 25,
     userId: this.currentUserId,
-    userType: null as TransactionUserTypeFilter,
+    userType: null as 'PARENT' | 'CHILD' | null,
     types: [] as TransactionFilterType[],
     mainCategoryId: null as number | null,
     subCategoryId: null as number | null,
@@ -272,22 +277,35 @@ export class TransactionsPageComponent {
     });
   }
 
-  onUserChange(value: number | null): void {
+  onUserChange(value: number | string | null): void {
+    if (value === '__parent__') {
+      this.filters.update((state) => ({
+        ...state,
+        page: 0,
+        userId: null,
+        userType: 'PARENT'
+      }));
+      this.loadTransactions();
+      return;
+    }
+
+    if (value === '__child__') {
+      this.filters.update((state) => ({
+        ...state,
+        page: 0,
+        userId: null,
+        userType: 'CHILD'
+      }));
+      this.loadTransactions();
+      return;
+    }
+
+    const parsed = value === null || value === '' ? null : Number(value);
     this.filters.update((state) => ({
       ...state,
       page: 0,
       userType: null,
-      userId: value
-    }));
-    this.loadTransactions();
-  }
-
-  onUserTypeChange(value: TransactionUserTypeFilter): void {
-    this.filters.update((state) => ({
-      ...state,
-      page: 0,
-      userType: value,
-      userId: value === null ? this.currentUserId : null
+      userId: parsed
     }));
     this.loadTransactions();
   }
@@ -664,6 +682,10 @@ export class TransactionsPageComponent {
     return category.id;
   }
 
+  trackByCategoryGroupId(_index: number, group: UserFilterGroup): string {
+    return group.label;
+  }
+
   canModifyTransaction(transaction: TransactionItem): boolean {
     if (this.currentUserRole === 'ADMIN') {
       return true;
@@ -836,16 +858,36 @@ export class TransactionsPageComponent {
     localStorage.setItem('budget_sort_pref', JSON.stringify(this.sortConfig()));
   }
 
-  private buildUserFilterOptions(users: TransactionUserOption[]): TransactionUserOption[] {
+  private buildUserFilterOptions(users: TransactionUserOption[]): UserFilterGroup[] {
     if (this.currentUserId === null) {
-      return users;
+      return [];
     }
+
+    const visibleUsers = this.currentUserRole === 'CHILD'
+      ? users.filter((user) => user.id === this.currentUserId)
+      : users;
+    const sortedUsers = [...visibleUsers].sort((left, right) => left.username.localeCompare(right.username));
 
     if (this.currentUserRole === 'CHILD') {
-      return users.filter((user) => user.id === this.currentUserId);
+      return [{
+        value: this.currentUserId,
+        label: this.i18n.translate('statistics.currentUser'),
+        options: sortedUsers
+      }];
     }
 
-    return users;
+    return [
+      {
+        value: '__parent__',
+        label: this.i18n.translate('transactions.userTypeParents'),
+        options: sortedUsers.filter((user) => user.role === 'PARENT')
+      },
+      {
+        value: '__child__',
+        label: this.i18n.translate('transactions.userTypeChildren'),
+        options: sortedUsers.filter((user) => user.role === 'CHILD')
+      }
+    ];
   }
 
   private buildMainCategoryOptions(categories: TransactionCategory[], types: TransactionFilterType[]): CategoryFilterOption[] {
