@@ -1,0 +1,41 @@
+<div class="custom-dropdown" [class.open]="isOpen()">
+  <div #trigger class="dropdown-trigger form-input-rounded" (click)="toggleDropdown()">
+    {{ getSelectedLabel() }}
+  </div>
+
+  <!-- Main Menu Overlay -->
+  <div #menu class="dropdown-overlay" *ngIf="isOpen()">
+    <div class="dropdown-menu">
+      <div class="menu-item add-new" (click)="onAddNew($event, 'create-main')">
+        + {{ addLabel() }}
+      </div>
+      <div class="dropdown-divider"></div>
+
+      <div class="menu-scroll-container">
+        <div #submenuTrigger class="menu-item has-submenu"
+             *ngFor="let main of mainCategories(); trackBy: trackById"
+             [class.open]="openSubmenuId() === main.id"
+             [class.is-active]="openSubmenuId() === main.id"
+             (click)="toggleSubmenu($event, main.id)">
+          <span class="main-cat-name">{{ main.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submenu Overlay (outside of main menu container to avoid clipping) -->
+  <div #submenu class="dropdown-overlay submenu-overlay" *ngIf="isOpen() && openSubmenuId() !== null">
+    <div class="dropdown-menu submenu-menu">
+      <div class="menu-item" (click)="selectCategory(openSubmenuId(), null); $event.stopPropagation()">
+        {{ i18n.translate('transactions.noSubcategory') }}
+      </div>
+      <div class="menu-item" *ngFor="let sub of getSubCategories(openSubmenuId()!); trackBy: trackById" (click)="selectCategory(openSubmenuId(), sub.id); $event.stopPropagation()">
+        {{ sub.name }}
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="menu-item add-new" (click)="onAddNew($event, 'create-sub', categories().find(c => c.id === openSubmenuId())); $event.stopPropagation()">
+        + {{ addLabel() }}
+      </div>
+    </div>
+  </div>
+</div>

@@ -128,7 +128,7 @@
     [categories]="categories()"
     (closed)="closeTransactionModal()"
     (created)="handleAccountsChanged()"
-    (categoryCreated)="handleAccountsChanged()" />
+    (categoryCreated)="handleCategoryCreated($event)" />
 
   <app-adjust-balance-modal
     *ngIf="selectedAdjustBalanceAccount()"

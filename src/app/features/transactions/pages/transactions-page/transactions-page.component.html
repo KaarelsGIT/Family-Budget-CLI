@@ -12,7 +12,8 @@
     <div class="filters-grid">
       <label class="field">
         <span>{{ i18n.translate('transactions.filterUser') }}</span>
-        <select class="filter-control" [ngModel]="filters().userId" (ngModelChange)="onUserChange($event)">
+        <select class="filter-control" [ngModel]="userFilterValue()" (ngModelChange)="onUserChange($event)">
+          <option [ngValue]="null">{{ i18n.translate('transactions.allUsers') }}</option>
           <ng-container *ngFor="let group of filterUsers()">
             <option [ngValue]="group.value">{{ group.label }}</option>
             <option *ngFor="let user of group.options" [ngValue]="user.id">

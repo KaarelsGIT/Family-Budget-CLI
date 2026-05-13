@@ -29,6 +29,7 @@
         <label class="field">
           <span>{{ i18n.translate('statistics.userFilter') }}</span>
           <select class="filter-control" [ngModel]="selectedUserFilter()" (ngModelChange)="onUserChange($event)">
+            <option [ngValue]="null">{{ i18n.translate('statistics.allUsers') }}</option>
             <ng-container *ngFor="let group of userFilterOptions()">
               <option [ngValue]="group.value">{{ group.label }}</option>
               <option *ngFor="let user of group.options; trackBy: trackByUserId" [ngValue]="user.id">

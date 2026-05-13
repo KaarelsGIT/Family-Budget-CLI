@@ -132,27 +132,19 @@
                 </label>
               </div>
 
-              <label class="field">
-                <span>{{ i18n.translate('transactions.mainCategory') }}</span>
-                <select class="form-input-rounded" formControlName="mainCategoryId">
-                  <option value="" disabled>{{ mainCategoryPlaceholder() }}</option>
-                  <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
-                  <option *ngFor="let category of mainCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
-                    {{ category.name }}
-                  </option>
-                </select>
-              </label>
-
-              <label class="field">
-                <span>{{ i18n.translate('transactions.subCategory') }}</span>
-                <select class="form-input-rounded" formControlName="categoryId" [disabled]="!selectedMainCategory()">
-                  <option value="" disabled>{{ subCategoryPlaceholder() }}</option>
-                  <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
-                  <option *ngFor="let category of subCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
-                    {{ category.label }}
-                  </option>
-                </select>
-              </label>
+              <div class="field field-wide category-picker-container">
+                <span>{{ i18n.translate('transactions.columnCategory') }}</span>
+                <app-category-dropdown
+                  [categories]="allAvailableCategories()"
+                  [transactionType]="transactionType()"
+                  [selectedMainCategoryId]="selectedMainCategoryId()"
+                  [selectedSubCategoryId]="selectedCategoryId()"
+                  [placeholder]="mainCategoryPlaceholder()"
+                  [addLabel]="categoryAddLabel()"
+                  (categorySelected)="selectCategory($event.mainId, $event.subId)"
+                  (addNewCategory)="openCategoryEditorFromMenu(null, $event.mode, $event.parent)">
+                </app-category-dropdown>
+              </div>
 
               <label class="field field-wide">
                 <span>{{ i18n.translate('transactions.columnComment') }}</span>
@@ -208,27 +200,19 @@
                 </div>
               </label>
 
-              <label class="field">
-                <span>{{ i18n.translate('transactions.mainCategory') }}</span>
-                <select class="form-input-rounded" formControlName="mainCategoryId">
-                  <option value="" disabled>{{ mainCategoryPlaceholder() }}</option>
-                  <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
-                  <option *ngFor="let category of mainCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
-                    {{ category.name }}
-                  </option>
-                </select>
-              </label>
-
-              <label class="field">
-                <span>{{ i18n.translate('transactions.subCategory') }}</span>
-                <select class="form-input-rounded" formControlName="categoryId" [disabled]="!selectedMainCategory()">
-                  <option value="" disabled>{{ subCategoryPlaceholder() }}</option>
-                  <option [value]="addCategoryValue">{{ categoryAddLabel() }}</option>
-                  <option *ngFor="let category of subCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + category.id">
-                    {{ category.label }}
-                  </option>
-                </select>
-              </label>
+              <div class="field field-wide category-picker-container">
+                <span>{{ i18n.translate('transactions.columnCategory') }}</span>
+                <app-category-dropdown
+                  [categories]="allAvailableCategories()"
+                  [transactionType]="transactionType()"
+                  [selectedMainCategoryId]="selectedMainCategoryId()"
+                  [selectedSubCategoryId]="selectedCategoryId()"
+                  [placeholder]="mainCategoryPlaceholder()"
+                  [addLabel]="categoryAddLabel()"
+                  (categorySelected)="selectCategory($event.mainId, $event.subId)"
+                  (addNewCategory)="openCategoryEditorFromMenu(null, $event.mode, $event.parent)">
+                </app-category-dropdown>
+              </div>
 
               <label class="field field-wide">
                 <span>{{ i18n.translate('transactions.columnComment') }}</span>
@@ -370,3 +354,24 @@
   [allowGroupSelection]="true"
   (closed)="onCategoryEditorClosed()"
   (saved)="onCategoryEditorSaved($event)" />
+
+<div class="modal-overlay" *ngIf="isSubcategoryConfirmOpen()">
+  <div class="modal-backdrop" (click)="cancelAddSubcategory()"></div>
+  <section class="modal-card small-modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2>{{ i18n.translate('transactions.subcategoryConfirmTitle') }}</h2>
+      <button type="button" class="close-button" (click)="cancelAddSubcategory()">✖</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ i18n.translate('transactions.subcategoryConfirmMessage') }}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="secondary" (click)="cancelAddSubcategory()">
+        {{ i18n.translate('transactions.subcategoryConfirmNo') }}
+      </button>
+      <button type="button" class="primary" (click)="confirmAddSubcategory()">
+        {{ i18n.translate('transactions.subcategoryConfirmYes') }}
+      </button>
+    </div>
+  </section>
+</div>

@@ -83,9 +83,9 @@ export class StatisticsPageComponent {
   readonly currentUserId = this.authService.getUserId();
   readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
-  readonly selectedUserId = signal<number | null>(this.currentUserId);
+  readonly selectedUserId = signal<number | null>(null);
   readonly selectedUserType = signal<'PARENT' | 'CHILD' | null>(null);
-  readonly selectedUserFilter = signal<number | '__parent__' | '__child__' | null>(this.currentUserId);
+  readonly selectedUserFilter = signal<number | '__parent__' | '__child__' | null>(null);
   readonly selectedAccountId = signal<number | null>(null);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);
@@ -204,11 +204,13 @@ export class StatisticsPageComponent {
   }
 
   onUserGroupChange(value: 'PARENT' | 'CHILD' | null): void {
-    this.selectedUserFilter.set(value === null ? this.currentUserId : value === 'PARENT' ? '__parent__' : '__child__');
-    this.selectedUserType.set(value);
     if (value === null) {
-      this.selectedUserId.set(this.currentUserId);
+      this.selectedUserFilter.set(null);
+      this.selectedUserType.set(null);
+      this.selectedUserId.set(null);
     } else {
+      this.selectedUserFilter.set(value === 'PARENT' ? '__parent__' : '__child__');
+      this.selectedUserType.set(value);
       this.selectedUserId.set(null);
     }
     this.loadStatistics();
@@ -221,9 +223,9 @@ export class StatisticsPageComponent {
 
   clearFilters(): void {
     this.selectedMonth.set(null);
-    this.selectedUserId.set(this.currentUserId);
+    this.selectedUserId.set(null);
     this.selectedUserType.set(null);
-    this.selectedUserFilter.set(this.currentUserId);
+    this.selectedUserFilter.set(null);
     this.selectedAccountId.set(null);
     this.loadStatistics();
   }

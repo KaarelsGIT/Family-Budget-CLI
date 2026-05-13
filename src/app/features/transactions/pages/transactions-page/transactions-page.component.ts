@@ -103,6 +103,13 @@ export class TransactionsPageComponent {
     toDate: ''
   });
 
+  readonly userFilterValue = computed(() => {
+    const f = this.filters();
+    if (f.userType === 'PARENT') return '__parent__';
+    if (f.userType === 'CHILD') return '__child__';
+    return f.userId;
+  });
+
   readonly filterUsers = computed(() => this.buildUserFilterOptions(this.users()));
 
   readonly categoryFilterOptions = computed<CategoryFilterOption[]>(() =>

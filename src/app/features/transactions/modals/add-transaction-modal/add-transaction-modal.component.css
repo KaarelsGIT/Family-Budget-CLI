@@ -27,8 +27,17 @@
   border-radius: 22px;
   padding: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-  overflow: hidden;
+  overflow: visible !important;
   will-change: transform;
+}
+
+.modal-content, .modal-scroll {
+  overflow: visible !important;
+}
+
+/* CATEGORY PICKER (Redesigned with Portal) */
+.category-picker-container {
+  position: relative;
 }
 
 .modal-header {
@@ -106,14 +115,17 @@
   flex: 1;
 }
 
+/* 1. STOP MODAL SCROLLING while dropdown is open */
+/* Critical: if the container allows scrolling, it hides elements extending to the side */
 .modal-scroll {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-height: 0;
-  flex: 1;
-  overflow: auto;
-  padding-right: 2px;
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+  max-height: 70vh; /* Restore controlled scrolling for the content area */
+}
+
+.category-picker-container {
+  position: relative;
+  /* Ensure nothing limits width at this level */
 }
 
 .tab-panel {
@@ -501,6 +513,53 @@
   flex-wrap: wrap;
 }
 
+
+.main-cat-name {
+  flex: 1;
+}
+
+@media (max-width: 860px) {
+  .submenu-container {
+    position: static;
+    display: none;
+    width: 100%;
+    height: auto;
+  }
+
+  .submenu {
+    position: static;
+    display: block;
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
+    margin-left: 0;
+    box-shadow: none;
+    border: none;
+    border-left: 2px solid #eff5ef;
+    border-radius: 0;
+    margin-top: 4px;
+  }
+
+  .has-submenu.open > .submenu-container {
+    display: block;
+  }
+
+  .has-submenu.open::after {
+    transform: rotate(180deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .dropdown-menu {
+    width: 100%;
+    max-height: 300px;
+  }
+
+  .submenu {
+    width: 100%;
+  }
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -509,6 +568,17 @@
   padding-top: 14px;
   border-top: 1px solid #e2e9e4;
   flex-shrink: 0;
+}
+
+.modal-body {
+  padding: 12px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #2c3e32;
+}
+
+.small-modal {
+  width: min(450px, calc(100vw - 48px));
 }
 
 button.primary,

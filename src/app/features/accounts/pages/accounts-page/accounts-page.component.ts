@@ -217,6 +217,15 @@ export class AccountsPageComponent {
     this.loadAccounts();
   }
 
+  handleCategoryCreated(category: TransactionCategory): void {
+    this.categories.update((categories) => {
+      if (categories.some(({ id }) => id === category.id)) {
+        return [...categories];
+      }
+      return [...categories, category];
+    });
+  }
+
   trackByAccountId(_index: number, account: Account): number {
     return account.id;
   }

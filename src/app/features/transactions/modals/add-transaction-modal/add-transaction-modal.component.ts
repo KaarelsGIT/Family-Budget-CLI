@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
+import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
 import { CategoryEditorModalComponent } from '../../../categories/modals/category-editor-modal/category-editor-modal.component';
 import { formatMoney, parseMoneyInput } from '../../../shared/utils/money-format';
 import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
@@ -57,7 +58,7 @@ interface SelectedTransferTarget {
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent, CategoryEditorModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent, CategoryEditorModalComponent, CategoryDropdownComponent],
   templateUrl: './add-transaction-modal.component.html',
   styleUrl: './add-transaction-modal.component.css'
 })
@@ -70,6 +71,8 @@ export class AddTransactionModalComponent {
   readonly i18n = inject(TranslationService);
 
   readonly categories = input<TransactionCategory[]>([]);
+  readonly localNewCategories = signal<TransactionCategory[]>([]);
+  readonly allAvailableCategories = computed(() => [...this.categories(), ...this.localNewCategories()]);
   readonly closed = output<void>();
   readonly created = output<void>();
   readonly categoryCreated = output<TransactionCategory>();
@@ -85,6 +88,8 @@ export class AddTransactionModalComponent {
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
   readonly isCategoryEditorOpen = signal(false);
+  readonly isSubcategoryConfirmOpen = signal(false);
+  readonly lastCreatedMainCategory = signal<TransactionCategory | null>(null);
   readonly categoryEditorMode = signal<'create-main' | 'create-sub'>('create-main');
   readonly categoryEditorParentCategory = signal<TransactionCategory | null>(null);
   readonly categoryEditorDefaultType = signal<CategoryEditorType>('EXPENSE');
@@ -123,6 +128,90 @@ export class AddTransactionModalComponent {
     this.accounts().some((account) => account.type === 'SAVINGS' && account.ownerId === this.authService.getUserId())
   );
 
+  getSelectedCategoryLabel(): string {
+    const mainId = this.parseNumber(this.transactionForm.controls.mainCategoryId.value);
+    const subId = this.parseNumber(this.transactionForm.controls.categoryId.value);
+
+    if (!mainId) {
+      return this.mainCategoryPlaceholder();
+    }
+
+    const mainCategory = this.mainCategoryOptions().find(c => c.id === mainId);
+    if (!subId || subId === mainId) {
+      return mainCategory?.name ?? this.mainCategoryPlaceholder();
+    }
+
+    const subCategory = this.subCategoryOptions().find(c => c.id === subId);
+    return subCategory?.label ?? mainCategory?.name ?? this.mainCategoryPlaceholder();
+  }
+
+  getSubCategoriesForMain(mainId: number): CategoryOption[] {
+    const mainCategory = this.mainCategoryOptions().find(c => c.id === mainId);
+    if (!mainCategory) return [];
+
+    return this.getCategoriesForType(mainCategory.type)
+      .filter(c => c.parentCategoryId === mainId)
+      .map(c => ({
+        id: c.id,
+        label: c.name,
+        type: c.type as TransactionType,
+        parentCategoryId: c.parentCategoryId
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  selectCategory(mainId: number | null, subId: number | null): void {
+    if (mainId === null) {
+      this.transactionForm.patchValue({
+        mainCategoryId: '',
+        categoryId: ''
+      });
+      this.selectedMainCategoryId.set(null);
+      this.selectedCategoryId.set(null);
+    } else {
+      // Kasutame String() tüübiteisendust, et FormControl väärtused ühtiksid dropdowni ootustega
+      this.transactionForm.patchValue({
+        mainCategoryId: String(mainId),
+        categoryId: subId ? String(subId) : String(mainId)
+      });
+      this.selectedMainCategoryId.set(mainId);
+      this.selectedCategoryId.set(subId ?? mainId);
+    }
+    this.transactionForm.controls.mainCategoryId.markAsTouched();
+    this.transactionForm.controls.categoryId.markAsTouched();
+    this.isDropdownOpen.set(false);
+    this.persistDraft();
+  }
+
+  openCategoryEditorFromMenu(event: Event | null, mode: 'create-main' | 'create-sub', mainCat?: TransactionCategory): void {
+    if (event) event.stopPropagation();
+    this.isDropdownOpen.set(false);
+    if (mode === 'create-main') {
+      this.openMainCategoryForm();
+    } else if (mainCat) {
+      this.categoryEditorMode.set('create-sub');
+      this.categoryEditorParentCategory.set(mainCat);
+      this.categoryEditorDefaultType.set(mainCat.type as CategoryEditorType);
+      this.isCategoryEditorOpen.set(true);
+    }
+  }
+
+  readonly isDropdownOpen = signal(false);
+
+  toggleDropdown(): void {
+    this.isDropdownOpen.set(!this.isDropdownOpen());
+  }
+
+  // Submenu and position logic are now handled by CategoryDropdownComponent
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-dropdown')) {
+      this.isDropdownOpen.set(false);
+    }
+  }
+
   private dragging = false;
   private dragStartX = 0;
   private dragStartY = 0;
@@ -153,8 +242,8 @@ export class AddTransactionModalComponent {
   });
 
   readonly mainCategoryOptions = computed(() =>
-    this.getCategoriesForType(this.transactionType())
-      .filter((category) => category.parentCategoryId === null)
+    this.allAvailableCategories()
+      .filter((category) => category.type === this.transactionType() && category.parentCategoryId === null)
       .sort((left, right) => left.name.localeCompare(right.name))
   );
 
@@ -653,40 +742,68 @@ export class AddTransactionModalComponent {
   }
 
   onCategoryEditorSaved(category: TransactionCategory): void {
-    const mode = this.categoryEditorMode();
-    const parentCategory = this.categoryEditorParentCategory();
+    // 1. Lisa kategooria lokaalsesse olekusse ESIMESENA
+    this.localNewCategories.update(cats => [...cats, category]);
+    this.categoryCreated.emit(category);
+
+    // 2. Sulge editor
     this.isCategoryEditorOpen.set(false);
 
-    if (mode === 'create-main') {
-      this.transactionType.set(category.type);
-      this.categoryFormType.set(category.type);
-      this.selectedMainCategoryId.set(category.id);
+    // 3. Automaatne valimine (nüüd on andmed allAvailableCategories() sees olemas)
+    const parentId = category.parentCategoryId ?? category.id;
+    const subId = category.parentCategoryId ? category.id : null;
+
+    // Kasutame setTimeout, et tagada signaalide (allAvailableCategories) levimine enne valimist
+    // See on vajalik, sest CategoryDropdownComponent peab uue kategooria ära tundma
+    setTimeout(() => {
+      this.selectCategory(parentId, subId);
+    }, 0);
+
+    // 4. Kui lisati peakategooria, küsime alamkategooria kohta
+    if (!category.parentCategoryId) {
+      this.lastCreatedMainCategory.set(category);
+      this.isSubcategoryConfirmOpen.set(true);
+    }
+  }
+
+  confirmAddSubcategory(): void {
+    const mainCategory = this.lastCreatedMainCategory();
+    this.isSubcategoryConfirmOpen.set(false);
+    if (mainCategory) {
+      this.openSubcategoryFormWithMain(mainCategory);
+    }
+  }
+
+  cancelAddSubcategory(): void {
+    const mainCategory = this.lastCreatedMainCategory();
+    this.isSubcategoryConfirmOpen.set(false);
+    if (mainCategory) {
+      this.transactionType.set(mainCategory.type);
+      this.categoryFormType.set(mainCategory.type);
+      this.selectedMainCategoryId.set(mainCategory.id);
       this.selectedCategoryId.set(null);
       this.transactionForm.patchValue({
-        type: category.type,
-        mainCategoryId: String(category.id),
+        type: mainCategory.type,
+        mainCategoryId: String(mainCategory.id),
         categoryId: ''
       }, { emitEvent: false });
-      this.syncTransactionControlsForType(category.type);
+      this.syncTransactionControlsForType(mainCategory.type);
       this.draftService.update({
-        type: category.type,
-        mainCategoryId: category.id,
+        type: mainCategory.type,
+        mainCategoryId: mainCategory.id,
         categoryId: null
       });
       this.ensureDefaultIncomeExpenseAccount();
-      this.categoryCreated.emit(category);
-      return;
     }
+    this.lastCreatedMainCategory.set(null);
+  }
 
-    const parentCategoryId = parentCategory?.id ?? null;
-    this.setSelectedCategory(parentCategoryId ?? category.id, category.id, category.type);
-    this.draftService.update({
-      type: this.transactionType(),
-      mainCategoryId: parentCategoryId,
-      categoryId: category.id
-    });
-    this.ensureDefaultIncomeExpenseAccount();
-    this.categoryCreated.emit(category);
+  private openSubcategoryFormWithMain(mainCategory: TransactionCategory): void {
+    this.categoryEditorMode.set('create-sub');
+    this.categoryEditorParentCategory.set(mainCategory);
+    this.categoryEditorDefaultType.set(mainCategory.type as CategoryEditorType);
+    this.categoryEditorDefaultGroup.set(mainCategory.group as CategoryGroup);
+    this.isCategoryEditorOpen.set(true);
   }
 
   getDefaultCategoryGroup(): CategoryGroup {
@@ -1365,12 +1482,12 @@ export class AddTransactionModalComponent {
     return 'EXPENSE';
   }
 
-  private getCategoriesForType(type: TransactionType): TransactionCategory[] {
+  getCategoriesForType(type: TransactionType): TransactionCategory[] {
     if (type === 'TRANSFER') {
       return [];
     }
 
-    return this.categories().filter((category) => category.type === type);
+    return this.allAvailableCategories().filter((category) => category.type === type);
   }
 
   private buildSubCategoryOptions(mainCategory: TransactionCategory | null): CategoryOption[] {
