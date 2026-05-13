@@ -35,6 +35,7 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
 
   private cleanup?: () => void;
   private submenuCleanup?: () => void;
+  private isMobile = signal(false);
 
   readonly mainCategories = computed(() =>
     this.categories()
@@ -45,6 +46,9 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
   constructor() {}
 
   ngAfterViewInit() {
+    this.checkMobile();
+    window.addEventListener('resize', () => this.checkMobile());
+
     // Listen for changes in ViewChildren to setup positioning when elements appear
     this.menuElement.changes.subscribe(() => {
       if (this.isOpen()) {
@@ -122,6 +126,10 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
   }
 
   private setupPositioning() {
+    if (this.isMobile()) {
+      this.cleanupPositioning();
+      return;
+    }
     this.cleanupPositioning();
     const trigger = this.triggerElement.first?.nativeElement;
     const menu = this.menuElement.first?.nativeElement;
@@ -142,6 +150,10 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
   }
 
   private setupSubmenuPositioning() {
+    if (this.isMobile()) {
+      this.cleanupSubmenuPositioning();
+      return;
+    }
     this.cleanupSubmenuPositioning();
     const mainId = this.openSubmenuId();
     if (mainId === null) return;
@@ -187,6 +199,14 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
     if (this.submenuCleanup) {
       this.submenuCleanup();
       this.submenuCleanup = undefined;
+    }
+  }
+
+  private checkMobile() {
+    this.isMobile.set(window.innerWidth <= 768);
+    if (this.isMobile()) {
+      this.cleanupPositioning();
+      this.cleanupSubmenuPositioning();
     }
   }
 

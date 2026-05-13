@@ -83,9 +83,9 @@ export class StatisticsPageComponent {
   readonly currentUserId = this.authService.getUserId();
   readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
-  readonly selectedUserId = signal<number | null>(null);
+  readonly selectedUserId = signal<number | null>(this.currentUserId);
   readonly selectedUserType = signal<'PARENT' | 'CHILD' | null>(null);
-  readonly selectedUserFilter = signal<number | '__parent__' | '__child__' | null>(null);
+  readonly selectedUserFilter = signal<number | '__parent__' | '__child__' | null>(this.currentUserId);
   readonly selectedAccountId = signal<number | null>(null);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);

@@ -4,8 +4,8 @@
   </div>
 
   <!-- Main Menu Overlay -->
-  <div #menu class="dropdown-overlay" *ngIf="isOpen()">
-    <div class="dropdown-menu">
+  <div #menu class="dropdown-overlay" *ngIf="isOpen()" (click)="toggleDropdown()">
+    <div class="dropdown-menu" (click)="$event.stopPropagation()">
       <div class="menu-item add-new" (click)="onAddNew($event, 'create-main')">
         + {{ addLabel() }}
       </div>
@@ -24,8 +24,8 @@
   </div>
 
   <!-- Submenu Overlay (outside of main menu container to avoid clipping) -->
-  <div #submenu class="dropdown-overlay submenu-overlay" *ngIf="isOpen() && openSubmenuId() !== null">
-    <div class="dropdown-menu submenu-menu">
+  <div #submenu class="dropdown-overlay submenu-overlay" *ngIf="isOpen() && openSubmenuId() !== null" (click)="openSubmenuId.set(null)">
+    <div class="dropdown-menu submenu-menu" (click)="$event.stopPropagation()">
       <div class="menu-item" (click)="selectCategory(openSubmenuId(), null); $event.stopPropagation()">
         {{ i18n.translate('transactions.noSubcategory') }}
       </div>

@@ -402,7 +402,7 @@ export class TransactionsPageComponent {
     this.filters.set({
       page: 0,
       size: 25,
-      userId: this.currentUserId,
+      userId: null,
       userType: null,
       types: [],
       mainCategoryId: null,
@@ -769,7 +769,7 @@ export class TransactionsPageComponent {
       page: filters.page,
       size: filters.size,
       sort,
-      userId: filters.userId ?? this.currentUserId,
+      userId: filters.userId,
       userType: filters.userType,
       types: filters.types,
       mainCategoryId: filters.mainCategoryId,
