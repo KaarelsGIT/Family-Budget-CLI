@@ -24,12 +24,12 @@
 
     <div class="chart-modal-body" *ngIf="data() as chartData">
       <ng-container *ngIf="isMonthly(chartData)">
-        <svg viewBox="0 0 600 260" class="detail-chart" aria-hidden="true" focusable="false">
-          <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
-          <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
+        <svg viewBox="0 0 1180 260" class="detail-chart" aria-hidden="true" focusable="false">
+          <line x1="64" y1="20" x2="64" y2="200" class="axis-line"></line>
+          <line x1="64" y1="200" x2="1116" y2="200" class="axis-line"></line>
           <g *ngFor="let tick of chartData.ticks; trackBy: trackByTick">
-            <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
-            <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+            <line x1="64" [attr.y1]="tick.y" x2="1116" [attr.y2]="tick.y" class="chart-grid-line"></line>
+            <text x="56" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
           </g>
           <g *ngFor="let guideX of dailyGuideXs(); trackBy: trackByIndex">
             <line [attr.x1]="guideX" y1="20" [attr.x2]="guideX" y2="200" class="chart-vertical-guide"></line>
@@ -51,12 +51,12 @@
       </ng-container>
 
       <ng-container *ngIf="isSavings(chartData)">
-        <svg viewBox="0 0 600 260" class="detail-chart" aria-hidden="true" focusable="false">
-          <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
-          <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
+        <svg viewBox="0 0 1180 260" class="detail-chart" aria-hidden="true" focusable="false">
+          <line x1="64" y1="20" x2="64" y2="200" class="axis-line"></line>
+          <line x1="64" y1="200" x2="1116" y2="200" class="axis-line"></line>
           <g *ngFor="let tick of chartData.ticks; trackBy: trackByTick">
-            <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
-            <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+            <line x1="64" [attr.y1]="tick.y" x2="1116" [attr.y2]="tick.y" class="chart-grid-line"></line>
+            <text x="56" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
           </g>
           <polyline [attr.points]="chartData.line.points" class="line-path"></polyline>
           <circle *ngFor="let dot of chartData.line.dots; trackBy: trackByMonth" [attr.cx]="dot.x" [attr.cy]="dot.y" r="7" class="line-dot"></circle>

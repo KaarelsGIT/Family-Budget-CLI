@@ -202,10 +202,15 @@ export class ChartDetailModalComponent {
 
   private buildDailyGuideXs(): number[] {
     const data = this.data();
-    if (!data || data.kind !== 'monthly' || data.bars.length < 2) {
+    if (!data || data.kind !== 'monthly') {
       return [];
     }
 
-    return data.bars.slice(0, -1).map((bar, index) => (bar.x + data.bars[index + 1].x) / 2);
+    const width = 1052;
+    const leftPadding = 64;
+    const rightPadding = 64;
+    const slotWidth = (width - leftPadding - rightPadding) / data.bars.length;
+
+    return Array.from({ length: data.bars.length + 1 }, (_, index) => leftPadding + (index * slotWidth));
   }
 }

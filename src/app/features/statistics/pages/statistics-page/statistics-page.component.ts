@@ -161,6 +161,7 @@ export class StatisticsPageComponent {
 
   readonly monthlyBars = computed(() => this.buildMonthlyBars());
   readonly dailyGuideXs = computed(() => this.buildDailyGuideXs());
+  readonly monthlyGuideXs = computed(() => this.buildMonthlyGuideXs());
   readonly monthlyChartTicks = computed(() => this.buildMonthlyTicks());
   readonly savingsLine = computed(() => this.buildSavingsLine());
   readonly savingsChartTicks = computed(() => this.buildSavingsTicks());
@@ -638,13 +639,17 @@ export class StatisticsPageComponent {
 
     const chartHeight = 180;
     const baseline = 200;
+    const width = 1052;
+    const leftPadding = 64;
+    const rightPadding = 64;
+    const slotWidth = (width - leftPadding - rightPadding) / monthly.length;
 
     return monthly.map((entry) => ({
       month: entry.month,
       label: this.formatMonth(entry.month),
-      x: entry.month * 44,
-      incomeX: entry.month * 44 - 10,
-      expenseX: entry.month * 44 + 4,
+      x: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2),
+      incomeX: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2) - 8,
+      expenseX: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2) + 4,
       incomeValue: entry.income,
       expenseValue: entry.expenses,
       incomeHeight: (entry.income / maxValue) * chartHeight,
@@ -806,16 +811,21 @@ export class StatisticsPageComponent {
     const maxValue = Math.max(1, ...daily.flatMap((entry) => [entry.income, entry.expenses]));
     const chartHeight = 180;
     const baseline = 200;
-    const width = 540;
-    const pointSpacing = daily.length > 1 ? width / (daily.length - 1) : width;
-    const leftPadding = 40;
+    const width = 1180;
+    const leftPadding = 64;
+    const rightPadding = 64;
+    const slotWidth = (width - leftPadding - rightPadding) / daily.length;
+    const barWidth = Math.max(3, Math.min(5, slotWidth * 0.14));
+    const barGap = Math.max(6, Math.min(18, slotWidth * 0.48));
+    const pairWidth = (barWidth * 2) + barGap;
 
     return daily.map((entry, index) => {
-      const x = leftPadding + index * pointSpacing;
+      const x = leftPadding + (index * slotWidth) + (slotWidth / 2);
+      const barStart = x - (pairWidth / 2);
       const incomeHeight = (entry.income / maxValue) * chartHeight;
       const expenseHeight = (entry.expenses / maxValue) * chartHeight;
-      const incomeX = x - 14;
-      const expenseX = x + 2;
+      const incomeX = barStart;
+      const expenseX = barStart + barWidth + barGap;
 
       return {
         month: entry.day,
@@ -834,12 +844,32 @@ export class StatisticsPageComponent {
   }
 
   private buildDailyGuideXs(): number[] {
-    const bars = this.selectedMonth() !== null ? this.buildDailyBars() : [];
-    if (bars.length < 2) {
+    const month = this.selectedMonth();
+    if (month === null) {
       return [];
     }
 
-    return bars.slice(0, -1).map((bar, index) => (bar.x + bars[index + 1].x) / 2);
+    const daysInMonth = this.daysInSelectedMonth();
+    const width = 1180;
+    const leftPadding = 64;
+    const rightPadding = 64;
+    const slotWidth = (width - leftPadding - rightPadding) / daysInMonth;
+
+    return Array.from({ length: daysInMonth + 1 }, (_, index) => leftPadding + (index * slotWidth));
+  }
+
+  private buildMonthlyGuideXs(): number[] {
+    const monthly = this.monthlyByNumber();
+    if (monthly.length < 2) {
+      return [];
+    }
+
+    const width = 1052;
+    const leftPadding = 56;
+    const rightPadding = 56;
+    const slotWidth = (width - leftPadding - rightPadding) / monthly.length;
+
+    return Array.from({ length: monthly.length - 1 }, (_, index) => leftPadding + ((index + 1) * slotWidth));
   }
 
   private buildDailyTicks(): ChartTick[] {

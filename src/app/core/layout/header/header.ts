@@ -179,6 +179,23 @@ export class Header {
     this.isTransactionsOpen = false;
   }
 
+  openOrReload(path: string, event: MouseEvent): void {
+    event.preventDefault();
+    const currentPath = this.router.url.split('?')[0].split('#')[0];
+    if (currentPath === path) {
+      window.location.reload();
+      return;
+    }
+
+    this.closeTransactionsMenu();
+    this.isUserMenuOpen = false;
+    this.isToolsOpen = false;
+    this.isLanguageMenuOpen = false;
+    this.isNotificationsOpen = false;
+    this.isHelpOpen = false;
+    void this.router.navigateByUrl(path);
+  }
+
   openAddTransaction(): void {
     this.transactionDraftService.requestOpen({ type: 'EXPENSE' });
     this.closeTransactionsMenu();
