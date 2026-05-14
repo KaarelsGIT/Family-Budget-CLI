@@ -99,7 +99,8 @@ export class StatisticsPageComponent {
   readonly i18n = inject(TranslationService);
 
   readonly currentYear = new Date().getFullYear();
-  readonly selectedMonth = signal<number | null>(null);
+  readonly currentMonth = new Date().getMonth() + 1;
+  readonly selectedMonth = signal<number | null>(this.currentMonth);
   readonly currentUserId = this.authService.getUserId();
   readonly currentUserRole = this.authService.getRole();
   readonly selectedYear = signal(this.currentYear);
@@ -129,9 +130,10 @@ export class StatisticsPageComponent {
   readonly monthOptions = computed<MonthOption[]>(() =>
     Array.from({ length: 12 }, (_, index) => {
       const value = index + 1;
+      const label = new Intl.DateTimeFormat(this.i18n.language(), { month: 'long' }).format(new Date(this.currentYear, index, 1));
       return {
         value,
-        label: new Intl.DateTimeFormat(this.i18n.language(), { month: 'long' }).format(new Date(this.currentYear, index, 1))
+        label: label.charAt(0).toUpperCase() + label.slice(1)
       };
     })
   );
@@ -182,8 +184,9 @@ export class StatisticsPageComponent {
   });
 
   readonly hasActiveFilters = computed(() =>
-    this.selectedMonth() !== null
-    || this.selectedUserId() !== this.currentUserId
+    this.selectedYear() !== this.currentYear
+    || this.selectedMonth() !== null
+    || this.selectedUserFilter() !== null
     || this.selectedUserType() !== null
     || this.selectedAccountId() !== null
   );
@@ -252,10 +255,11 @@ export class StatisticsPageComponent {
   }
 
   clearFilters(): void {
+    this.selectedYear.set(this.currentYear);
     this.selectedMonth.set(null);
-    this.selectedUserId.set(this.currentUserId);
+    this.selectedUserId.set(null);
     this.selectedUserType.set(null);
-    this.selectedUserFilter.set(this.currentUserId);
+    this.selectedUserFilter.set(null);
     this.selectedAccountId.set(null);
     this.loadStatistics();
     this.loadMonthTransactions();

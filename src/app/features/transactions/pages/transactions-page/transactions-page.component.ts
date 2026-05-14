@@ -70,6 +70,10 @@ export class TransactionsPageComponent {
 
   readonly currentUserId = this.authService.getUserId();
   readonly currentUserRole = this.authService.getRole();
+  readonly currentYear = new Date().getFullYear();
+  readonly currentMonth = new Date().getMonth() + 1;
+  readonly currentMonthFromDate = `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-01`;
+  readonly currentMonthToDate = `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-${String(new Date(this.currentYear, this.currentMonth, 0).getDate()).padStart(2, '0')}`;
 
   readonly transactions = signal<TransactionItem[]>([]);
   readonly transactionData = signal<TransactionListResult | null>(null);
@@ -99,8 +103,8 @@ export class TransactionsPageComponent {
     types: [] as TransactionFilterType[],
     mainCategoryId: null as number | null,
     subCategoryId: null as number | null,
-    fromDate: '',
-    toDate: ''
+    fromDate: this.currentMonthFromDate,
+    toDate: this.currentMonthToDate
   });
 
   readonly userFilterValue = computed(() => {
@@ -133,7 +137,7 @@ export class TransactionsPageComponent {
   readonly hasNextPage = computed(() => this.filters().page + 1 < this.pageCount());
   readonly hasActiveFilters = computed(() => {
     const filters = this.filters();
-    return filters.userId !== this.currentUserId
+    return filters.userId !== null
       || filters.userType !== null
       || filters.types.length > 0
       || filters.mainCategoryId !== null
@@ -402,7 +406,7 @@ export class TransactionsPageComponent {
     this.filters.set({
       page: 0,
       size: 25,
-      userId: this.currentUserId,
+      userId: null,
       userType: null,
       types: [],
       mainCategoryId: null,
