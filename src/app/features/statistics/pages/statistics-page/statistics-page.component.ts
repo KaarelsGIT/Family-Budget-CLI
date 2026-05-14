@@ -78,6 +78,12 @@ interface UserFilterGroup {
   options: SelectableUser[];
 }
 
+interface DailyCategoryBucket {
+  total: number;
+  monthly: Record<string, number>;
+  children: Map<string, DailyCategoryBucket>;
+}
+
 @Component({
   selector: 'app-statistics-page',
   standalone: true,
@@ -159,6 +165,8 @@ export class StatisticsPageComponent {
   readonly categoryPieSlices = computed(() => this.buildCategoryPieSlices());
   readonly categoryGroups = computed(() => this.buildCategoryGroups());
   readonly categoryTableCategories = computed(() => this.buildCategoryTableCategories());
+  readonly categoryTableColumns = computed(() => this.buildCategoryTableColumns());
+  readonly categoryTableColumnLabels = computed(() => this.buildCategoryTableColumnLabels());
   readonly hasStatisticsData = computed(() => {
     const statistics = this.statistics();
     if (!statistics) {
@@ -481,7 +489,35 @@ export class StatisticsPageComponent {
   }
 
   private buildCategoryTableCategories(): CategoryTableNode[] {
+    if (this.selectedMonth() !== null) {
+      return this.buildDailyCategoryTableCategories();
+    }
+
     return this.buildCategoryGroups().map((group) => this.mapCategoryNode(group));
+  }
+
+  private buildCategoryTableColumns(): number[] {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return Array.from({ length: 12 }, (_, index) => index + 1);
+    }
+
+    return Array.from({ length: this.daysInSelectedMonth() }, (_, index) => index + 1);
+  }
+
+  private buildCategoryTableColumnLabels(): { key: number; label: string }[] {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return Array.from({ length: 12 }, (_, index) => ({
+        key: index + 1,
+        label: new Intl.DateTimeFormat(this.i18n.language(), { month: 'short' }).format(new Date(this.selectedYear(), index, 1))
+      }));
+    }
+
+    return Array.from({ length: this.daysInSelectedMonth() }, (_, index) => {
+      const day = index + 1;
+      return { key: day, label: String(day).padStart(2, '0') };
+    });
   }
 
   private buildChartModalData(type: ChartDetailModalType, statistics: YearlyStatisticsResponse): ChartDetailModalData {
@@ -522,6 +558,70 @@ export class StatisticsPageComponent {
         subcategories: []
       }))
     };
+  }
+
+  private buildDailyCategoryTableCategories(): CategoryTableNode[] {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return [];
+    }
+
+    const rows = new Map<string, DailyCategoryBucket>();
+    const typeFilter = this.selectedCategoryTab() === 'income' ? 'INCOME' : 'EXPENSE';
+
+    for (const transaction of this.monthTransactions()) {
+      if (transaction.type !== typeFilter) {
+        continue;
+      }
+
+      const day = new Date(`${transaction.transactionDate}T00:00:00`).getDate();
+      const parts = this.parseCategoryPath(transaction.categoryName);
+      const categoryParts = parts.length > 0 ? parts : [this.i18n.translate('statistics.categoryTotal')];
+
+      this.addDailyCategoryTransaction(rows, categoryParts, day, transaction.amount);
+    }
+
+    return this.mapDailyCategoryRows(rows);
+  }
+
+  private addDailyCategoryTransaction(
+    rows: Map<string, DailyCategoryBucket>,
+    parts: string[],
+    day: number,
+    amount: number
+  ): void {
+    if (parts.length === 0) {
+      return;
+    }
+
+    const [head, ...tail] = parts;
+    const bucket = rows.get(head) ?? { total: 0, monthly: {}, children: new Map<string, DailyCategoryBucket>() };
+    bucket.total += amount;
+    bucket.monthly[String(day)] = (bucket.monthly[String(day)] ?? 0) + amount;
+    rows.set(head, bucket);
+    this.addDailyCategoryTransaction(bucket.children, tail, day, amount);
+  }
+
+  private parseCategoryPath(categoryName: string | null): string[] {
+    if (!categoryName) {
+      return [];
+    }
+
+    return categoryName
+      .split(' / ')
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0);
+  }
+
+  private mapDailyCategoryRows(rows: Map<string, DailyCategoryBucket>): CategoryTableNode[] {
+    return [...rows.entries()]
+      .map(([name, entry]) => ({
+        name,
+        total: entry.total,
+        monthly: entry.monthly,
+        subcategories: this.mapDailyCategoryRows(entry.children)
+      }))
+      .sort((left, right) => right.total - left.total || left.name.localeCompare(right.name));
   }
 
   private buildMonthlyBars(): MonthlyBarGroup[] {
@@ -828,7 +928,10 @@ export class StatisticsPageComponent {
   }
 
   private toIsoDate(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private daysInSelectedMonth(): number {

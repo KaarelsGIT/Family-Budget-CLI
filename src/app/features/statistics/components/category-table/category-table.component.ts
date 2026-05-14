@@ -13,6 +13,7 @@ export interface CategoryTableNode {
   name: string;
   total: number;
   monthly?: CategoryTableMonthTotals;
+  isExpanded?: boolean;
   subcategories?: CategoryTableNode[];
 }
 
@@ -23,6 +24,8 @@ interface CategoryTableRow {
   monthly?: CategoryTableMonthTotals | null;
   depth: number;
   hasChildren: boolean;
+  isExpanded: boolean;
+  subcategories: CategoryTableRow[];
 }
 
 @Component({
@@ -37,16 +40,14 @@ export class CategoryTableComponent {
 
   readonly categories = input.required<CategoryTableNode[]>();
   readonly activeTab = input<CategoryTab>('expenses');
+  readonly columns = input<number[]>(Array.from({ length: 12 }, (_, index) => index + 1));
+  readonly columnLabels = input<{ key: number; label: string }[]>([]);
+  readonly viewMode = input<'year' | 'month'>('year');
   readonly activeTabChange = output<CategoryTab>();
 
   readonly expandedKeys = signal<Record<string, boolean>>({});
 
-  readonly monthColumns = Array.from({ length: 12 }, (_, index) => index + 1);
-  readonly monthLabels = computed(() => this.monthColumns.map((month, index) => ({
-    key: month,
-    label: new Intl.DateTimeFormat(this.i18n.language(), { month: 'short' }).format(new Date(2024, index, 1))
-  })));
-  readonly rows = computed(() => this.flattenRows(this.categories()));
+  readonly rows = computed(() => this.buildRows(this.categories()));
 
   constructor() {
     effect(() => {
@@ -79,7 +80,7 @@ export class CategoryTableComponent {
       return row.total;
     }
 
-    const monthlyTotal = this.monthColumns.reduce((sum, month) => sum + (row.monthly?.[String(month)] ?? 0), 0);
+    const monthlyTotal = this.columns().reduce((sum, month) => sum + (row.monthly?.[String(month)] ?? 0), 0);
     return monthlyTotal;
   }
 
@@ -87,8 +88,8 @@ export class CategoryTableComponent {
     return row.key;
   }
 
-  trackByMonthColumn(_index: number, column: { key: number }): number {
-    return column.key;
+  trackByMonthColumn(_index: number, month: number): number {
+    return month;
   }
 
   trackByMonthKey(_index: number, month: number): number {
@@ -109,10 +110,10 @@ export class CategoryTableComponent {
       : this.i18n.translate('statistics.expandCategory');
   }
 
-  private flattenRows(categories: CategoryTableNode[], depth = 0, parentKey = ''): CategoryTableRow[] {
+  private buildRows(categories: CategoryTableNode[], depth = 0, parentKey = ''): CategoryTableRow[] {
     return [...categories]
       .sort((left, right) => left.name.localeCompare(right.name))
-      .flatMap((category) => {
+      .map((category) => {
         const key = parentKey ? `${parentKey}/${category.name}` : category.name;
         const children = category.subcategories ?? [];
         const row: CategoryTableRow = {
@@ -121,14 +122,18 @@ export class CategoryTableComponent {
           total: category.total,
           monthly: category.monthly ?? null,
           depth,
-          hasChildren: children.length > 0
+          hasChildren: children.length > 0,
+          isExpanded: !!this.expandedKeys()[key],
+          subcategories: []
         };
 
-        if (!children.length || !this.isExpanded(key)) {
-          return [row];
-        }
-
-        return [row, ...this.flattenRows(children, depth + 1, key)];
+        row.subcategories = children.length > 0 && row.isExpanded ? this.buildRows(children, depth + 1, key) : [];
+        return row;
       });
+  }
+
+  labelForColumn(month: number): string {
+    const labels = this.columnLabels();
+    return labels.find((column) => column.key === month)?.label ?? String(month);
   }
 }

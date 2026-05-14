@@ -201,6 +201,9 @@
 
     <app-category-table
       [categories]="categoryTableCategories()"
+      [columns]="categoryTableColumns()"
+      [columnLabels]="categoryTableColumnLabels()"
+      [viewMode]="selectedMonth() === null ? 'year' : 'month'"
       [activeTab]="selectedCategoryTab()"
       (activeTabChange)="setCategoryTab($event)">
     </app-category-table>
