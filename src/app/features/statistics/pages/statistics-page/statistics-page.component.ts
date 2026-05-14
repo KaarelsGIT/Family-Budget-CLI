@@ -134,7 +134,7 @@ export class StatisticsPageComponent {
     return [...this.accounts()].sort((left, right) => left.name.localeCompare(right.name));
   });
 
-  readonly showUserFilter = computed(() => this.userOptions().length > 0);
+  readonly showUserFilter = computed(() => this.currentUserRole !== 'CHILD' && this.userOptions().length > 0);
 
   readonly monthlyBars = computed(() => this.buildMonthlyBars());
   readonly monthlyChartTicks = computed(() => this.buildMonthlyTicks());
@@ -223,9 +223,9 @@ export class StatisticsPageComponent {
 
   clearFilters(): void {
     this.selectedMonth.set(null);
-    this.selectedUserId.set(null);
+    this.selectedUserId.set(this.currentUserId);
     this.selectedUserType.set(null);
-    this.selectedUserFilter.set(null);
+    this.selectedUserFilter.set(this.currentUserId);
     this.selectedAccountId.set(null);
     this.loadStatistics();
   }

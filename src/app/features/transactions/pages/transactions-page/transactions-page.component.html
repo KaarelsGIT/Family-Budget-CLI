@@ -10,7 +10,7 @@
 
   <section class="filters-card">
     <div class="filters-grid">
-      <label class="field">
+      <label class="field" *ngIf="currentUserRole !== 'CHILD'">
         <span>{{ i18n.translate('transactions.filterUser') }}</span>
         <select class="filter-control" [ngModel]="userFilterValue()" (ngModelChange)="onUserChange($event)">
           <option [ngValue]="null">{{ i18n.translate('transactions.allUsers') }}</option>
@@ -185,7 +185,7 @@
               #
               <span class="sort-meta" *ngIf="getSortMeta('id') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
-            <th class="sortable" (click)="setSort('createdBy.username', $event)">
+            <th class="sortable" (click)="setSort('createdBy.username', $event)" *ngIf="currentUserRole !== 'CHILD'">
               {{ i18n.translate('transactions.columnUser') }}
               <span class="sort-meta" *ngIf="getSortMeta('createdBy.username') as sortMeta">{{ sortMeta.direction === 'asc' ? '↑' : '↓' }}<small>{{ sortMeta.priority }}</small></span>
             </th>
@@ -229,7 +229,7 @@
             [class.expense-row]="transaction.type === 'EXPENSE'"
             [class.transfer-row]="transaction.type === 'TRANSFER'">
             <td class="index-cell">{{ index + 1 + filters().page * filters().size }}</td>
-            <td class="user-cell">{{ transaction.createdByUsername }}</td>
+            <td class="user-cell" *ngIf="currentUserRole !== 'CHILD'">{{ transaction.createdByUsername }}</td>
             <td class="type-cell">
               <span class="type-badge" [class.income]="transaction.type === 'INCOME'" [class.expense]="transaction.type === 'EXPENSE'" [class.transfer]="transaction.type === 'TRANSFER'">
                 {{ getTypeLabel(transaction.type) }}
@@ -275,7 +275,7 @@
           </tr>
 
           <tr *ngIf="!isLoading() && transactions().length === 0">
-            <td colspan="10" class="empty-row">{{ i18n.translate('transactions.noTransactions') }}</td>
+            <td [attr.colspan]="currentUserRole !== 'CHILD' ? 10 : 9" class="empty-row">{{ i18n.translate('transactions.noTransactions') }}</td>
           </tr>
         </tbody>
       </table>

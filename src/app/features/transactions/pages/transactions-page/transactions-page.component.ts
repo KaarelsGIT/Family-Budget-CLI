@@ -402,7 +402,7 @@ export class TransactionsPageComponent {
     this.filters.set({
       page: 0,
       size: 25,
-      userId: null,
+      userId: this.currentUserId,
       userType: null,
       types: [],
       mainCategoryId: null,
