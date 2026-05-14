@@ -52,11 +52,14 @@
 }
 
 .table-scroll {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .category-grid {
   width: 100%;
+  min-width: 860px;
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 0.9rem;
@@ -187,5 +190,40 @@
 @media (max-width: 900px) {
   .section-header {
     flex-direction: column;
+  }
+
+  .category-grid {
+    min-width: 1020px;
+    font-size: 0.84rem;
+  }
+
+  .category-column {
+    width: 130px;
+    min-width: 130px;
+  }
+
+  .total-column {
+    width: 108px;
+    min-width: 108px;
+  }
+
+  .month-column {
+    width: 68px;
+    min-width: 68px;
+  }
+
+  .category-grid th,
+  .category-grid td {
+    padding: 10px 10px;
+  }
+
+  .total-cell,
+  .month-cell {
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .total-cell {
+    font-size: 0.86rem;
   }
 }

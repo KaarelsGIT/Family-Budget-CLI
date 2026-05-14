@@ -165,6 +165,13 @@
   stroke-width: 1;
 }
 
+.chart-vertical-guide {
+  stroke: rgba(95, 111, 100, 0.14);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  shape-rendering: crispEdges;
+}
+
 .axis-label {
   font-size: 10px;
   fill: #5d6d61;
@@ -322,30 +329,138 @@
     flex-direction: column;
   }
 
+  .filters-bar {
+    width: 100%;
+  }
+
+  .filter-group {
+    min-width: 0;
+  }
+
+  .summary-grid,
+  .charts-grid,
+  .transfer-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card,
+  .summary-card,
+  .table-card,
+  .transfers-card {
+    padding: 16px;
+  }
+
+  .monthly-chart,
+  .line-chart {
+    min-height: 280px;
+  }
+
   .pie-layout {
     grid-template-columns: 1fr;
+  }
+
+  .pie-chart {
+    width: min(72vw, 260px);
+    height: min(72vw, 260px);
+    margin: 0 auto;
+  }
+
+  .chart-legend {
+    gap: 10px;
   }
 }
 
 @media (max-width: 640px) {
   .statistics-container {
-    padding: 18px;
+    padding: 14px;
+    gap: 16px;
+  }
+
+  .page-header h1,
+  .section-header h2 {
+    font-size: 24px;
+  }
+
+  .page-copy {
+    font-size: 14px;
   }
 
   .summary-card strong {
-    font-size: 21px;
+    font-size: 19px;
   }
 
   .filters-bar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 8px;
-    align-items: end;
   }
 
   .filters-bar .filter-group {
     min-width: 0;
-    flex: initial;
+    width: 100%;
   }
 
+  .field {
+    align-items: stretch;
+  }
+
+  .field span {
+    text-align: left;
+    font-size: 12px;
+  }
+
+  .filter-action {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .summary-grid {
+    gap: 10px;
+  }
+
+  .chart-card,
+  .summary-card,
+  .table-card,
+  .transfers-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .section-header {
+    margin-bottom: 12px;
+  }
+
+  .chart-legend,
+  .legend-item {
+    font-size: 12px;
+  }
+
+  .pie-chart {
+    width: min(86vw, 240px);
+    height: min(86vw, 240px);
+  }
+
+  .axis-label,
+  .bar-label {
+    font-size: 9px;
+  }
+
+  .loading-overlay {
+    right: 14px;
+    bottom: 14px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+  }
 }

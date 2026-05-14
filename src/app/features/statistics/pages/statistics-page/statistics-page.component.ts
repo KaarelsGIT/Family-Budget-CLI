@@ -13,6 +13,8 @@ import {
   ChartDetailModalData,
   ChartDetailModalType
 } from '../../modals/chart-detail-modal/chart-detail-modal.component';
+import { TransactionItem, TransactionQuery } from '../../../transactions/models/transaction.model';
+import { TransactionsService } from '../../../transactions/services/transactions.service';
 import {
   StatisticsService,
   YearlyStatisticsMonthlyEntry,
@@ -24,6 +26,9 @@ type CategoryTab = 'income' | 'expenses';
 interface MonthlyBarGroup {
   month: number;
   label: string;
+  x: number;
+  incomeX: number;
+  expenseX: number;
   incomeHeight: number;
   expenseHeight: number;
   incomeY: number;
@@ -59,6 +64,14 @@ interface MonthOption {
   label: string;
 }
 
+interface DailyChartEntry {
+  day: number;
+  label: string;
+  income: number;
+  expenses: number;
+  savings: number;
+}
+
 interface UserFilterGroup {
   value: number | '__parent__' | '__child__' | null;
   label: string;
@@ -75,6 +88,7 @@ interface UserFilterGroup {
 export class StatisticsPageComponent {
   private readonly statisticsService = inject(StatisticsService);
   private readonly accountService = inject(AccountService);
+  private readonly transactionsService = inject(TransactionsService);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
@@ -95,6 +109,7 @@ export class StatisticsPageComponent {
   readonly statistics = signal<YearlyStatisticsResponse | null>(null);
   readonly accounts = signal<Account[]>([]);
   readonly selectableUsers = signal<SelectableUser[]>([]);
+  readonly monthTransactions = signal<TransactionItem[]>([]);
   readonly activeChartModal = signal<{ type: ChartDetailModalType; data: ChartDetailModalData } | null>(null);
 
   readonly yearOptions = computed(() => {
@@ -137,6 +152,7 @@ export class StatisticsPageComponent {
   readonly showUserFilter = computed(() => this.currentUserRole !== 'CHILD' && this.userOptions().length > 0);
 
   readonly monthlyBars = computed(() => this.buildMonthlyBars());
+  readonly dailyGuideXs = computed(() => this.buildDailyGuideXs());
   readonly monthlyChartTicks = computed(() => this.buildMonthlyTicks());
   readonly savingsLine = computed(() => this.buildSavingsLine());
   readonly savingsChartTicks = computed(() => this.buildSavingsTicks());
@@ -167,6 +183,7 @@ export class StatisticsPageComponent {
   constructor() {
     this.loadFilterOptions();
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   onYearChange(value: number | string): void {
@@ -177,12 +194,14 @@ export class StatisticsPageComponent {
 
     this.selectedYear.set(parsed);
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   onMonthChange(value: any): void {
     const parsed = value === null || value === '' ? null : Number(value);
     this.selectedMonth.set(parsed);
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   onUserChange(value: number | string | null): void {
@@ -201,6 +220,7 @@ export class StatisticsPageComponent {
     this.selectedUserId.set(parsed);
     this.selectedUserType.set(null);
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   onUserGroupChange(value: 'PARENT' | 'CHILD' | null): void {
@@ -214,11 +234,13 @@ export class StatisticsPageComponent {
       this.selectedUserId.set(null);
     }
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   onAccountChange(value: number | string | null): void {
     this.selectedAccountId.set(value === null || value === '' ? null : Number(value));
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   clearFilters(): void {
@@ -228,6 +250,7 @@ export class StatisticsPageComponent {
     this.selectedUserFilter.set(this.currentUserId);
     this.selectedAccountId.set(null);
     this.loadStatistics();
+    this.loadMonthTransactions();
   }
 
   setCategoryTab(tab: CategoryTab): void {
@@ -271,6 +294,44 @@ export class StatisticsPageComponent {
     return new Intl.DateTimeFormat(this.i18n.language(), { month: 'short' }).format(new Date(this.selectedYear(), month - 1, 1));
   }
 
+  formatDay(day: number): string {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return String(day);
+    }
+
+    return String(day).padStart(2, '0');
+  }
+
+  shouldShowDayLabel(day: number): boolean {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return true;
+    }
+
+    return true;
+  }
+
+  dayLabelRotation(): string {
+    return this.selectedMonth() === null ? '0' : '45';
+  }
+
+  dayLabelAnchor(): string {
+    return this.selectedMonth() === null ? 'middle' : 'end';
+  }
+
+  dayLabelXOffset(): number {
+    return this.selectedMonth() === null ? 0 : 4;
+  }
+
+  dayLabelYOffset(): number {
+    return this.selectedMonth() === null ? 220 : 226;
+  }
+
+  isMonthView(): boolean {
+    return this.selectedMonth() !== null;
+  }
+
   formatAccountLabel(account: Account): string {
     return `${account.ownerUsername} · ${account.name}`;
   }
@@ -299,6 +360,10 @@ export class StatisticsPageComponent {
 
   trackByTick(_index: number, tick: ChartTick): number {
     return tick.value;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 
   private loadFilterOptions(): void {
@@ -340,6 +405,38 @@ export class StatisticsPageComponent {
           this.errorMessage.set(error.error?.message || this.i18n.translate('statistics.loadFailed'));
         }
       });
+  }
+
+  private loadMonthTransactions(): void {
+    const month = this.selectedMonth();
+    if (month === null) {
+      this.monthTransactions.set([]);
+      return;
+    }
+
+    const query: TransactionQuery = {
+      page: 0,
+      size: 5000,
+      sort: 'transactionDate,asc',
+      userId: this.selectedUserId(),
+      userType: this.selectedUserType(),
+      types: [],
+      mainCategoryId: null,
+      subCategoryId: null,
+      from: this.toIsoDate(new Date(this.selectedYear(), month - 1, 1)),
+      to: this.toIsoDate(new Date(this.selectedYear(), month, 0))
+    };
+
+    this.transactionsService.getTransactions(query).subscribe({
+      next: (response) => {
+        const accountId = this.selectedAccountId();
+        const filtered = accountId === null
+          ? response.data
+          : response.data.filter((transaction) => transaction.fromAccountId === accountId || transaction.toAccountId === accountId);
+        this.monthTransactions.set(filtered);
+      },
+      error: () => this.monthTransactions.set([])
+    });
   }
 
   private buildCategoryGroups(): YearlyStatisticsCategoryEntry[] {
@@ -428,6 +525,10 @@ export class StatisticsPageComponent {
   }
 
   private buildMonthlyBars(): MonthlyBarGroup[] {
+    if (this.selectedMonth() !== null) {
+      return this.buildDailyBars();
+    }
+
     const monthly = this.monthlyByNumber();
     const maxValue = this.monthlyChartMax();
 
@@ -437,6 +538,9 @@ export class StatisticsPageComponent {
     return monthly.map((entry) => ({
       month: entry.month,
       label: this.formatMonth(entry.month),
+      x: entry.month * 44,
+      incomeX: entry.month * 44 - 10,
+      expenseX: entry.month * 44 + 4,
       incomeValue: entry.income,
       expenseValue: entry.expenses,
       incomeHeight: (entry.income / maxValue) * chartHeight,
@@ -447,6 +551,10 @@ export class StatisticsPageComponent {
   }
 
   private buildMonthlyTicks(): ChartTick[] {
+    if (this.selectedMonth() !== null) {
+      return this.buildDailyTicks();
+    }
+
     const rawMax = this.monthlyChartRawMax();
     if (rawMax <= 0) {
       return [{
@@ -472,6 +580,10 @@ export class StatisticsPageComponent {
   }
 
   private buildSavingsLine(): { points: string; dots: LinePoint[]; min: number; max: number } {
+    if (this.selectedMonth() !== null) {
+      return this.buildDailySavingsLine();
+    }
+
     const monthly = this.monthlyByNumber();
     const { min, max } = this.savingsChartBounds();
     const range = max - min || 1;
@@ -497,6 +609,10 @@ export class StatisticsPageComponent {
   }
 
   private buildSavingsTicks(): ChartTick[] {
+    if (this.selectedMonth() !== null) {
+      return this.buildDailySavingsTicks();
+    }
+
     const { min, max } = this.savingsChartBounds();
     const chartHeight = 170;
     const baseline = 190;
@@ -581,12 +697,201 @@ export class StatisticsPageComponent {
     return Math.max(1, this.monthlyChartRawMax());
   }
 
+  private buildDailyBars(): MonthlyBarGroup[] {
+    const daily = this.dailySeries();
+    const maxValue = Math.max(1, ...daily.flatMap((entry) => [entry.income, entry.expenses]));
+    const chartHeight = 180;
+    const baseline = 200;
+    const width = 540;
+    const pointSpacing = daily.length > 1 ? width / (daily.length - 1) : width;
+    const leftPadding = 40;
+
+    return daily.map((entry, index) => {
+      const x = leftPadding + index * pointSpacing;
+      const incomeHeight = (entry.income / maxValue) * chartHeight;
+      const expenseHeight = (entry.expenses / maxValue) * chartHeight;
+      const incomeX = x - 14;
+      const expenseX = x + 2;
+
+      return {
+        month: entry.day,
+        label: entry.label,
+        x,
+        incomeX,
+        expenseX,
+        incomeValue: entry.income,
+        expenseValue: entry.expenses,
+        incomeHeight,
+        expenseHeight,
+        incomeY: baseline - incomeHeight,
+        expenseY: baseline - expenseHeight
+      };
+    });
+  }
+
+  private buildDailyGuideXs(): number[] {
+    const bars = this.selectedMonth() !== null ? this.buildDailyBars() : [];
+    if (bars.length < 2) {
+      return [];
+    }
+
+    return bars.slice(0, -1).map((bar, index) => (bar.x + bars[index + 1].x) / 2);
+  }
+
+  private buildDailyTicks(): ChartTick[] {
+    const daily = this.dailySeries();
+    const rawMax = Math.max(0, ...daily.flatMap((entry) => [entry.income, entry.expenses]));
+    if (rawMax <= 0) {
+      return [{
+        value: 0,
+        y: 200,
+        label: this.formatAmount(0)
+      }];
+    }
+
+    const max = Math.max(1, rawMax);
+    const chartHeight = 180;
+    const baseline = 200;
+    const steps = 4;
+
+    return Array.from({ length: steps + 1 }, (_, index) => {
+      const value = (max / steps) * index;
+      return {
+        value,
+        y: baseline - ((value / max) * chartHeight),
+        label: this.formatAmount(value)
+      };
+    }).reverse();
+  }
+
+  private buildDailySavingsLine(): { points: string; dots: LinePoint[]; min: number; max: number } {
+    const daily = this.dailySeries();
+    const values = daily.map((entry) => entry.savings);
+    const min = Math.min(0, ...values);
+    const max = Math.max(0, ...values);
+    const range = max - min || 1;
+    const width = 540;
+    const height = 170;
+    const leftPadding = 40;
+    const pointSpacing = daily.length > 1 ? width / (daily.length - 1) : width;
+
+    const dots = daily.map((entry, index) => {
+      const x = leftPadding + index * pointSpacing;
+      const y = 190 - (((entry.savings - min) / range) * height);
+      return {
+        month: entry.day,
+        label: entry.label,
+        x,
+        y,
+        value: entry.savings
+      };
+    });
+
+    return { points: dots.map((dot) => `${dot.x},${dot.y}`).join(' '), dots, min, max };
+  }
+
+  private buildDailySavingsTicks(): ChartTick[] {
+    const daily = this.dailySeries();
+    const values = daily.map((entry) => entry.savings);
+    const min = Math.min(0, ...values);
+    const max = Math.max(0, ...values);
+    const chartHeight = 170;
+    const baseline = 190;
+
+    if (min === 0 && max === 0) {
+      return [{
+        value: 0,
+        y: baseline,
+        label: this.formatAmount(0)
+      }];
+    }
+
+    const steps = 4;
+    const range = max - min || 1;
+
+    return Array.from({ length: steps + 1 }, (_, index) => {
+      const value = min + (range * index / steps);
+      return {
+        value,
+        y: baseline - (((value - min) / range) * chartHeight),
+        label: this.formatAmount(value)
+      };
+    }).reverse();
+  }
+
   private savingsChartBounds(): { min: number; max: number } {
     const values = this.monthlyByNumber().map((entry) => entry.savings);
     return {
       min: Math.min(0, ...values),
       max: Math.max(0, ...values)
     };
+  }
+
+  private toIsoDate(date: Date): string {
+    return date.toISOString().slice(0, 10);
+  }
+
+  private daysInSelectedMonth(): number {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return 0;
+    }
+
+    return new Date(this.selectedYear(), month, 0).getDate();
+  }
+
+  private dailySeries(): DailyChartEntry[] {
+    const month = this.selectedMonth();
+    if (month === null) {
+      return [];
+    }
+
+    const daysInMonth = this.daysInSelectedMonth();
+    const accountById = new Map(this.accounts().map((account) => [account.id, account]));
+    const series = Array.from({ length: daysInMonth }, (_, index) => ({
+      day: index + 1,
+      label: this.formatDay(index + 1),
+      income: 0,
+      expenses: 0,
+      savings: 0
+    }));
+
+    for (const transaction of this.monthTransactions()) {
+      const day = new Date(`${transaction.transactionDate}T00:00:00`).getDate();
+      const bucket = series[day - 1];
+      if (!bucket) {
+        continue;
+      }
+
+      if (transaction.type === 'INCOME') {
+        bucket.income += transaction.amount;
+        const toAccount = transaction.toAccountId ? accountById.get(transaction.toAccountId) : null;
+        if (toAccount?.type === 'SAVINGS') {
+          bucket.savings += transaction.amount;
+        }
+      }
+
+      if (transaction.type === 'EXPENSE') {
+        bucket.expenses += transaction.amount;
+        const fromAccount = transaction.fromAccountId ? accountById.get(transaction.fromAccountId) : null;
+        if (fromAccount?.type === 'SAVINGS') {
+          bucket.savings -= transaction.amount;
+        }
+      }
+
+      if (transaction.type === 'TRANSFER') {
+        const fromAccount = transaction.fromAccountId ? accountById.get(transaction.fromAccountId) : null;
+        const toAccount = transaction.toAccountId ? accountById.get(transaction.toAccountId) : null;
+        if (fromAccount?.type === 'SAVINGS') {
+          bucket.savings -= transaction.amount;
+        }
+        if (toAccount?.type === 'SAVINGS') {
+          bucket.savings += transaction.amount;
+        }
+      }
+    }
+
+    return series;
   }
 
   private describePieSlice(cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string {

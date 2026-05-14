@@ -103,10 +103,21 @@
               <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
               <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
             </g>
+            <g *ngFor="let guideX of dailyGuideXs(); trackBy: trackByIndex">
+              <line [attr.x1]="guideX" y1="20" [attr.x2]="guideX" y2="200" class="chart-vertical-guide"></line>
+            </g>
             <g *ngFor="let group of monthlyBars(); trackBy: trackByMonth">
-              <rect class="bar-income" [attr.x]="group.month * 44 - 10" [attr.y]="group.incomeY" width="12" [attr.height]="group.incomeHeight"></rect>
-              <rect class="bar-expense" [attr.x]="group.month * 44 + 4" [attr.y]="group.expenseY" width="12" [attr.height]="group.expenseHeight"></rect>
-              <text class="bar-label" [attr.x]="group.month * 44" y="220">{{ group.label }}</text>
+              <rect *ngIf="group.incomeHeight > 0" class="bar-income" [attr.x]="group.incomeX" [attr.y]="group.incomeY" width="12" [attr.height]="group.incomeHeight"></rect>
+              <rect *ngIf="group.expenseHeight > 0" class="bar-expense" [attr.x]="group.expenseX" [attr.y]="group.expenseY" width="12" [attr.height]="group.expenseHeight"></rect>
+              <text
+                *ngIf="shouldShowDayLabel(group.month)"
+                class="bar-label"
+                [attr.x]="group.x"
+                [attr.y]="dayLabelYOffset()"
+                [attr.text-anchor]="dayLabelAnchor()"
+                [attr.transform]="'rotate(' + dayLabelRotation() + ' ' + group.x + ' ' + dayLabelYOffset() + ')'">
+                {{ group.label }}
+              </text>
             </g>
           </svg>
 
@@ -129,17 +140,27 @@
           </div>
         </header>
 
-        <svg viewBox="0 0 600 240" class="line-chart" aria-hidden="true" focusable="false">
-          <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
-          <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
+          <svg viewBox="0 0 600 240" class="line-chart" aria-hidden="true" focusable="false">
+            <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
+            <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
           <g *ngFor="let tick of savingsChartTicks(); trackBy: trackByTick">
-            <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
-            <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
-          </g>
-          <polyline [attr.points]="savingsLine().points" class="line-path"></polyline>
-          <circle *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" [attr.cx]="dot.x" [attr.cy]="dot.y" r="4" class="line-dot"></circle>
-          <text *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" class="bar-label" [attr.x]="dot.x" y="220">{{ dot.label }}</text>
-        </svg>
+              <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
+              <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+            </g>
+            <polyline [attr.points]="savingsLine().points" class="line-path"></polyline>
+            <circle *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" [attr.cx]="dot.x" [attr.cy]="dot.y" r="4" class="line-dot"></circle>
+            <ng-container *ngFor="let dot of savingsLine().dots; let index = index; trackBy: trackByLinePoint">
+              <text
+                *ngIf="shouldShowDayLabel(dot.month)"
+                class="bar-label"
+                [attr.x]="dot.x"
+                [attr.y]="dayLabelYOffset()"
+                [attr.text-anchor]="dayLabelAnchor()"
+                [attr.transform]="'rotate(' + dayLabelRotation() + ' ' + dot.x + ' ' + dayLabelYOffset() + ')'">
+                {{ dot.label }}
+              </text>
+            </ng-container>
+          </svg>
       </article>
 
       <article class="chart-card pie-card chart-card--clickable" (click)="openChartModal('category')" tabindex="0" role="button">

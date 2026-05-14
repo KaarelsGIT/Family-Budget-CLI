@@ -8,6 +8,9 @@ export type ChartDetailModalType = 'monthly' | 'savings' | 'category';
 export interface ChartDetailMonthlyBar {
   month: number;
   label: string;
+  x: number;
+  incomeX: number;
+  expenseX: number;
   incomeHeight: number;
   expenseHeight: number;
   incomeY: number;
@@ -58,6 +61,7 @@ export class ChartDetailModalComponent {
 
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
+  readonly dailyGuideXs = computed(() => this.buildDailyGuideXs());
 
   private dragging = false;
   private dragStartX = 0;
@@ -170,5 +174,38 @@ export class ChartDetailModalComponent {
 
   trackBySlice(_index: number, slice: ChartDetailPieSlice): string {
     return `${slice.label}-${slice.total}`;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  isDenseDayView(data: ChartDetailModalData | null): boolean {
+    return false;
+  }
+
+  dayLabelRotation(data: ChartDetailModalData | null): string {
+    return '0';
+  }
+
+  dayLabelAnchor(data: ChartDetailModalData | null): string {
+    return 'middle';
+  }
+
+  dayLabelYOffset(data: ChartDetailModalData | null): number {
+    return 220;
+  }
+
+  shouldShowDayLabel(index: number, total: number): boolean {
+    return true;
+  }
+
+  private buildDailyGuideXs(): number[] {
+    const data = this.data();
+    if (!data || data.kind !== 'monthly' || data.bars.length < 2) {
+      return [];
+    }
+
+    return data.bars.slice(0, -1).map((bar, index) => (bar.x + data.bars[index + 1].x) / 2);
   }
 }
