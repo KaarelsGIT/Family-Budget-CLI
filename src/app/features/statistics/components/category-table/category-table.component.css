@@ -73,6 +73,16 @@
   white-space: nowrap;
 }
 
+.category-grid tbody tr:hover {
+  background-color: #d1e4d3;
+}
+
+.category-grid tbody tr:hover td,
+.category-grid tbody tr:hover .category-cell,
+.category-grid tbody tr:hover .total-cell {
+  background-color: #d1e4d3 !important;
+}
+
 .category-grid th {
   font-size: 12px;
   text-transform: uppercase;

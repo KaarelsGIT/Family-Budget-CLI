@@ -581,7 +581,7 @@ export class StatisticsPageComponent {
 
       const day = new Date(`${transaction.transactionDate}T00:00:00`).getDate();
       const parts = this.parseCategoryPath(transaction.categoryName);
-      const categoryParts = parts.length > 0 ? parts : [this.i18n.translate('statistics.categoryTotal')];
+      const categoryParts = parts.length > 0 ? parts : [this.i18n.translate('statistics.categoryUnassigned')];
 
       this.addDailyCategoryTransaction(rows, categoryParts, day, transaction.amount);
     }
@@ -626,7 +626,7 @@ export class StatisticsPageComponent {
         monthly: entry.monthly,
         subcategories: this.mapDailyCategoryRows(entry.children)
       }))
-      .sort((left, right) => right.total - left.total || left.name.localeCompare(right.name));
+      .sort((left, right) => left.name.localeCompare(right.name));
   }
 
   private buildMonthlyBars(): MonthlyBarGroup[] {
