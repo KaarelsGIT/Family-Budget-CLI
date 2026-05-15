@@ -639,7 +639,7 @@ export class StatisticsPageComponent {
 
     const chartHeight = 180;
     const baseline = 200;
-    const width = 1052;
+    const width = 1180;
     const leftPadding = 64;
     const rightPadding = 64;
     const slotWidth = (width - leftPadding - rightPadding) / monthly.length;
@@ -648,8 +648,8 @@ export class StatisticsPageComponent {
       month: entry.month,
       label: this.formatMonth(entry.month),
       x: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2),
-      incomeX: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2) - 8,
-      expenseX: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2) + 4,
+      incomeX: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2) - 14,
+      expenseX: leftPadding + ((entry.month - 1) * slotWidth) + (slotWidth / 2) + 2,
       incomeValue: entry.income,
       expenseValue: entry.expenses,
       incomeHeight: (entry.income / maxValue) * chartHeight,
@@ -696,14 +696,17 @@ export class StatisticsPageComponent {
     const monthly = this.monthlyByNumber();
     const { min, max } = this.savingsChartBounds();
     const range = max - min || 1;
-    const width = 540;
-    const height = 170;
-    const leftPadding = 40;
-    const pointSpacing = width / 11;
+    const width = 600;
+    const leftPadding = 64;
+    const rightPadding = 64;
+    const usableWidth = width - leftPadding - rightPadding;
+    const pointSpacing = monthly.length > 1 ? usableWidth / (monthly.length - 1) : 0;
+    const baseline = 200;
+    const chartHeight = 180;
 
     const dots = monthly.map((entry, index) => {
-      const x = leftPadding + index * pointSpacing;
-      const y = 190 - (((entry.savings - min) / range) * height);
+      const x = monthly.length > 1 ? leftPadding + (index * pointSpacing) : leftPadding + (usableWidth / 2);
+      const y = baseline - (((entry.savings - min) / range) * chartHeight);
       return {
         month: entry.month,
         label: this.formatMonth(entry.month),
@@ -815,24 +818,18 @@ export class StatisticsPageComponent {
     const leftPadding = 64;
     const rightPadding = 64;
     const slotWidth = (width - leftPadding - rightPadding) / daily.length;
-    const barWidth = Math.max(3, Math.min(5, slotWidth * 0.14));
-    const barGap = Math.max(6, Math.min(18, slotWidth * 0.48));
-    const pairWidth = (barWidth * 2) + barGap;
 
     return daily.map((entry, index) => {
       const x = leftPadding + (index * slotWidth) + (slotWidth / 2);
-      const barStart = x - (pairWidth / 2);
       const incomeHeight = (entry.income / maxValue) * chartHeight;
       const expenseHeight = (entry.expenses / maxValue) * chartHeight;
-      const incomeX = barStart;
-      const expenseX = barStart + barWidth + barGap;
 
       return {
         month: entry.day,
         label: entry.label,
         x,
-        incomeX,
-        expenseX,
+        incomeX: x - 14,
+        expenseX: x + 2,
         incomeValue: entry.income,
         expenseValue: entry.expenses,
         incomeHeight,
@@ -864,9 +861,9 @@ export class StatisticsPageComponent {
       return [];
     }
 
-    const width = 1052;
-    const leftPadding = 56;
-    const rightPadding = 56;
+    const width = 1180;
+    const leftPadding = 64;
+    const rightPadding = 64;
     const slotWidth = (width - leftPadding - rightPadding) / monthly.length;
 
     return Array.from({ length: monthly.length - 1 }, (_, index) => leftPadding + ((index + 1) * slotWidth));
@@ -904,14 +901,17 @@ export class StatisticsPageComponent {
     const min = Math.min(0, ...values);
     const max = Math.max(0, ...values);
     const range = max - min || 1;
-    const width = 540;
-    const height = 170;
-    const leftPadding = 40;
-    const pointSpacing = daily.length > 1 ? width / (daily.length - 1) : width;
+    const width = 600;
+    const leftPadding = 64;
+    const rightPadding = 64;
+    const usableWidth = width - leftPadding - rightPadding;
+    const height = 180;
+    const pointSpacing = daily.length > 1 ? usableWidth / (daily.length - 1) : 0;
+    const fallbackX = leftPadding + (usableWidth / 2);
 
     const dots = daily.map((entry, index) => {
-      const x = leftPadding + index * pointSpacing;
-      const y = 190 - (((entry.savings - min) / range) * height);
+      const x = daily.length > 1 ? leftPadding + (index * pointSpacing) : fallbackX;
+      const y = 200 - (((entry.savings - min) / range) * height);
       return {
         month: entry.day,
         label: entry.label,
