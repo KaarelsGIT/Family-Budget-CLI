@@ -581,7 +581,7 @@ export class StatisticsPageComponent {
 
       const day = new Date(`${transaction.transactionDate}T00:00:00`).getDate();
       const parts = this.parseCategoryPath(transaction.categoryName);
-      const categoryParts = parts.length > 0 ? parts : [this.i18n.translate('statistics.categoryUnassigned')];
+      const categoryParts = parts.length > 0 ? parts : [this.i18n.translate('statistics.categoryUnassigned' as any)];
 
       this.addDailyCategoryTransaction(rows, categoryParts, day, transaction.amount);
     }

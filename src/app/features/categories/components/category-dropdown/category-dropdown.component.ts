@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, Output, EventEmitter, signal, comp
 import { CommonModule } from '@angular/common';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { TransactionCategory } from '../../../transactions/models/transaction.model';
-import { computePosition, flip, shift, offset, Placement, autoUpdate } from '@floating-ui/dom';
+import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom';
 
 @Component({
   selector: 'app-category-dropdown',
@@ -26,16 +26,19 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
   @Output() addNewCategory = new EventEmitter<{mode: 'create-main' | 'create-sub', parent?: TransactionCategory}>();
 
   @ViewChildren('trigger') triggerElement!: QueryList<ElementRef>;
-  @ViewChildren('menu') menuElement!: QueryList<ElementRef>;
+  @ViewChildren('menuPanel') menuElement!: QueryList<ElementRef>;
   @ViewChildren('submenuTrigger') submenuTriggers!: QueryList<ElementRef>;
-  @ViewChildren('submenu') submenus!: QueryList<ElementRef>;
+  @ViewChildren('submenuPanel') submenus!: QueryList<ElementRef>;
 
   readonly isOpen = signal(false);
   readonly openSubmenuId = signal<number | null>(null);
 
   private cleanup?: () => void;
   private submenuCleanup?: () => void;
-  private isMobile = signal(false);
+  private closeSubmenuTimer?: ReturnType<typeof setTimeout>;
+  private submenuPositionTimer?: ReturnType<typeof setTimeout>;
+  private resizeHandler?: () => void;
+  readonly isMobile = signal(false);
 
   readonly mainCategories = computed(() =>
     this.categories()
@@ -43,11 +46,31 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
       .sort((a, b) => a.name.localeCompare(b.name))
   );
 
+  readonly activeMainCategoryIds = computed(() => {
+    const selectedMain = this.selectedMainCategoryId();
+    const selectedSub = this.selectedSubCategoryId();
+    const ids = new Set<number>();
+
+    if (selectedMain !== null) {
+      ids.add(selectedMain);
+    }
+
+    if (selectedSub !== null) {
+      const sub = this.categories().find((category) => category.id === selectedSub);
+      if (sub && sub.parentCategoryId !== null) {
+        ids.add(sub.parentCategoryId);
+      }
+    }
+
+    return ids;
+  });
+
   constructor() {}
 
   ngAfterViewInit() {
     this.checkMobile();
-    window.addEventListener('resize', () => this.checkMobile());
+    this.resizeHandler = () => this.checkMobile();
+    window.addEventListener('resize', this.resizeHandler);
 
     // Listen for changes in ViewChildren to setup positioning when elements appear
     this.menuElement.changes.subscribe(() => {
@@ -68,8 +91,12 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.clearCloseSubmenuTimer();
     this.cleanupPositioning();
     this.cleanupSubmenuPositioning();
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
   }
 
   toggleDropdown() {
@@ -77,16 +104,41 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
     this.isOpen.set(newState);
     if (!newState) {
       this.openSubmenuId.set(null);
+    } else if (!this.isMobile()) {
+      queueMicrotask(() => this.setupPositioning());
     }
   }
 
-  toggleSubmenu(event: MouseEvent, mainId: number) {
+  openSubmenu(mainId: number) {
+    this.clearCloseSubmenuTimer();
+    this.openSubmenuId.set(mainId);
+    this.scheduleSubmenuPositioning();
+  }
+
+  handleMainClick(event: MouseEvent, main: TransactionCategory) {
     event.stopPropagation();
-    if (this.openSubmenuId() === mainId) {
-      this.openSubmenuId.set(null);
-    } else {
-      this.openSubmenuId.set(mainId);
-    }
+    this.isOpen.set(true);
+    this.openSubmenuId.set(main.id);
+    this.scheduleSubmenuPositioning();
+  }
+
+  handleMainMouseEnter(main: TransactionCategory) {
+    if (this.isMobile()) return;
+    this.clearCloseSubmenuTimer();
+    this.isOpen.set(true);
+    this.openSubmenuId.set(main.id);
+    this.scheduleSubmenuPositioning();
+  }
+
+  handleMainMouseLeave() {
+    if (this.isMobile()) return;
+    this.scheduleCloseSubmenu();
+  }
+
+  handleSubmenuToggleClick(event: MouseEvent, mainId: number) {
+    event.stopPropagation();
+    this.openSubmenuId.set(mainId);
+    this.scheduleSubmenuPositioning();
   }
 
   selectCategory(mainId: number | null, subId: number | null) {
@@ -108,6 +160,14 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  isMainCategoryActive(mainId: number): boolean {
+    return this.activeMainCategoryIds().has(mainId);
+  }
+
+  isSubCategoryActive(mainId: number, subId: number): boolean {
+    return this.selectedMainCategoryId() === mainId && this.selectedSubCategoryId() === subId;
+  }
+
   getSelectedLabel(): string {
     const main = this.categories().find(c => c.id === this.selectedMainCategoryId());
     const sub = this.categories().find(c => c.id === this.selectedSubCategoryId());
@@ -117,11 +177,22 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
     return this.placeholder() || this.i18n.translate('transactions.selectCategory');
   }
 
+  getOpenSubmenuCategory(): TransactionCategory | undefined {
+    return this.categories().find(c => c.id === this.openSubmenuId());
+  }
+
+  getOpenSubmenuParent(): TransactionCategory | undefined {
+    const submenuId = this.openSubmenuId();
+    if (submenuId === null) return undefined;
+    return this.categories().find(c => c.id === submenuId);
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     if (!this.el.nativeElement.contains(event.target)) {
       this.isOpen.set(false);
       this.openSubmenuId.set(null);
+      this.clearCloseSubmenuTimer();
     }
   }
 
@@ -144,6 +215,8 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
         Object.assign(menu.style, {
           left: `${x}px`,
           top: `${y}px`,
+          visibility: 'visible',
+          opacity: '1',
         });
       });
     });
@@ -172,9 +245,10 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
 
       this.submenuCleanup = autoUpdate(trigger, submenu, () => {
         computePosition(trigger, submenu, {
+          strategy: 'fixed',
           placement: 'right-start',
           middleware: [
-            offset(12), // Increased offset to ensure it's clearly to the right
+            offset(8),
             flip(),
             shift({ padding: 10 })
           ],
@@ -182,6 +256,9 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
           Object.assign(submenu.style, {
             left: `${x}px`,
             top: `${y}px`,
+            visibility: 'visible',
+            opacity: '1',
+            position: 'fixed',
           });
         });
       });
@@ -202,11 +279,42 @@ export class CategoryDropdownComponent implements OnDestroy, AfterViewInit {
     }
   }
 
+  clearCloseSubmenuTimer() {
+    if (this.closeSubmenuTimer) {
+      clearTimeout(this.closeSubmenuTimer);
+      this.closeSubmenuTimer = undefined;
+    }
+  }
+
+  private clearSubmenuPositionTimer() {
+    if (this.submenuPositionTimer) {
+      clearTimeout(this.submenuPositionTimer);
+      this.submenuPositionTimer = undefined;
+    }
+  }
+
+  private scheduleSubmenuPositioning() {
+    if (this.isMobile()) return;
+    this.clearSubmenuPositionTimer();
+    this.submenuPositionTimer = setTimeout(() => {
+      this.setupSubmenuPositioning();
+    }, 0);
+  }
+
+  private scheduleCloseSubmenu() {
+    this.clearCloseSubmenuTimer();
+    this.closeSubmenuTimer = setTimeout(() => {
+      this.openSubmenuId.set(null);
+    }, 150);
+  }
+
   private checkMobile() {
     this.isMobile.set(window.innerWidth <= 768);
     if (this.isMobile()) {
       this.cleanupPositioning();
       this.cleanupSubmenuPositioning();
+      this.clearCloseSubmenuTimer();
+      this.clearSubmenuPositionTimer();
     }
   }
 

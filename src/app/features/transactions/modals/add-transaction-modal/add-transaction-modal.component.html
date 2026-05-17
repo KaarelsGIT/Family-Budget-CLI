@@ -41,12 +41,12 @@
       </nav>
 
       <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()" (keydown.enter)="$event.preventDefault(); submitTransaction()">
-        <!-- Need peidetud väljad tagavad, et väärtused ei ole kunagi null -->
         <input type="hidden" formControlName="reminderId" />
         <input type="hidden" formControlName="useMicroSavings" />
         <input type="hidden" formControlName="multiplier" />
 
         <div class="modal-scroll">
+
           <section class="tab-panel" *ngIf="transactionType() === 'EXPENSE'">
             <p class="helper-copy">
               {{ i18n.translate('transactions.typeExpense') }}
@@ -78,17 +78,11 @@
                     (click)="openCalculator()"
                     [attr.aria-label]="i18n.translate('header.calculator')"
                     [attr.title]="i18n.translate('header.calculator')">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
                       <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
-                      <line x1="8" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="8" y1="11" x2="8" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="11" x2="12" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="11" x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="8" y1="15" x2="8" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="15" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="2" />
                     </svg>
                   </button>
                 </div>
@@ -184,17 +178,11 @@
                     (click)="openCalculator()"
                     [attr.aria-label]="i18n.translate('header.calculator')"
                     [attr.title]="i18n.translate('header.calculator')">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
                       <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
-                      <line x1="8" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="8" y1="11" x2="8" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="11" x2="12" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="11" x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="8" y1="15" x2="8" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="15" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="2" />
                     </svg>
                   </button>
                 </div>
@@ -290,17 +278,11 @@
                     (click)="openCalculator()"
                     [attr.aria-label]="i18n.translate('header.calculator')"
                     [attr.title]="i18n.translate('header.calculator')">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
                       <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
-                      <line x1="8" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="8" y1="11" x2="8" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="11" x2="12" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="11" x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="8" y1="15" x2="8" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="12" y1="15" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <line x1="16" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="2" />
                     </svg>
                   </button>
                 </div>
@@ -314,12 +296,25 @@
                 <input class="form-input-rounded" type="date" formControlName="transactionDate" />
               </label>
 
+              <div class="field field-wide category-picker-container">
+                <span>{{ i18n.translate('transactions.columnCategory') }}</span>
+                <app-category-dropdown
+                  [categories]="allAvailableCategories()"
+                  [transactionType]="'TRANSFER'"
+                  [selectedMainCategoryId]="selectedMainCategoryId()"
+                  [selectedSubCategoryId]="selectedCategoryId()"
+                  [placeholder]="mainCategoryPlaceholder()"
+                  [addLabel]="categoryAddLabel()"
+                  (categorySelected)="selectCategory($event.mainId, $event.subId)"
+                  (addNewCategory)="openCategoryEditorFromMenu(null, $event.mode, $event.parent)">
+                </app-category-dropdown>
+              </div>
+
               <label class="field field-wide">
                 <span>{{ i18n.translate('accounts.transferComment') }}</span>
                 <textarea rows="3" formControlName="comment"></textarea>
               </label>
             </div>
-
           </section>
 
           <p class="state-message" *ngIf="isLoadingAccounts() || isLoadingTransferTargets()">{{ i18n.translate('transactions.loadingAccounts') }}</p>

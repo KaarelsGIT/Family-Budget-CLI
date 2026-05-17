@@ -9,6 +9,7 @@ import { AccountService } from '../../../accounts/services/account.service';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { AddTransactionModalComponent } from '../../modals/add-transaction-modal/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../../modals/edit-transaction-modal/edit-transaction-modal.component';
+import { TransactionFiltersComponent, TransactionFiltersState } from '../../components/transaction-filters/transaction-filters.component';
 import {
   TransactionCategory,
   TransactionItem,
@@ -57,7 +58,7 @@ interface CalendarDay {
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddTransactionModalComponent, EditTransactionModalComponent],
+  imports: [CommonModule, FormsModule, AddTransactionModalComponent, EditTransactionModalComponent, TransactionFiltersComponent],
   templateUrl: './transactions-page.component.html',
   styleUrl: './transactions-page.component.css'
 })
@@ -70,6 +71,7 @@ export class TransactionsPageComponent {
 
   readonly currentUserId = this.authService.getUserId();
   readonly currentUserRole = this.authService.getRole();
+  readonly currentUserLabel = this.authService.getUsername() ?? '';
   readonly currentYear = new Date().getFullYear();
   readonly currentMonth = new Date().getMonth() + 1;
   readonly currentMonthFromDate = `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-01`;
@@ -215,6 +217,11 @@ export class TransactionsPageComponent {
     this.selectedTransactionToEdit.set(null);
     this.loadTransactions();
     this.loadAccounts();
+  }
+
+  handleFiltersChange(newFilters: TransactionFiltersState): void {
+    this.filters.set(newFilters);
+    this.loadTransactions();
   }
 
   handleCategoryCreated(category: TransactionCategory): void {

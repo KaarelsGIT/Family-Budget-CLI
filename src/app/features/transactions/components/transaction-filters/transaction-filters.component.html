@@ -1,0 +1,132 @@
+<section class="transaction-filters-card">
+  <div class="filters-grid">
+    <label class="field" *ngIf="currentUserRole() !== 'CHILD'">
+      <select class="filter-control" [value]="userFilterValue()" (change)="onUserChange($any($event.target).value)">
+        <option value="" [selected]="filters().userId === null && filters().userType === null">
+          {{ i18n.translate('transactions.allUsers') }}
+        </option>
+        <option *ngIf="selectedUserLabel()" [value]="currentUserId()" [selected]="filters().userId === currentUserId() && filters().userType === null">
+          {{ selectedUserLabel() }}
+        </option>
+        <ng-container *ngFor="let group of filterUsers()">
+          <option [value]="group.value" [selected]="filters().userId === group.value && filters().userType === null">
+            {{ group.label }}
+          </option>
+          <option *ngFor="let user of group.options" [value]="user.id" [selected]="filters().userId === user.id && filters().userType === null">
+            &nbsp;&nbsp;{{ user.username }}
+          </option>
+        </ng-container>
+      </select>
+    </label>
+
+    <label class="field">
+      <app-category-dropdown
+        [categories]="categories()"
+        [transactionType]="filters().types.includes('TRANSFER') ? 'TRANSFER' : (filters().types.includes('INCOME') && !filters().types.includes('EXPENSE') ? 'INCOME' : 'EXPENSE')"
+        [selectedMainCategoryId]="filters().mainCategoryId"
+        [selectedSubCategoryId]="filters().subCategoryId"
+        [placeholder]="i18n.translate('transactions.selectCategory')"
+        [addLabel]="''"
+        (categorySelected)="onCategorySelected($event)">
+      </app-category-dropdown>
+    </label>
+
+    <label class="field date-field">
+      <input
+        class="filter-control date-trigger"
+        type="text"
+        [attr.data-date-field]="'fromDate'"
+        [value]="filters().fromDate"
+        (input)="onDateInput('fromDate', $any($event.target).value)"
+        (click)="$event.stopPropagation(); openDatePicker('fromDate')"
+        [placeholder]="i18n.translate('transactions.filterFrom')" />
+      <div class="date-picker-shell" *ngIf="isDatePickerOpen('fromDate')">
+        <div class="date-picker">
+          <button type="button" class="date-nav" (click)="previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
+          <button type="button" class="date-picker-title" (click)="toggleCalendarYearMode()">{{ monthTitle() }}</button>
+          <button type="button" class="date-nav" (click)="nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
+        </div>
+
+        <div class="year-grid" *ngIf="calendarMode() === 'year'">
+          <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (click)="selectCalendarYear(option.year)">
+            {{ option.year }}
+          </button>
+          <div class="year-grid-actions">
+            <button type="button" class="date-nav" (click)="changeYearGrid(-12)">‹</button>
+            <button type="button" class="date-nav" (click)="changeYearGrid(12)">›</button>
+          </div>
+        </div>
+
+        <ng-container *ngIf="calendarMode() === 'month'">
+          <div class="weekday-row">
+            <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+          </div>
+          <div class="day-grid">
+            <button
+              type="button"
+              class="day-cell"
+              *ngFor="let day of calendarDays()"
+              [class.is-outside]="!day.isCurrentMonth"
+              [class.is-selected]="day.isSelected"
+              [class.is-today]="day.isToday"
+              (click)="selectCalendarDate(day)">
+              {{ day.label }}
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </label>
+
+    <label class="field date-field">
+      <input
+        class="filter-control date-trigger"
+        type="text"
+        [attr.data-date-field]="'toDate'"
+        [value]="filters().toDate"
+        (input)="onDateInput('toDate', $any($event.target).value)"
+        (click)="$event.stopPropagation(); openDatePicker('toDate')"
+        [placeholder]="i18n.translate('transactions.filterTo')" />
+      <div class="date-picker-shell" *ngIf="isDatePickerOpen('toDate')">
+        <div class="date-picker">
+          <button type="button" class="date-nav" (click)="previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
+          <button type="button" class="date-picker-title" (click)="toggleCalendarYearMode()">{{ monthTitle() }}</button>
+          <button type="button" class="date-nav" (click)="nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
+        </div>
+
+        <div class="year-grid" *ngIf="calendarMode() === 'year'">
+          <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (click)="selectCalendarYear(option.year)">
+            {{ option.year }}
+          </button>
+          <div class="year-grid-actions">
+            <button type="button" class="date-nav" (click)="changeYearGrid(-12)">‹</button>
+            <button type="button" class="date-nav" (click)="changeYearGrid(12)">›</button>
+          </div>
+        </div>
+
+        <ng-container *ngIf="calendarMode() === 'month'">
+          <div class="weekday-row">
+            <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+          </div>
+          <div class="day-grid">
+            <button
+              type="button"
+              class="day-cell"
+              *ngFor="let day of calendarDays()"
+              [class.is-outside]="!day.isCurrentMonth"
+              [class.is-selected]="day.isSelected"
+              [class.is-today]="day.isToday"
+              (click)="selectCalendarDate(day)">
+              {{ day.label }}
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </label>
+
+    <div class="filters-actions">
+      <button type="button" class="filter-action" [class.is-active]="filters().userId !== null || filters().userType !== null || filters().types.length > 0 || filters().mainCategoryId !== null || filters().subCategoryId !== null || filters().fromDate !== '' || filters().toDate !== ''" (click)="clearFilters()">
+        {{ i18n.translate('transactions.clearFilters') }}
+      </button>
+    </div>
+  </div>
+</section>
