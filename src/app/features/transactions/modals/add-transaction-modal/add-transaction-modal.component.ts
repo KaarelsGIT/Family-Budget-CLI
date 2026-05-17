@@ -798,11 +798,106 @@ export class AddTransactionModalComponent {
     return err?.error?.message || this.i18n.translate(fallbackKey);
   }
 
-  private restoreMicroSavingsPreference(): void {}
-  private patchFromDraft(): void {}
-  private initializeSignalsFromDraft(): void {}
+  private restoreMicroSavingsPreference(): void {
+    const saved = window.localStorage.getItem('transactionMicroSavingsPreference');
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved) as { enabled?: boolean; multiplier?: 1 | 2 } | null;
+      if (!parsed) return;
+
+      this.useMicroSavings.set(!!parsed.enabled);
+      this.microSavingsMultiplier.set(parsed.multiplier === 2 ? 2 : 1);
+    } catch {
+      // Ignore malformed preference payloads.
+    }
+  }
+
+  private patchFromDraft(): void {
+    const draft = this.draftService.value();
+    this.transactionForm.patchValue(
+      {
+        type: draft.type,
+        accountId: draft.accountId === null ? '' : String(draft.accountId),
+        transferFromAccountId:
+          draft.transferFromAccountId === null ? '' : String(draft.transferFromAccountId),
+        transferToAccountId:
+          draft.transferToAccountId === null ? '' : String(draft.transferToAccountId),
+        reminderId: '',
+        mainCategoryId: draft.mainCategoryId === null ? '' : String(draft.mainCategoryId),
+        categoryId: draft.categoryId === null ? '' : String(draft.categoryId),
+        transactionDate: draft.transactionDate || this.getTodayDate(),
+        amount: draft.amount,
+        comment: draft.comment,
+        useMicroSavings: this.useMicroSavings(),
+        multiplier: this.microSavingsMultiplier(),
+      },
+      { emitEvent: false },
+    );
+  }
+
+  private initializeSignalsFromDraft(): void {
+    const draft = this.draftService.value();
+    this.transactionType.set(draft.type);
+    this.selectedMainCategoryId.set(draft.mainCategoryId);
+    this.selectedCategoryId.set(draft.categoryId);
+  }
+
   private setupSubscriptions(): void {}
-  private setupOpenRequestEffect(): void {}
+  private setupOpenRequestEffect(): void {
+    effect(() => {
+      const request = this.draftService.openTransactionRequest();
+      if (!request) return;
+
+      const transactionDate = request.transactionDate ?? this.getTodayDate();
+      const type = request.type ?? 'EXPENSE';
+      this.transactionType.set(type);
+      this.categoryFormType.set(type === 'TRANSFER' ? 'EXPENSE' : type);
+      this.transactionForm.patchValue(
+        {
+          type,
+          accountId: request.accountId === null || request.accountId === undefined
+            ? ''
+            : String(request.accountId),
+          transferFromAccountId:
+            request.preselectedFromAccount === null || request.preselectedFromAccount === undefined
+              ? ''
+              : String(request.preselectedFromAccount),
+          transferToAccountId: '',
+          reminderId: request.reminderId === null || request.reminderId === undefined
+            ? ''
+            : String(request.reminderId),
+          mainCategoryId: request.categoryId === null || request.categoryId === undefined
+            ? ''
+            : String(request.categoryId),
+          categoryId: request.categoryId === null || request.categoryId === undefined
+            ? ''
+            : String(request.categoryId),
+          transactionDate,
+          amount: request.amount ?? '',
+          comment: request.comment ?? '',
+        },
+        { emitEvent: false },
+      );
+
+      const requestedCategory = request.categoryId === null || request.categoryId === undefined
+        ? null
+        : this.allAvailableCategories().find((category) => category.id === request.categoryId) ?? null;
+      this.selectedMainCategoryId.set(
+        requestedCategory?.parentCategoryId ?? requestedCategory?.id ?? null,
+      );
+      this.selectedCategoryId.set(
+        requestedCategory?.parentCategoryId ? requestedCategory.id : requestedCategory?.id ?? null,
+      );
+
+      if (type === 'TRANSFER') {
+        this.ensureDefaultTransferSelections();
+      } else {
+        this.syncIncomeExpenseSelection();
+        this.ensureDefaultIncomeExpenseAccount();
+      }
+    }, { allowSignalWrites: true });
+  }
   private loadAccounts(): void {}
   private loadTransferTargets(): void {}
   private ensureDefaultIncomeExpenseAccount(): void {}
@@ -810,8 +905,37 @@ export class AddTransactionModalComponent {
   private ensureDefaultTransferSelections(): void {}
   private ensureDefaultTransferDestination(): void {}
   private syncTransactionControlsForType(type: TransactionType): void {}
-  private persistDraft(): void {}
-  private persistMicroSavingsPreference(): void {}
+  private persistDraft(): void {
+    const raw = this.transactionForm.getRawValue();
+    this.draftService.update({
+      type: raw.type,
+      accountId: this.parseNumber(raw.accountId),
+      transferFromAccountId: this.parseNumber(raw.transferFromAccountId),
+      transferToAccountId: this.parseNumber(raw.transferToAccountId),
+      toAccountId: null,
+      mainCategoryId: this.parseNumber(raw.mainCategoryId),
+      categoryId: this.parseNumber(raw.categoryId),
+      transactionDate: raw.transactionDate || this.getTodayDate(),
+      amount: raw.amount,
+      comment: raw.comment,
+    });
+  }
+  private persistMicroSavingsPreference(): void {
+    window.localStorage.setItem(
+      'transactionMicroSavingsPreference',
+      JSON.stringify({
+        enabled: this.useMicroSavings(),
+        multiplier: this.microSavingsMultiplier(),
+      }),
+    );
+  }
+  private getTodayDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   getAccountLabel(a: Account): string {
     return a.name;
   }

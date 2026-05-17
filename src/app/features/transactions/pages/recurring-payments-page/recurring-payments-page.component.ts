@@ -147,7 +147,7 @@ export class RecurringPaymentsPageComponent {
             categoryId: payData.categoryId,
             accountId: payData.accountId,
             amount: String(payData.amount),
-            transactionDate: payData.transactionDate,
+            transactionDate: this.getTodayDate(),
             comment: payData.description,
             reminderId: payData.reminderId
           });
@@ -218,5 +218,13 @@ export class RecurringPaymentsPageComponent {
 
   isPending(payment: RecurringPaymentItem): boolean {
     return this.pendingPaymentId() === payment.id;
+  }
+
+  private getTodayDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

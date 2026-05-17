@@ -88,6 +88,11 @@
   color: #2e7d32;
 }
 
+.menu-item.hover-locked {
+  background: #f1f8f3;
+  color: #2e7d32;
+}
+
 .menu-item.is-active {
   font-weight: 600;
 }

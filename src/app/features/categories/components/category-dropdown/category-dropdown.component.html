@@ -16,6 +16,7 @@
           <div #submenuTrigger class="menu-item has-submenu"
                *ngFor="let main of mainCategories(); trackBy: trackById"
                [class.open]="openSubmenuId() === main.id"
+               [class.hover-locked]="openSubmenuId() === main.id"
                [class.is-active]="isMainCategoryActive(main.id)"
                (mouseenter)="handleMainMouseEnter(main)"
                (mouseleave)="handleMainMouseLeave()"
