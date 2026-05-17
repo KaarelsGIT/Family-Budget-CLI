@@ -641,7 +641,6 @@ export class AddTransactionModalComponent {
   }
 
   onCategoryEditorSaved(category: TransactionCategory): void {
-    this.localNewCategories.update((cats) => [...cats, category]);
     this.categoryCreated.emit(category);
     this.isCategoryEditorOpen.set(false);
 

@@ -190,7 +190,8 @@ export class CategoryManagementPageComponent {
   }
 
   private loadCategories(): void {
-    this.isLoading.set(true);
+    const showLoading = this.categories().length === 0;
+    this.isLoading.set(showLoading);
     this.errorMessage.set('');
 
     this.transactionsService.getCategories(1000)
