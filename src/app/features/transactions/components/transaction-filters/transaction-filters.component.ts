@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, input, output, signal } from '@angular/core';
 import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { TransactionCategory, TransactionUserOption } from '../../models/transaction.model';
@@ -49,6 +49,7 @@ interface CalendarDay {
 })
 export class TransactionFiltersComponent {
   readonly i18n = inject(TranslationService);
+  private readonly elementRef = inject(ElementRef);
 
   readonly filters = input.required<TransactionFiltersState>();
   readonly categories = input<TransactionCategory[]>([]);
@@ -166,6 +167,25 @@ export class TransactionFiltersComponent {
   closeDatePicker(): void {
     this.activeDatePicker.set(null);
     this.calendarMode.set('month');
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node | null;
+    if (!target) return;
+
+    if (!this.elementRef.nativeElement.contains(target)) {
+      this.closeDatePicker();
+    }
+  }
+
+  onFieldBlur(event: FocusEvent): void {
+    setTimeout(() => {
+      const nextTarget = event.relatedTarget as Node | null;
+      if (!nextTarget || !this.elementRef.nativeElement.contains(nextTarget)) {
+        this.closeDatePicker();
+      }
+    }, 150);
   }
 
   isDatePickerOpen(field: DateFieldKey): boolean {

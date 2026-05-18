@@ -8,14 +8,17 @@
     </div>
 
     <ng-container>
-      <nav class="transaction-tabs" role="tablist" [attr.aria-label]="i18n.translate('transactions.transactionType')">
+      <div class="transaction-tabs" role="tablist" aria-label="Transaction type tabs">
         <button
           type="button"
           class="tab-button"
           role="tab"
-          [class.active]="transactionType() === 'EXPENSE'"
           [attr.aria-selected]="transactionType() === 'EXPENSE'"
-          (click)="onTransactionTypeChange('EXPENSE')">
+          [class.active]="transactionType() === 'EXPENSE'"
+          (pointerdown)="$event.stopPropagation()"
+          (mousedown)="$event.stopPropagation()"
+          (click)="setTransactionType('EXPENSE')"
+        >
           <span class="tab-label">{{ i18n.translate('transactions.typeExpense') }}</span>
         </button>
 
@@ -23,9 +26,12 @@
           type="button"
           class="tab-button"
           role="tab"
-          [class.active]="transactionType() === 'INCOME'"
           [attr.aria-selected]="transactionType() === 'INCOME'"
-          (click)="onTransactionTypeChange('INCOME')">
+          [class.active]="transactionType() === 'INCOME'"
+          (pointerdown)="$event.stopPropagation()"
+          (mousedown)="$event.stopPropagation()"
+          (click)="setTransactionType('INCOME')"
+        >
           <span class="tab-label">{{ i18n.translate('transactions.typeIncome') }}</span>
         </button>
 
@@ -33,12 +39,15 @@
           type="button"
           class="tab-button"
           role="tab"
-          [class.active]="transactionType() === 'TRANSFER'"
           [attr.aria-selected]="transactionType() === 'TRANSFER'"
-          (click)="onTransactionTypeChange('TRANSFER')">
-          <span class="tab-label">{{ i18n.translate('transactions.typeTransfer') }}</span>
+          [class.active]="transactionType() === 'TRANSFER'"
+          (pointerdown)="$event.stopPropagation()"
+          (mousedown)="$event.stopPropagation()"
+          (click)="setTransactionType('TRANSFER')"
+        >
+          <span class="tab-label">{{ i18n.translate('accounts.transferTitle') }}</span>
         </button>
-      </nav>
+      </div>
 
       <form [formGroup]="transactionForm" class="modal-shell" (ngSubmit)="submitTransaction()" (keydown.enter)="$event.preventDefault(); submitTransaction()">
         <input type="hidden" formControlName="reminderId" />
@@ -57,7 +66,7 @@
                 <span>{{ getAccountFieldLabel() }}</span>
                 <select class="form-input-rounded" formControlName="accountId">
                   <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
-                  <option *ngFor="let account of expenseAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
+                  <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
                     {{ getAccountLabel(account) }}
                   </option>
                 </select>
@@ -157,7 +166,7 @@
                 <span>{{ getAccountFieldLabel() }}</span>
                 <select class="form-input-rounded" formControlName="accountId">
                   <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
-                  <option *ngFor="let account of expenseAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
+                  <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
                     {{ getAccountLabel(account) }}
                   </option>
                 </select>
@@ -295,20 +304,6 @@
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
                 <input class="form-input-rounded" type="date" formControlName="transactionDate" />
               </label>
-
-              <div class="field field-wide category-picker-container">
-                <span>{{ i18n.translate('transactions.columnCategory') }}</span>
-                <app-category-dropdown
-                  [categories]="allAvailableCategories()"
-                  [transactionType]="'TRANSFER'"
-                  [selectedMainCategoryId]="selectedMainCategoryId()"
-                  [selectedSubCategoryId]="selectedCategoryId()"
-                  [placeholder]="mainCategoryPlaceholder()"
-                  [addLabel]="categoryAddLabel()"
-                  (categorySelected)="selectCategory($event.mainId, $event.subId)"
-                  (addNewCategory)="openCategoryEditorFromMenu(null, $event.mode, $event.parent)">
-                </app-category-dropdown>
-              </div>
 
               <label class="field field-wide">
                 <span>{{ i18n.translate('accounts.transferComment') }}</span>

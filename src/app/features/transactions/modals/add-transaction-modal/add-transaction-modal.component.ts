@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
@@ -264,27 +264,7 @@ export class AddTransactionModalComponent {
       });
   });
 
-  readonly expenseAccounts = computed(() => {
-    const currentUserId = this.authService.getUserId();
-    if (currentUserId === null) return [];
-
-    return [...this.accounts()]
-      .filter(
-        (account) =>
-          account.ownerId === currentUserId ||
-          account.sharedUsers?.some((sharedUser) => sharedUser.userId === currentUserId),
-      )
-      .sort((left, right) => {
-        const typeOrder: Record<Account['type'], number> = {
-          MAIN: 0,
-          SUB_ACCOUNT: 1,
-          SAVINGS: 2,
-          CASH: 3,
-        };
-        if (left.type !== right.type) return typeOrder[left.type] - typeOrder[right.type];
-        return left.name.localeCompare(right.name);
-      });
-  });
+  readonly expenseAccounts = computed(() => this.ownAccounts());
 
   readonly transferSourceAccounts = computed(() => this.ownAccounts());
   readonly transferTargetUsers = computed<TransferTargetUser[]>(() =>
@@ -308,12 +288,11 @@ export class AddTransactionModalComponent {
     this.setupSubscriptions();
     this.setupOpenRequestEffect();
     this.loadAccounts();
-    this.loadTransferTargets();
     this.ensureDefaultIncomeExpenseAccount();
 
     effect(() => {
       this.categories();
-      if (this.view() === 'transaction') {
+      if (this.view() === 'transaction' && this.transactionType() !== 'TRANSFER') {
         this.syncIncomeExpenseSelection();
         this.ensureDefaultIncomeExpenseAccount();
       }
@@ -323,11 +302,15 @@ export class AddTransactionModalComponent {
       () => {
         this.accounts();
         this.transferTargets();
+      },
+    );
+
+    effect(
+      () => {
         if (this.transactionType() === 'TRANSFER') {
-          this.ensureDefaultTransferSelections();
+          this.ensureDefaultTransferDestination();
         }
       },
-      { allowSignalWrites: true },
     );
   }
 
@@ -380,6 +363,27 @@ export class AddTransactionModalComponent {
     this.close();
   }
 
+  @HostListener('document:keydown', ['$event'])
+  handleTabShortcut(event: KeyboardEvent): void {
+    if (!event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const key = event.key;
+    if (key === '1') {
+      event.preventDefault();
+      this.setTransactionType('EXPENSE');
+      return;
+    }
+    if (key === '2') {
+      event.preventDefault();
+      this.setTransactionType('INCOME');
+      return;
+    }
+    if (key === '3') {
+      event.preventDefault();
+      this.setTransactionType('TRANSFER');
+    }
+  }
+
   openMainCategoryForm(): void {
     const fallbackType: CategoryEditorType =
       this.transactionType() === 'INCOME' ? 'INCOME' : 'EXPENSE';
@@ -409,6 +413,10 @@ export class AddTransactionModalComponent {
   }
 
   onTransactionTypeChange(value: string): void {
+    this.setTransactionType(value);
+  }
+
+  setTransactionType(value: string): void {
     const normalizedType = this.normalizeType(value);
     this.transactionForm.patchValue({ type: normalizedType }, { emitEvent: false });
     this.transactionType.set(normalizedType);
@@ -797,6 +805,42 @@ export class AddTransactionModalComponent {
     return err?.error?.message || this.i18n.translate(fallbackKey);
   }
 
+  private getCurrentUserOwnAccounts(): Account[] {
+    return this.ownAccounts();
+  }
+
+  private getDefaultOwnMainAccount(): Account | null {
+    const currentUserId = this.authService.getUserId();
+    if (currentUserId === null) return null;
+
+    return (
+      this.getCurrentUserOwnAccounts().find(
+        (account) => account.type === 'MAIN' && account.ownerId === currentUserId,
+      ) ?? this.getCurrentUserOwnAccounts().find((account) => account.type === 'MAIN') ?? null
+    );
+  }
+
+  private getDefaultTransferFromAccount(): Account | null {
+    const preselected = this.parseNumber(this.transactionForm.controls.transferFromAccountId.getRawValue());
+    if (preselected !== null) {
+      return this.getCurrentUserOwnAccounts().find((account) => account.id === preselected) ?? null;
+    }
+
+    return this.getDefaultOwnMainAccount() ?? this.getCurrentUserOwnAccounts()[0] ?? null;
+  }
+
+  private formatAccountBalance(account: Account): string {
+    return formatMoney(account.balance);
+  }
+
+  private formatAccountDisplay(account: Account): string {
+    return `${account.name} · ${this.formatAccountBalance(account)}`;
+  }
+
+  private formatTransferTargetAccountLabel(account: Account): string {
+    return this.formatAccountDisplay(account);
+  }
+
   private restoreMicroSavingsPreference(): void {
     const saved = window.localStorage.getItem('transactionMicroSavingsPreference');
     if (!saved) return;
@@ -895,15 +939,160 @@ export class AddTransactionModalComponent {
         this.syncIncomeExpenseSelection();
         this.ensureDefaultIncomeExpenseAccount();
       }
+
+      this.draftService.clearOpenRequest();
     }, { allowSignalWrites: true });
   }
-  private loadAccounts(): void {}
-  private loadTransferTargets(): void {}
-  private ensureDefaultIncomeExpenseAccount(): void {}
-  private syncIncomeExpenseSelection(): void {}
-  private ensureDefaultTransferSelections(): void {}
-  private ensureDefaultTransferDestination(): void {}
-  private syncTransactionControlsForType(type: TransactionType): void {}
+  private loadAccounts(): void {
+    this.isLoadingAccounts.set(true);
+    forkJoin({
+      accounts: this.accountService.getAccounts(),
+      transferTargets: this.accountService.getTransferTargets(),
+    })
+      .pipe(finalize(() => this.isLoadingAccounts.set(false)))
+      .subscribe({
+        next: ({ accounts, transferTargets }) => {
+          this.accounts.set(accounts);
+          this.transferTargets.set(transferTargets.users);
+          if (this.transactionType() === 'TRANSFER') {
+            this.ensureDefaultTransferSelections();
+          } else {
+            this.syncIncomeExpenseSelection();
+            this.ensureDefaultIncomeExpenseAccount();
+          }
+        },
+        error: () => {
+          this.accounts.set([]);
+          this.transferTargets.set([]);
+        },
+      });
+  }
+  private loadTransferTargets(): void {
+    this.isLoadingTransferTargets.set(true);
+    this.accountService
+      .getTransferTargets()
+      .pipe(finalize(() => this.isLoadingTransferTargets.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.transferTargets.set(response.users);
+        },
+        error: () => {
+          this.transferTargets.set([]);
+        },
+      });
+  }
+  private ensureDefaultIncomeExpenseAccount(): void {
+    if (this.transactionType() === 'TRANSFER') return;
+
+    const currentValue = this.parseNumber(this.transactionForm.controls.accountId.getRawValue());
+    const availableAccounts = this.getCurrentUserOwnAccounts();
+    if (availableAccounts.length === 0) return;
+
+    const selectedAccount = currentValue === null ? null : availableAccounts.find((account) => account.id === currentValue) ?? null;
+    const defaultAccount = selectedAccount ?? this.getDefaultOwnMainAccount() ?? availableAccounts[0];
+    if (!defaultAccount) return;
+
+    if (currentValue === defaultAccount.id) return;
+
+    this.transactionForm.patchValue({ accountId: String(defaultAccount.id) }, { emitEvent: false });
+  }
+
+  private syncIncomeExpenseSelection(): void {
+    if (this.transactionType() === 'TRANSFER') return;
+
+    const selectedAccountId = this.parseNumber(this.transactionForm.controls.accountId.getRawValue());
+    const availableAccounts = this.getCurrentUserOwnAccounts();
+    if (availableAccounts.length === 0) return;
+
+    if (selectedAccountId !== null && availableAccounts.some((account) => account.id === selectedAccountId)) {
+      return;
+    }
+
+    this.ensureDefaultIncomeExpenseAccount();
+  }
+
+  private ensureDefaultTransferSelections(): void {
+    if (this.transactionType() !== 'TRANSFER') return;
+
+    const availableAccounts = this.transferSourceAccounts();
+    if (availableAccounts.length === 0) return;
+
+    const currentFromAccountId = this.parseNumber(this.transactionForm.controls.transferFromAccountId.getRawValue());
+    const selectedFromAccount = currentFromAccountId === null
+      ? null
+      : availableAccounts.find((account) => account.id === currentFromAccountId) ?? null;
+    const defaultFromAccount = selectedFromAccount ?? this.getDefaultTransferFromAccount() ?? availableAccounts[0];
+
+    if (defaultFromAccount) {
+      const currentFromAccountId = this.parseNumber(
+        this.transactionForm.controls.transferFromAccountId.getRawValue(),
+      );
+      if (currentFromAccountId !== defaultFromAccount.id) {
+      this.transactionForm.patchValue(
+        { transferFromAccountId: String(defaultFromAccount.id) },
+        { emitEvent: false },
+      );
+      }
+      this.selectedTransferFromAccountId.set(defaultFromAccount.id);
+    }
+
+    this.ensureDefaultTransferDestination();
+  }
+
+  private ensureDefaultTransferDestination(): void {
+    if (this.transactionType() !== 'TRANSFER') return;
+
+    const fromAccountId = this.parseNumber(this.transactionForm.controls.transferFromAccountId.getRawValue());
+    const currentTargetId = this.parseNumber(this.transactionForm.controls.transferToAccountId.getRawValue());
+    if (fromAccountId === null) return;
+
+    if (currentTargetId === null) {
+      this.selectedTransferTarget.set(null);
+      this.selectedTransferToAccountId.set(null);
+      return;
+    }
+
+    const currentAccountTarget = this.accounts().find((account) => account.id === currentTargetId) ?? null;
+    if (currentAccountTarget) {
+      if (currentAccountTarget.id === fromAccountId) {
+        this.transactionForm.patchValue({ transferToAccountId: '' }, { emitEvent: false });
+        this.selectedTransferTarget.set(null);
+        this.selectedTransferToAccountId.set(null);
+      } else {
+        this.selectedTransferTarget.set({ kind: 'account', id: currentAccountTarget.id });
+        if (this.selectedTransferToAccountId() !== currentAccountTarget.id) {
+          this.selectedTransferToAccountId.set(currentAccountTarget.id);
+        }
+      }
+      return;
+    }
+
+    const selectedUser = this.transferTargets().find((user) => -user.id === currentTargetId) ?? null;
+    if (selectedUser) {
+      this.selectedTransferTarget.set({ kind: 'user', id: selectedUser.id });
+      if (this.selectedTransferToAccountId() !== currentTargetId) {
+        this.selectedTransferToAccountId.set(currentTargetId);
+      }
+    }
+  }
+
+  private syncTransactionControlsForType(type: TransactionType): void {
+    if (type === 'TRANSFER') {
+      this.transactionForm.patchValue(
+        { accountId: '' },
+        { emitEvent: false },
+      );
+      return;
+    }
+
+    this.transactionForm.patchValue(
+      { transferFromAccountId: '', transferToAccountId: '' },
+      { emitEvent: false },
+    );
+    this.selectedTransferFromAccountId.set(null);
+    this.selectedTransferToAccountId.set(null);
+    this.selectedTransferTarget.set(null);
+  }
   private persistDraft(): void {
     const raw = this.transactionForm.getRawValue();
     this.draftService.update({
@@ -936,16 +1125,24 @@ export class AddTransactionModalComponent {
     return `${year}-${month}-${day}`;
   }
   getAccountLabel(a: Account): string {
-    return a.name;
+    return this.formatAccountDisplay(a);
   }
   getTransferSourceOptionLabel(a: Account): string {
-    return a.name;
+    return this.formatAccountDisplay(a);
   }
   getTransferTargetPlaceholder(): string {
-    return '';
+    return this.i18n.translate('transactions.selectAccount');
   }
   getTransferTargetAccountLabel(a: Account): string {
-    return a.name;
+    return this.formatTransferTargetAccountLabel(a);
   }
-  normalizeMoneyInput(e: Event): void {}
+  normalizeMoneyInput(e: Event): void {
+    const input = e.target as HTMLInputElement | null;
+    if (!input) return;
+
+    const normalized = input.value.replace(/,/g, '.');
+    if (input.value !== normalized) {
+      input.value = normalized;
+    }
+  }
 }

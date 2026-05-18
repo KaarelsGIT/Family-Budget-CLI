@@ -27,10 +27,8 @@
       </ng-container>
 
       <ng-template #mobileMenu>
-        <div
-          class="dropdown-mobile-panels"
-          [class.submenu-open]="openSubmenuId() !== null">
-          <div class="dropdown-panel main-pane">
+        <div class="dropdown-mobile-panel">
+          <ng-container *ngIf="openSubmenuId() === null; else mobileSubmenuView">
             <div class="menu-item add-new" *ngIf="addLabel()" (click)="onAddNew($event, 'create-main')">
               + {{ addLabel() }}
             </div>
@@ -51,36 +49,34 @@
                 </button>
               </div>
             </div>
-          </div>
+          </ng-container>
 
-          <div class="dropdown-panel submenu-pane">
-            <ng-container *ngIf="openSubmenuId() !== null">
-              <div class="mobile-submenu-header">
-                <button type="button" class="mobile-back-button" (click)="openSubmenuId.set(null)" aria-label="Back">
-                  ‹
-                </button>
-                <div class="mobile-submenu-title">
-                  {{ getOpenSubmenuCategory()?.name }}
-                </div>
+          <ng-template #mobileSubmenuView>
+            <div class="mobile-submenu-header">
+              <button type="button" class="mobile-back-button" (click)="openSubmenuId.set(null)" aria-label="Back">
+                ‹
+              </button>
+              <div class="mobile-submenu-title">
+                {{ getOpenSubmenuCategory()?.name }}
               </div>
+            </div>
 
-              <div class="menu-scroll-container">
-                <div class="menu-item" (click)="selectCategory(openSubmenuId(), null); $event.stopPropagation()">
-                  {{ i18n.translate('transactions.noSubcategory') }}
-                </div>
-                <div class="menu-item"
-                     *ngFor="let sub of getSubCategories(openSubmenuId()!); trackBy: trackById"
-                     [class.is-active]="isSubCategoryActive(openSubmenuId()!, sub.id)"
-                     (click)="selectCategory(openSubmenuId(), sub.id); $event.stopPropagation()">
-                  {{ sub.name }}
-                </div>
-                <div class="dropdown-divider" *ngIf="addLabel()"></div>
-                <div class="menu-item add-new" *ngIf="addLabel()" (click)="onAddNew($event, 'create-sub', getOpenSubmenuParent()); $event.stopPropagation()">
-                  + {{ addLabel() }}
-                </div>
+            <div class="menu-scroll-container">
+              <div class="menu-item" (click)="selectCategory(openSubmenuId(), null); $event.stopPropagation()">
+                {{ i18n.translate('transactions.noSubcategory') }}
               </div>
-            </ng-container>
-          </div>
+              <div class="menu-item"
+                   *ngFor="let sub of getSubCategories(openSubmenuId()!); trackBy: trackById"
+                   [class.is-active]="isSubCategoryActive(openSubmenuId()!, sub.id)"
+                   (click)="selectCategory(openSubmenuId(), sub.id); $event.stopPropagation()">
+                {{ sub.name }}
+              </div>
+              <div class="dropdown-divider" *ngIf="addLabel()"></div>
+              <div class="menu-item add-new" *ngIf="addLabel()" (click)="onAddNew($event, 'create-sub', getOpenSubmenuParent()); $event.stopPropagation()">
+                + {{ addLabel() }}
+              </div>
+            </div>
+          </ng-template>
         </div>
       </ng-template>
     </div>
