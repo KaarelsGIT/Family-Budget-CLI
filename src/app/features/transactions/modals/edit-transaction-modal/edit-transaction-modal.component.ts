@@ -6,16 +6,18 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
+import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
 import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { buildTransferTargetUsers, shouldShowMyAccountsSection, TransferTargetUser } from '../../../accounts/utils/transfer-targets';
+import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
 import { formatMoney, parseMoneyInput } from '../../../shared/utils/money-format';
-import { TransactionItem, UpdateTransactionPayload } from '../../models/transaction.model';
+import { TransactionCategory, TransactionItem, UpdateTransactionPayload } from '../../models/transaction.model';
 import { TransactionsService } from '../../services/transactions.service';
 
 @Component({
   selector: 'app-edit-transaction-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CategoryDropdownComponent, CalculatorComponent],
   templateUrl: './edit-transaction-modal.component.html',
   styleUrl: './edit-transaction-modal.component.css'
 })
@@ -33,12 +35,15 @@ export class EditTransactionModalComponent {
 
   readonly isSubmitting = signal(false);
   readonly isLoadingAccounts = signal(false);
+  readonly isLoadingCategories = signal(false);
   readonly errorMessage = signal('');
   readonly accounts = signal<Account[]>([]);
+  readonly categories = signal<TransactionCategory[]>([]);
   readonly transferTargets = signal<SelectableUser[]>([]);
   readonly expandedTransferTargetUserId = signal<number | null>(null);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
+  readonly isCalculatorVisible = signal(false);
 
   private dragging = false;
   private dragStartX = 0;
@@ -51,6 +56,7 @@ export class EditTransactionModalComponent {
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
+    categoryId: [''],
     fromAccountId: [''],
     toAccountId: [''],
     transactionDate: ['', Validators.required],
@@ -85,6 +91,13 @@ export class EditTransactionModalComponent {
   });
 
   readonly isTransfer = computed(() => this.transaction().type === 'TRANSFER');
+  readonly transactionCategories = computed(() =>
+    this.categories().filter((category) => category.type === this.transaction().type)
+  );
+  readonly selectedMainCategoryId = computed(() => this.resolveSelectedMainCategoryId());
+  readonly selectedSubCategoryId = computed(() => this.resolveSelectedSubCategoryId());
+  readonly categoryPlaceholder = computed(() => this.i18n.translate('transactions.selectCategory'));
+  readonly categoryAddLabel = computed(() => this.i18n.translate('transactions.addCategoryOption'));
 
   readonly transferSourceOptions = computed(() => this.ownAccounts());
   readonly selectedTransferSourceAccount = computed(() => {
@@ -106,11 +119,13 @@ export class EditTransactionModalComponent {
 
   constructor() {
     this.loadAccounts();
+    this.loadCategories();
 
     effect(() => {
       const transaction = this.transaction();
       this.form.patchValue({
         amount: transaction.amount,
+        categoryId: transaction.categoryId === null ? '' : String(transaction.categoryId),
         fromAccountId: transaction.type === 'TRANSFER' ? String(transaction.fromAccountId ?? '') : '',
         toAccountId: transaction.type === 'TRANSFER' ? String(transaction.toAccountId ?? '') : '',
         transactionDate: this.normalizeDateValue(transaction.transactionDate),
@@ -121,6 +136,7 @@ export class EditTransactionModalComponent {
   }
 
   close(): void {
+    this.isCalculatorVisible.set(false);
     this.closed.emit();
   }
 
@@ -157,13 +173,25 @@ export class EditTransactionModalComponent {
     this.dragging = false;
   }
 
-  @HostListener('document:keydown.escape')
-  handleEscape(): void {
-    this.close();
-  }
+  handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.isCalculatorVisible()) {
+        this.closeCalculator();
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
 
-  @HostListener('document:keydown.enter', ['$event'])
-  handleEnter(event: Event): void {
+      this.close();
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (event.key !== 'Enter') {
+      return;
+    }
+
     if (this.isSubmitting()) {
       return;
     }
@@ -184,9 +212,10 @@ export class EditTransactionModalComponent {
       return;
     }
 
-    const { amount, fromAccountId, toAccountId, transactionDate, comment } = this.form.getRawValue();
+    const { amount, categoryId, fromAccountId, toAccountId, transactionDate, comment } = this.form.getRawValue();
     const parsedAmount = parseMoneyInput(amount);
     const trimmedComment = (comment || '').trim();
+    const parsedCategoryId = this.parseNumber(categoryId);
 
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
@@ -198,8 +227,14 @@ export class EditTransactionModalComponent {
       return;
     }
 
+    if (this.transaction().type !== 'TRANSFER' && parsedCategoryId === null) {
+      this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
+      return;
+    }
+
     const payload: UpdateTransactionPayload = {
       amount: parsedAmount,
+      categoryId: parsedCategoryId,
       transactionDate,
       comment: trimmedComment
     };
@@ -286,12 +321,40 @@ export class EditTransactionModalComponent {
     }
   }
 
+  openCalculator(): void {
+    this.isCalculatorVisible.set(true);
+  }
+
+  closeCalculator(): void {
+    this.isCalculatorVisible.set(false);
+  }
+
   getModalTransform(): string {
     return `translate3d(${this.modalOffsetX()}px, ${this.modalOffsetY()}px, 0)`;
   }
 
+  getCategoryLabel(): string {
+    const categoryId = this.resolveSelectedCategoryId();
+    if (categoryId === null) {
+      return '—';
+    }
+
+    return this.transactionCategories().find((category) => category.id === categoryId)?.name
+      ?? this.transaction().categoryName
+      ?? '—';
+  }
+
+  selectCategory(mainId: number | null, subId: number | null): void {
+    const selectedId = subId ?? mainId;
+    this.form.patchValue({ categoryId: selectedId === null ? '' : String(selectedId) }, { emitEvent: false });
+  }
+
   trackByAccountId(_index: number, account: Account): number {
     return account.id;
+  }
+
+  trackByCategoryId(_index: number, category: TransactionCategory): number {
+    return category.id;
   }
 
   trackByTransferTargetUser(_index: number, user: TransferTargetUser): number {
@@ -344,6 +407,52 @@ export class EditTransactionModalComponent {
         this.transferTargets.set([]);
       }
     });
+  }
+
+  private loadCategories(): void {
+    this.isLoadingCategories.set(true);
+    this.transactionsService.getCategories().pipe(
+      finalize(() => this.isLoadingCategories.set(false))
+    ).subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: () => {
+        this.categories.set([]);
+      }
+    });
+  }
+
+  private resolveSelectedCategoryId(): number | null {
+    return this.parseNumber(this.form.controls.categoryId.getRawValue()) ?? this.transaction().categoryId;
+  }
+
+  private resolveSelectedMainCategoryId(): number | null {
+    const selectedCategoryId = this.resolveSelectedCategoryId();
+    if (selectedCategoryId === null) {
+      return null;
+    }
+
+    const category = this.categories().find((item) => item.id === selectedCategoryId);
+    if (!category) {
+      return selectedCategoryId;
+    }
+
+    return category.parentCategoryId ?? category.id;
+  }
+
+  private resolveSelectedSubCategoryId(): number | null {
+    const selectedCategoryId = this.resolveSelectedCategoryId();
+    if (selectedCategoryId === null) {
+      return null;
+    }
+
+    const category = this.categories().find((item) => item.id === selectedCategoryId);
+    if (!category) {
+      return null;
+    }
+
+    return category.parentCategoryId === null ? null : category.id;
   }
 
   private ensureValidTransferSelection(): void {

@@ -108,6 +108,7 @@ export interface UpdateTransactionPayload {
   fromAccountId?: number | null;
   toAccountId?: number | null;
   targetUserId?: number | null;
+  categoryId?: number | null;
   transactionDate: string;
   comment?: string | null;
 }

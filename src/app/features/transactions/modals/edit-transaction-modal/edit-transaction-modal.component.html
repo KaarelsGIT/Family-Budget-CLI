@@ -1,45 +1,86 @@
 <div class="modal-overlay">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="edit-transaction-title" [style.transform]="getModalTransform()" (keydown.escape)="close()">
+  <section class="modal-card" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="edit-transaction-title" [style.transform]="getModalTransform()" (keydown)="handleKeydown($event)">
     <div class="modal-header" (pointerdown)="startDrag($event)">
       <h2 id="edit-transaction-title">{{ i18n.translate('transactions.editTitle') }}</h2>
       <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
     </div>
 
     <form [formGroup]="form" class="modal-form" (ngSubmit)="submit()">
-      <div class="summary-grid">
-        <label class="field">
-          <span>{{ i18n.translate('transactions.columnType') }}</span>
-          <div class="readonly-field">{{ getTypeLabel() }}</div>
-        </label>
-
-        <label class="field">
-          <span>{{ isTransfer() ? i18n.translate('accounts.transferFrom') : i18n.translate('transactions.columnAccount') }}</span>
-          <div class="readonly-field">{{ getAccountLabel() }}</div>
-        </label>
-      </div>
-
-      <hr class="form-divider">
-
       <div class="input-grid">
-        <label class="field">
+        <label class="field date-field">
           <span>{{ i18n.translate('transactions.columnDate') }}</span>
-          <input type="date" formControlName="transactionDate" />
+          <input class="form-input-rounded" type="date" formControlName="transactionDate" />
         </label>
 
-        <label class="field">
+        <label class="field amount-field">
           <span>{{ i18n.translate('transactions.columnAmount') }}</span>
-          <input type="text" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+          <div class="amount-input-row">
+            <input class="form-input-rounded amount-input" type="text" inputmode="decimal" formControlName="amount" (input)="normalizeMoneyInput($event)" />
+            <button
+              type="button"
+              class="calculator-button"
+              (click)="openCalculator()"
+              [attr.aria-label]="i18n.translate('header.calculator')"
+              [attr.title]="i18n.translate('header.calculator')">
+              <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+                <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" />
+                <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+                <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="2" />
+              </svg>
+            </button>
+          </div>
           <p class="error-message" *ngIf="transaction().type === 'EXPENSE' && !isExpenseAmountWithinBalance() && form.controls.amount.value">
             {{ i18n.translate('transactions.balanceWouldGoNegative') }}
           </p>
         </label>
       </div>
 
+      <div class="field field-wide category-picker-container" *ngIf="transaction().type !== 'TRANSFER'">
+        <span>{{ i18n.translate('transactions.columnCategory') }}</span>
+        <app-category-dropdown
+          [categories]="categories()"
+          [transactionType]="transaction().type"
+          [selectedMainCategoryId]="selectedMainCategoryId()"
+          [selectedSubCategoryId]="selectedSubCategoryId()"
+          [placeholder]="categoryPlaceholder()"
+          [addLabel]="categoryAddLabel()"
+          (categorySelected)="selectCategory($event.mainId, $event.subId)">
+        </app-category-dropdown>
+      </div>
+
+      <div class="summary-grid" *ngIf="transaction().type === 'TRANSFER'">
+        <label class="field">
+          <span>{{ i18n.translate('accounts.transferFrom') }}</span>
+          <select class="form-input-rounded" formControlName="fromAccountId">
+            <option value="" disabled hidden>{{ i18n.translate('transactions.selectAccount') }}</option>
+            <option *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId" [value]="account.id">
+              {{ account.name }} · {{ getTransferAccountDetails(account) }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('accounts.transferTo') }}</span>
+          <select class="form-input-rounded" formControlName="toAccountId">
+            <option value="" disabled hidden>{{ i18n.translate('transactions.selectAccount') }}</option>
+            <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
+              <option *ngIf="!user.isCurrentUser" [value]="user.id">
+                {{ user.username }}
+              </option>
+              <option *ngFor="let account of user.accounts" [value]="account.id">
+                {{ account.name }} · {{ getTransferAccountDetails(account) }}
+              </option>
+            </ng-container>
+          </select>
+        </label>
+      </div>
+
       <label class="field">
         <span>{{ i18n.translate('transactions.columnComment') }}</span>
-        <textarea rows="3" formControlName="comment" placeholder="Lisa märkus..."></textarea>
+        <textarea class="form-input-rounded" rows="3" formControlName="comment" placeholder="Lisa märkus..."></textarea>
       </label>
 
       <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
@@ -53,3 +94,8 @@
     </form>
   </section>
 </div>
+
+<app-calculator
+  [isVisible]="isCalculatorVisible()"
+  (closeCalculator)="closeCalculator()">
+</app-calculator>

@@ -75,6 +75,10 @@
   gap: 12px;
 }
 
+.summary-grid .field {
+  min-width: 0;
+}
+
 .input-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -112,17 +116,119 @@
   transition: all 0.2s;
 }
 
+.form-input-rounded {
+  border: 1px solid #dbe5de;
+  border-radius: 12px;
+  background: #fff;
+  color: #16311f;
+  min-height: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input-rounded:hover {
+  border-color: #22742e;
+}
+
+.form-input-rounded:focus {
+  outline: none;
+  border-color: #22742e;
+  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+}
+
 .readonly-field {
   background: #f8faf9;
   color: #526457;
   border-color: #e4ece6;
 }
 
-.field input:focus,
-.field textarea:focus {
-  outline: none;
-  border-color: #2f7d46;
-  box-shadow: 0 0 0 4px rgba(47, 125, 70, 0.1);
+.category-picker-container {
+  gap: 10px;
+}
+
+::ng-deep .category-picker-container .dropdown-trigger {
+  min-height: 44px;
+  height: 44px;
+}
+
+::ng-deep .category-picker-container .dropdown-menu {
+  width: 100%;
+}
+
+::ng-deep .category-picker-container .menu-item {
+  min-height: 44px;
+}
+
+.summary-grid select.form-input-rounded {
+  height: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #2c3f33 50%),
+    linear-gradient(135deg, #2c3f33 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 18px,
+    calc(100% - 12px) 18px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.date-field .form-input-rounded {
+  width: 100%;
+}
+
+.amount-field .amount-input-row {
+  width: 100%;
+}
+
+.amount-field .amount-input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.amount-field .calculator-button {
+  margin-left: auto;
+}
+
+.amount-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.amount-input {
+  min-width: 0;
+  width: 100%;
+}
+
+.calculator-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid #cfd8d3;
+  border-radius: 12px;
+  background: #fff;
+  color: #17361f;
+  cursor: pointer;
+  margin: 0;
+}
+
+.calculator-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.calculator-button:hover {
+  background: #f8faf9;
+  border-color: #c2d1c8;
 }
 
 .error-message {
@@ -141,40 +247,42 @@
 
 button.primary,
 button.secondary {
-  border-radius: 14px;
-  min-height: 48px;
-  padding: 0 28px;
+  border-radius: 12px;
+  min-height: 42px;
+  padding: 0 14px;
   font-weight: 700;
-  font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 button.primary {
   border: none;
-  background: #2f7d46;
-  color: white;
+  background: linear-gradient(180deg, #2f8f3c, #22742e);
+  color: #fff;
 }
 
 button.primary:hover {
-  background: #256338;
-  transform: translateY(-1px);
+  background: linear-gradient(180deg, #2a8236, #1f6830);
 }
 
 button.secondary {
-  border: 1px solid #cfd8d3;
+  border: 1px solid #c3d3c8;
   background: #fff;
-  color: #244131;
+  color: #1f5b35;
 }
 
 button.secondary:hover {
   background: #f8faf9;
-  border-color: #c2d1c8;
+  border-color: #b7c7bc;
 }
 
 @media (max-width: 600px) {
   .summary-grid, .input-grid {
     grid-template-columns: 1fr;
+  }
+
+  .date-field,
+  .amount-field {
+    width: 100%;
   }
 }
 @media (max-width: 600px) {
@@ -218,6 +326,16 @@ button.secondary:hover {
     padding: 10px 14px;
   }
 
+  .form-input-rounded {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+
+  ::ng-deep .category-picker-container .dropdown-trigger,
+  ::ng-deep .category-picker-container .menu-item {
+    min-height: 48px;
+  }
+
   /* 5. Nupud üksteise alla ja täislaiuses */
   .modal-actions {
     flex-direction: column-reverse; /* Peamine nupp jääb mugavalt pöidlast ülespoole */
@@ -228,8 +346,6 @@ button.secondary:hover {
   button.primary,
   button.secondary {
     width: 100%; /* Nupud ulatuvad servast servani */
-    min-height: 52px; /* Suurem ala vajutamiseks */
-    font-size: 16px;
-    border-radius: 16px;
+    min-height: 42px;
   }
 }
