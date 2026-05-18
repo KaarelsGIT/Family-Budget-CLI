@@ -228,7 +228,8 @@
                 <span>{{ i18n.translate('accounts.transferFrom') }}</span>
                 <select
                   class="form-input-rounded transfer-select"
-                  formControlName="transferFromAccountId">
+                  formControlName="transferFromAccountId"
+                  (change)="onTransferFromAccountChange($any($event.target).value)">
                   <option value="">{{ i18n.translate('transactions.selectAccount') }}</option>
                   <option *ngFor="let account of ownAccounts(); trackBy: trackByAccountId" [value]="'' + account.id">
                     {{ getTransferSourceOptionLabel(account) }}
@@ -242,6 +243,7 @@
                   class="form-input-rounded transfer-select"
                   [class.placeholder-active]="!transactionForm.controls.transferToAccountId.value"
                   formControlName="transferToAccountId"
+                  (change)="onTransferToAccountChange($any($event.target).value)"
                   [disabled]="!hasTransferDestinationTargets()">
                   <option value="">{{ getTransferTargetPlaceholder() }}</option>
                   <optgroup

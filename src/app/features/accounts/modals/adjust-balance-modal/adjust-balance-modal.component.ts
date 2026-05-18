@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
@@ -30,6 +30,14 @@ export class AdjustBalanceModalComponent {
   readonly isLoadingAdjustments = signal(false);
   readonly isCalculatorVisible = signal(false);
   @ViewChild('modalCard') private modalCard?: ElementRef<HTMLElement>;
+  readonly modalOffsetX = signal(0);
+  readonly modalOffsetY = signal(0);
+
+  private dragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragOriginX = 0;
+  private dragOriginY = 0;
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required]],
@@ -47,6 +55,39 @@ export class AdjustBalanceModalComponent {
 
   ngAfterViewInit(): void {
     queueMicrotask(() => this.modalCard?.nativeElement.focus());
+  }
+
+  startDrag(event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target || target.closest('button')) {
+      return;
+    }
+
+    if (event.button !== 0) {
+      return;
+    }
+
+    this.dragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragOriginX = this.modalOffsetX();
+    this.dragOriginY = this.modalOffsetY();
+  }
+
+  @HostListener('document:pointermove', ['$event'])
+  onDocumentPointerMove(event: PointerEvent): void {
+    if (!this.dragging) {
+      return;
+    }
+
+    this.modalOffsetX.set(this.dragOriginX + (event.clientX - this.dragStartX));
+    this.modalOffsetY.set(this.dragOriginY + (event.clientY - this.dragStartY));
+  }
+
+  @HostListener('document:pointerup')
+  @HostListener('document:pointercancel')
+  endDrag(): void {
+    this.dragging = false;
   }
 
   openCalculator(): void {
@@ -147,6 +188,10 @@ export class AdjustBalanceModalComponent {
       dateStyle: 'short',
       timeStyle: 'short'
     });
+  }
+
+  getModalTransform(): string {
+    return `translate3d(${this.modalOffsetX()}px, ${this.modalOffsetY()}px, 0)`;
   }
 
   private loadRecentAdjustments(): void {

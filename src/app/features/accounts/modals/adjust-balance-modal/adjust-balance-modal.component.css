@@ -24,6 +24,7 @@
   max-height: min(90vh, 760px);
   display: flex;
   flex-direction: column;
+  will-change: transform;
 }
 
 .modal-header {
@@ -32,6 +33,9 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
 }
 
 .modal-header h2 {

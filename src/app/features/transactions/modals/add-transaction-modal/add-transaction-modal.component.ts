@@ -421,6 +421,7 @@ export class AddTransactionModalComponent {
     this.transactionForm.patchValue({ type: normalizedType }, { emitEvent: false });
     this.transactionType.set(normalizedType);
     this.categoryFormType.set(normalizedType === 'TRANSFER' ? 'EXPENSE' : normalizedType);
+    this.updateValidatorsForType(normalizedType);
     this.errorMessage.set('');
     this.syncTransactionControlsForType(normalizedType);
 
@@ -509,12 +510,15 @@ export class AddTransactionModalComponent {
       const parsedFromAccountId = this.parseNumber(transferFromAccountId);
       const parsedToAccountId = this.parseNumber(transferToAccountId);
       const selectedTarget = this.selectedTransferTarget();
-
       const selectedTargetKind =
         selectedTarget?.id === parsedToAccountId ||
         selectedTarget?.id === Math.abs(parsedToAccountId ?? 0)
           ? selectedTarget.kind
-          : null;
+          : parsedToAccountId !== null && parsedToAccountId < 0
+            ? 'user'
+            : parsedToAccountId !== null
+              ? 'account'
+              : null;
       const targetUserId =
         selectedTargetKind === 'user' && parsedToAccountId !== null
           ? Math.abs(parsedToAccountId)
@@ -882,6 +886,7 @@ export class AddTransactionModalComponent {
   private initializeSignalsFromDraft(): void {
     const draft = this.draftService.value();
     this.transactionType.set(draft.type);
+    this.updateValidatorsForType(draft.type);
     this.selectedMainCategoryId.set(draft.mainCategoryId);
     this.selectedCategoryId.set(draft.categoryId);
   }
@@ -896,6 +901,7 @@ export class AddTransactionModalComponent {
       const type = request.type ?? 'EXPENSE';
       this.transactionType.set(type);
       this.categoryFormType.set(type === 'TRANSFER' ? 'EXPENSE' : type);
+      this.updateValidatorsForType(type);
       this.transactionForm.patchValue(
         {
           type,
@@ -1092,6 +1098,26 @@ export class AddTransactionModalComponent {
     this.selectedTransferFromAccountId.set(null);
     this.selectedTransferToAccountId.set(null);
     this.selectedTransferTarget.set(null);
+  }
+
+  private updateValidatorsForType(type: TransactionType): void {
+    const accountControl = this.transactionForm.controls.accountId;
+    const mainCategoryControl = this.transactionForm.controls.mainCategoryId;
+    const categoryControl = this.transactionForm.controls.categoryId;
+
+    if (type === 'TRANSFER') {
+      accountControl.clearValidators();
+      mainCategoryControl.clearValidators();
+      categoryControl.clearValidators();
+    } else {
+      accountControl.setValidators(Validators.required);
+      mainCategoryControl.setValidators(Validators.required);
+      categoryControl.setValidators(Validators.required);
+    }
+
+    accountControl.updateValueAndValidity({ emitEvent: false });
+    mainCategoryControl.updateValueAndValidity({ emitEvent: false });
+    categoryControl.updateValueAndValidity({ emitEvent: false });
   }
   private persistDraft(): void {
     const raw = this.transactionForm.getRawValue();
