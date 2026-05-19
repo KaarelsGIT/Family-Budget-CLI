@@ -21,6 +21,8 @@ interface AccountApiResponse {
   ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
   balance: number | string | null;
   type: 'MAIN' | 'SAVINGS' | 'SUB_ACCOUNT' | 'CASH';
+  targetAmount?: number | string | null;
+  targetDate?: string | null;
   accessRole?: 'OWNER' | 'EDITOR' | 'VIEWER' | null;
   sharedUsers?: AccountSharedUserApiResponse[];
 }
@@ -40,8 +42,15 @@ interface SelectableUserApiResponse {
 
 type TransferTargetsApiResponse = SelectableUserApiResponse[];
 
-type AccountPayload = Pick<Account, 'name' | 'type'>;
+type AccountPayload = Pick<Account, 'name' | 'type'> & {
+  targetAmount?: number | null;
+  targetDate?: string | null;
+};
 type UpdateAccountPayload = Pick<Account, 'name'>;
+type UpdateSavingsGoalPayload = {
+  targetAmount: number | null;
+  targetDate: string | null;
+};
 interface AdjustBalancePayload {
   amount: number;
   comment: string;
@@ -109,6 +118,12 @@ export class AccountService {
 
   updateAccount(id: number, account: UpdateAccountPayload): Observable<Account> {
     return this.http.put<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}`, account).pipe(
+      map((response) => this.mapAccount(response.data))
+    );
+  }
+
+  updateSavingsGoal(id: number, payload: UpdateSavingsGoalPayload): Observable<Account> {
+    return this.http.patch<ApiResponse<AccountApiResponse>>(`${environment.apiUrl}/accounts/${id}/savings-goal`, payload).pipe(
       map((response) => this.mapAccount(response.data))
     );
   }
@@ -229,6 +244,12 @@ export class AccountService {
       name: account.name,
       balance: Number.isNaN(balance) ? 0 : balance,
       type: account.type,
+      targetAmount: typeof account.targetAmount === 'number'
+        ? account.targetAmount
+        : typeof account.targetAmount === 'string'
+          ? Number(account.targetAmount)
+          : null,
+      targetDate: account.targetDate ?? null,
       ownerId: account.ownerId,
       ownerUsername: account.ownerUsername,
       ownerRole: account.ownerRole,

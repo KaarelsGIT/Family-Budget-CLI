@@ -6,6 +6,7 @@ import { AccountCardComponent } from '../../components/account-card/account-card
 import { AddAccountModalComponent } from '../../modals/add-account-modal/add-account-modal.component';
 import { AdjustBalanceModalComponent } from '../../modals/adjust-balance-modal/adjust-balance-modal.component';
 import { ShareAccountModalComponent } from '../../modals/share-account-modal/share-account-modal.component';
+import { SavingsGoalModalComponent } from '../../modals/savings-goal-modal/savings-goal-modal.component';
 import { AddTransactionModalComponent } from '../../../transactions/modals/add-transaction-modal/add-transaction-modal.component';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
@@ -46,7 +47,7 @@ interface FamilyDashboardUser {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, AddTransactionModalComponent],
+  imports: [CommonModule, AccountCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, SavingsGoalModalComponent, AddTransactionModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
@@ -64,6 +65,7 @@ export class AccountsPageComponent {
   readonly isTransactionModalOpen = signal(false);
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedShareAccount = signal<Account | null>(null);
+  readonly selectedSavingsGoalAccount = signal<Account | null>(null);
   readonly errorMessage = signal('');
   readonly selectedFamilyUserIds = signal<number[]>([]);
   readonly hoveredFamilyUserId = signal<number | null>(null);
@@ -152,6 +154,13 @@ export class AccountsPageComponent {
             this.selectedAdjustBalanceAccount.set(refreshedAccount);
           }
         }
+        const selectedSavingsGoalAccount = this.selectedSavingsGoalAccount();
+        if (selectedSavingsGoalAccount) {
+          const refreshedAccount = accounts.find((account) => account.id === selectedSavingsGoalAccount.id);
+          if (refreshedAccount) {
+            this.selectedSavingsGoalAccount.set(refreshedAccount);
+          }
+        }
         this.isLoading.set(false);
       },
       error: (error: { error?: { message?: string } }) => {
@@ -209,11 +218,26 @@ export class AccountsPageComponent {
     this.selectedShareAccount.set(account);
   }
 
+  openSavingsGoalModal(account: Account): void {
+    this.isModalOpen.set(false);
+    this.selectedAdjustBalanceAccount.set(null);
+    this.selectedShareAccount.set(null);
+    this.selectedSavingsGoalAccount.set(account);
+  }
+
   closeShareModal(): void {
     this.selectedShareAccount.set(null);
   }
 
+  closeSavingsGoalModal(): void {
+    this.selectedSavingsGoalAccount.set(null);
+  }
+
   handleAccountsChanged(): void {
+    this.loadAccounts();
+  }
+
+  handleSavingsGoalUpdated(): void {
     this.loadAccounts();
   }
 

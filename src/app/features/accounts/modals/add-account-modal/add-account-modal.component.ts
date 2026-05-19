@@ -22,11 +22,25 @@ export class AddAccountModalComponent {
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
+  readonly isSavingsAccount = signal(true);
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
-    type: ['SAVINGS' as const, Validators.required]
+    type: ['SAVINGS' as const, Validators.required],
+    targetAmount: [null as number | null],
+    targetDate: ['']
   });
+
+  constructor() {
+    this.form.controls.type.valueChanges.subscribe((type) => {
+      const isSavings = type === 'SAVINGS';
+      this.isSavingsAccount.set(isSavings);
+
+      if (!isSavings) {
+        this.form.patchValue({ targetAmount: null, targetDate: '' }, { emitEvent: false });
+      }
+    });
+  }
 
   close(): void {
     this.closed.emit();
@@ -41,7 +55,13 @@ export class AddAccountModalComponent {
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
-    this.accountService.createAccount(this.form.getRawValue())
+    const raw = this.form.getRawValue();
+    this.accountService.createAccount({
+      name: raw.name,
+      type: raw.type,
+      targetAmount: raw.type === 'SAVINGS' ? raw.targetAmount : null,
+      targetDate: raw.type === 'SAVINGS' ? raw.targetDate || null : null
+    })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
@@ -52,5 +72,14 @@ export class AddAccountModalComponent {
           this.errorMessage.set(error.error?.message || this.i18n.translate('accounts.createFailed'));
         }
       });
+  }
+
+  normalizeMoneyInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    input.value = input.value.replace(/,/g, '.');
   }
 }

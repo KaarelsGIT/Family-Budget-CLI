@@ -28,6 +28,7 @@ export class AccountCardComponent {
   readonly transferRequested = output<Account>();
   readonly adjustBalanceRequested = output<Account>();
   readonly shareRequested = output<Account>();
+  readonly savingsGoalRequested = output<Account>();
   readonly editInline = viewChild(EditAccountInlineComponent);
 
   readonly isDeleting = signal(false);
@@ -72,6 +73,31 @@ export class AccountCardComponent {
 
   isSharedAccount(): boolean {
     return (this.account().sharedUsers?.length ?? 0) > 0;
+  }
+
+  isSavingsAccount(): boolean {
+    return this.account().type === 'SAVINGS';
+  }
+
+  hasSavingsGoal(): boolean {
+    const account = this.account();
+    return this.isSavingsAccount() && account.targetAmount !== null && account.targetAmount !== undefined;
+  }
+
+  getSavingsProgress(): number {
+    const target = this.account().targetAmount ?? 0;
+    if (target <= 0) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, (this.account().balance / target) * 100));
+  }
+
+  openSavingsGoal(): void {
+    if (!this.isSavingsAccount()) {
+      return;
+    }
+
+    this.savingsGoalRequested.emit(this.account());
   }
 
   onTransfer(): void {
@@ -146,6 +172,21 @@ export class AccountCardComponent {
 
   onMouseLeave(): void {
     this.hovered.emit(false);
+  }
+
+  onCardClick(): void {
+    this.openSavingsGoal();
+  }
+
+  onCardKeydown(event: KeyboardEvent): void {
+    if (!this.isSavingsAccount()) {
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.openSavingsGoal();
+    }
   }
 
 }

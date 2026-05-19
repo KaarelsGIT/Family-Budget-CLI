@@ -23,6 +23,18 @@
         </select>
       </label>
 
+      <ng-container *ngIf="form.controls.type.value === 'SAVINGS'">
+        <label class="field">
+          <span>{{ i18n.translate('accounts.targetAmount') }}</span>
+          <input type="text" inputmode="decimal" formControlName="targetAmount" (input)="normalizeMoneyInput($event)" [placeholder]="i18n.translate('accounts.targetAmountPlaceholder')" />
+        </label>
+
+        <label class="field">
+          <span>{{ i18n.translate('accounts.targetDate') }}</span>
+          <input type="date" formControlName="targetDate" />
+        </label>
+      </ng-container>
+
       <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
       <div class="modal-actions">

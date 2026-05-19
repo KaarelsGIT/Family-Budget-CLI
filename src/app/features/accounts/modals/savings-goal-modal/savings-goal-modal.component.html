@@ -1,0 +1,84 @@
+<div class="modal-overlay">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="savings-goal-title">
+    <div class="modal-header">
+      <div>
+        <p class="eyebrow">{{ i18n.translate('accounts.savingsGoalEyebrow') }}</p>
+        <h2 id="savings-goal-title">{{ account().name }}</h2>
+      </div>
+      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✕</button>
+    </div>
+
+    <div class="hero">
+      <div class="ring" [style.--progress.%]="progress()">
+        <div class="ring__inner">
+          <div class="ring__percent">{{ progress() | number:'1.0-0' }}%</div>
+          <div class="ring__label">{{ i18n.translate('accounts.progress') }}</div>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <div class="amount-row">
+          <span class="amount-current">{{ formatMoney(account().balance) }}</span>
+          <span class="amount-divider">/</span>
+          <span class="amount-target">{{ formatMoney(account().targetAmount ?? 0) }}</span>
+        </div>
+        <p class="helper-text">
+          {{ i18n.translate('accounts.savingsGoalMonthly', { amount: formatMoney(monthlyAmount()) }) }}
+        </p>
+        <div class="hero-meta">
+          <span>{{ i18n.translate('accounts.targetDate') }}: <strong>{{ formatDate(account().targetDate) }}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>{{ i18n.translate('accounts.currentAmount') }}</span>
+        <strong>{{ formatMoney(account().balance) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span>{{ i18n.translate('accounts.targetAmount') }}</span>
+        <strong>{{ formatMoney(account().targetAmount ?? 0) }}</strong>
+      </div>
+      <div class="summary-card accent">
+        <span>{{ i18n.translate('accounts.savingsGoalMonthlyShort') }}</span>
+        <strong>{{ formatMoney(monthlyAmount()) }}</strong>
+      </div>
+    </section>
+
+    <section class="plans">
+      <h3>{{ i18n.translate('accounts.quickPlans') }}</h3>
+      <div class="plan-list">
+        <article class="plan-card" *ngFor="let plan of quickPlans()">
+          <span>{{ i18n.translate('accounts.planMonths', { months: plan.months }) }}</span>
+          <strong>{{ formatMoney(plan.amount) }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <form class="goal-form" [formGroup]="form" (ngSubmit)="submit()">
+      <h3>{{ i18n.translate('accounts.editGoal') }}</h3>
+
+      <label class="field">
+        <span>{{ i18n.translate('accounts.targetAmount') }}</span>
+        <input type="text" inputmode="decimal" formControlName="targetAmount" (input)="normalizeMoneyInput($event)" />
+      </label>
+
+      <label class="field">
+        <span>{{ i18n.translate('accounts.targetDate') }}</span>
+        <input type="date" formControlName="targetDate" />
+      </label>
+
+      <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? i18n.translate('accounts.processing') : i18n.translate('accounts.saveGoal') }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

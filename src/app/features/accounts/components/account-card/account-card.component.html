@@ -1,4 +1,4 @@
-<article class="account-card" [style.--accent-color]="accentColor() || null" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+<article class="account-card" [class.account-card--goal]="isSavingsAccount()" [style.--accent-color]="accentColor() || null" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (click)="onCardClick()" (keydown)="onCardKeydown($event)" [attr.tabindex]="isSavingsAccount() ? 0 : null" [attr.role]="isSavingsAccount() ? 'button' : null">
   <div class="card-header">
     <div class="card-main">
       <div class="card-title-row">
@@ -15,12 +15,14 @@
           </span>
         </div>
       </div>
+    </div>
+
       <div class="card-actions">
         <button
           type="button"
           class="header-icon-button"
           *ngIf="canEditAccount()"
-          (click)="startInlineEdit()"
+          (click)="$event.stopPropagation(); startInlineEdit()"
           [attr.aria-label]="i18n.translate('accounts.editName')"
           [attr.title]="i18n.translate('accounts.editName')">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -32,7 +34,7 @@
           type="button"
           class="header-icon-button"
           *ngIf="canEditAccount()"
-          (click)="onAdjustBalance()"
+          (click)="$event.stopPropagation(); onAdjustBalance()"
           [attr.aria-label]="i18n.translate('accounts.adjustBalance')"
           [attr.title]="i18n.translate('accounts.adjustBalance')">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -44,7 +46,7 @@
           type="button"
           class="header-icon-button"
           *ngIf="canShareAccount()"
-          (click)="onShare()"
+          (click)="$event.stopPropagation(); onShare()"
           [attr.aria-label]="i18n.translate('accounts.shareAccount')"
           [attr.title]="i18n.translate('accounts.shareAccount')">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -56,7 +58,7 @@
           type="button"
           class="header-icon-button"
           *ngIf="canTransfer()"
-          (click)="onTransfer()"
+          (click)="$event.stopPropagation(); onTransfer()"
           [attr.aria-label]="i18n.translate('accounts.transfer')"
           [attr.title]="i18n.translate('accounts.transfer')">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -69,7 +71,7 @@
           class="header-icon-button danger-icon"
           *ngIf="canDeleteAccount()"
           [disabled]="isDeleting()"
-          (click)="deleteAccount()"
+          (click)="$event.stopPropagation(); deleteAccount()"
           [attr.aria-label]="i18n.translate('accounts.deleteAccount')"
           [attr.title]="i18n.translate('accounts.deleteAccount')">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -77,14 +79,35 @@
           </svg>
         </button>
       </div>
-    </div>
+  </div>
+  <div class="card-meta">
+    <span class="badge">{{ i18n.translate(getTypeTranslationKey(account().type)) }}</span>
+  </div>
+  <div class="account-balance">{{ formatBalance(account().balance) }}</div>
 
-    <div class="card-meta">
-      <span class="badge">{{ i18n.translate(getTypeTranslationKey(account().type)) }}</span>
+  <div class="goal-progress" *ngIf="isSavingsAccount()">
+    <div class="goal-progress__topline">
+      <span class="goal-progress__percent">
+        {{ hasSavingsGoal() ? (getSavingsProgress() | number:'1.0-0') : '0' }}%
+      </span>
+      <span class="goal-progress__values" *ngIf="hasSavingsGoal(); else goalMissing">
+        {{ formatBalance(account().balance) }} / {{ formatBalance(account().targetAmount ?? 0) }}
+      </span>
+      <ng-template #goalMissing>
+        <span class="goal-progress__values">Lisa sihtsumma ja kuupäev</span>
+      </ng-template>
+    </div>
+    <div class="goal-progress__track" aria-hidden="true">
+      <div class="goal-progress__fill" [style.width.%]="hasSavingsGoal() ? getSavingsProgress() : 0"></div>
+    </div>
+    <div class="goal-progress__meta">
+      <span>Target</span>
+      <span *ngIf="account().targetDate; else targetMissing">{{ account().targetDate }}</span>
+      <ng-template #targetMissing>
+        <span>Puudub</span>
+      </ng-template>
     </div>
   </div>
-
-  <div class="account-balance">{{ formatBalance(account().balance) }}</div>
 
   <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 </article>

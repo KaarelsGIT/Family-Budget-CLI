@@ -1,38 +1,49 @@
 :host {
   display: block;
-  flex: 0 0 390px;
+  flex: 1 1 390px;
   width: 390px;
   max-width: 100%;
+  height: 100%;
 }
 
 .account-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 16px rgba(17, 43, 24, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
   border-left: 5px solid var(--accent-color, transparent);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 250px;
+  box-sizing: border-box;
+  position: relative;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.account-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(17, 43, 24, 0.07);
+}
+
+.account-card--goal {
+  cursor: pointer;
+}
+
+/* PÄIS */
+.card-header {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.card-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "main meta"
-    "actions actions";
-  gap: 10px 12px;
-  align-items: start;
+  padding-right: 90px;
 }
 
 .card-main {
-  grid-area: main;
-  flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .card-title-row {
@@ -44,6 +55,8 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .shared-indicator {
@@ -61,43 +74,103 @@
   height: 18px;
 }
 
-.card-tools {
-  grid-area: actions;
+.card-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   min-height: 36px;
 }
 
+/* KONTO LIIK (ÜLES PAREMALE) */
 .card-meta {
-  grid-area: meta;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-}
-
-.account-balance {
-  order: 3;
-  font-size: 22px;
-  margin-top: 0;
-  color: #14351c;
-  font-weight: 700;
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
 }
 
 .badge {
-  font-size: 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   padding: 4px 8px;
-  border-radius: 8px;
-  background: #e0f2e9;
-  color: #135a30;
+  border-radius: 6px;
+  background: #eaf5ee;
+  color: #145c30;
   font-weight: 700;
+  white-space: nowrap;
 }
 
+/* TAVALISE KONTO JÄÄK */
+.account-balance {
+  font-size: 28px;
+  font-weight: 700;
+  color: #112b18;
+  margin: 0;
+  letter-spacing: -0.03em;
+  font-family: 'SFMono-Regular', ui-monospace, 'Cascadia Mono', monospace;
+
+  margin-top: auto; /* Surub jäägi kaardi põhja */
+  padding-top: 16px;
+}
+
+/* KRIITILINE MUUDATUS: Säästukontol vahetame elemendid kohakuti */
+.account-card--goal .account-balance {
+  margin-top: 12px; /* Teeb ruumi ülemise joone ja jäägi vahele */
+  padding-top: 0;
+  order: 4;          /* Viib jäägi numbriliselt kõige viimaseks (joone alla) */
+}
+
+/* SÄÄSTUKONTO PROGRESSI JOON JA META (NÜÜD SUMMA KOHAL) */
+.goal-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;  /* Nüüd surub hoopis progressiplokk end ja summa kaardi põhja */
+  padding-top: 16px;
+  border-top: 1px dashed #e3ebe5;
+  order: 3;          /* Määrab progressiploki summa kohale */
+}
+
+.goal-progress__topline,
+.goal-progress__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.goal-progress__percent {
+  font-weight: 800;
+  color: #145c30;
+  font-size: 15px;
+}
+
+.goal-progress__values,
+.goal-progress__meta {
+  font-size: 12px;
+  color: #5b6a61;
+}
+
+.goal-progress__track {
+  height: 6px;
+  border-radius: 999px;
+  background: #e3ebe5;
+  overflow: hidden;
+}
+
+.goal-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1f6f4a 0%, #4aa36f 100%);
+}
+
+/* NUPUD JNE */
 .header-icon-button {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #d6ddd8;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e2ece5;
   border-radius: 8px;
   background: #f8fbf9;
   cursor: pointer;
@@ -105,15 +178,17 @@
   align-items: center;
   justify-content: center;
   color: #1d3324;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .header-icon-button svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .header-icon-button:hover {
-  background: #eff4f1;
+  background: #eef5f0;
+  border-color: #cbdad0;
 }
 
 .danger-icon {
@@ -126,40 +201,36 @@
 }
 
 .error-message {
-  margin: 0;
+  margin: 4px 0 0 0;
   color: crimson;
   font-size: 13px;
+  order: 5; /* Veateade kuvatakse alati kõige all */
 }
 
+/* MOBIILIVAADE */
 @media (max-width: 640px) {
   :host {
     flex-basis: auto;
     width: 100%;
   }
 
+  .account-card {
+    min-height: auto;
+    padding: 16px;
+  }
+
   .card-header {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "meta"
-      "main"
-      "actions";
-  }
-
-  .card-main,
-  .card-tools {
-    width: 100%;
-  }
-
-  .card-tools {
-    justify-content: flex-start;
+    padding-right: 0;
   }
 
   .card-meta {
-    width: 100%;
-    justify-content: flex-end;
-    padding-top: 4px;
+    position: static;
+    margin-bottom: 8px;
+    justify-content: flex-start;
   }
+
   .account-balance {
-    font-size: 18px;
+    font-size: 24px;
+    margin-top: 16px;
   }
 }

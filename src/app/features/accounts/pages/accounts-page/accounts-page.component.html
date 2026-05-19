@@ -105,7 +105,8 @@
               (hovered)="setHoveredAccount($event ? account.id : null)"
               (transferRequested)="openTransactionModal({ type: 'TRANSFER', preselectedFromAccount: $event.id })"
               (adjustBalanceRequested)="openAdjustBalanceModal($event)"
-              (shareRequested)="openShareModal($event)" />
+              (shareRequested)="openShareModal($event)"
+              (savingsGoalRequested)="openSavingsGoalModal($event)" />
           </div>
         </section>
       </div>
@@ -141,4 +142,10 @@
     [account]="selectedShareAccount()!"
     (closed)="closeShareModal()"
     (shared)="handleAccountsChanged()" />
+
+  <app-savings-goal-modal
+    *ngIf="selectedSavingsGoalAccount()"
+    [account]="selectedSavingsGoalAccount()!"
+    (closed)="closeSavingsGoalModal()"
+    (updated)="handleSavingsGoalUpdated()" />
 </section>

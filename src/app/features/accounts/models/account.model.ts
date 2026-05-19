@@ -3,6 +3,8 @@ export interface Account {
   name: string;
   balance: number;
   type: 'MAIN' | 'SAVINGS' | 'SUB_ACCOUNT' | 'CASH';
+  targetAmount?: number | null;
+  targetDate?: string | null;
   ownerId: number;
   ownerUsername: string;
   ownerRole: 'ADMIN' | 'PARENT' | 'CHILD';
