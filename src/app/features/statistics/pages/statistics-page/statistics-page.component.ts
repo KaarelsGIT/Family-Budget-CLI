@@ -107,7 +107,6 @@ export class StatisticsPageComponent {
   readonly selectedUserId = signal<number | null>(this.currentUserId);
   readonly selectedUserType = signal<'PARENT' | 'CHILD' | null>(null);
   readonly selectedUserFilter = signal<number | '__parent__' | '__child__' | null>(this.currentUserId);
-  readonly selectedAccountId = signal<number | null>(null);
   readonly selectedCategoryTab = signal<CategoryTab>('expenses');
   readonly isLoading = signal(false);
   readonly isLoadingAccounts = signal(false);
@@ -153,10 +152,6 @@ export class StatisticsPageComponent {
   readonly userOptions = computed(() => this.selectableUsers());
   readonly userFilterOptions = computed(() => this.buildUserFilterOptions(this.selectableUsers()));
 
-  readonly accountOptions = computed(() => {
-    return [...this.accounts()].sort((left, right) => left.name.localeCompare(right.name));
-  });
-
   readonly showUserFilter = computed(() => this.currentUserRole !== 'CHILD' && this.userOptions().length > 0);
 
   readonly monthlyBars = computed(() => this.buildMonthlyBars());
@@ -189,7 +184,6 @@ export class StatisticsPageComponent {
     || this.selectedMonth() !== null
     || this.selectedUserFilter() !== null
     || this.selectedUserType() !== null
-    || this.selectedAccountId() !== null
   );
 
   constructor() {
@@ -249,19 +243,12 @@ export class StatisticsPageComponent {
     this.loadMonthTransactions();
   }
 
-  onAccountChange(value: number | string | null): void {
-    this.selectedAccountId.set(value === null || value === '' ? null : Number(value));
-    this.loadStatistics();
-    this.loadMonthTransactions();
-  }
-
   clearFilters(): void {
     this.selectedYear.set(this.currentYear);
     this.selectedMonth.set(null);
     this.selectedUserId.set(null);
     this.selectedUserType.set(null);
     this.selectedUserFilter.set(null);
-    this.selectedAccountId.set(null);
     this.loadStatistics();
     this.loadMonthTransactions();
   }
@@ -345,18 +332,10 @@ export class StatisticsPageComponent {
     return this.selectedMonth() !== null;
   }
 
-  formatAccountLabel(account: Account): string {
-    return `${account.ownerUsername} · ${account.name}`;
-  }
-
   formatUserLabel(user: SelectableUser): string {
     return user.id === this.currentUserId
       ? `${user.username} (${this.i18n.translate('statistics.currentUser')})`
       : user.username;
-  }
-
-  trackByAccountId(_index: number, account: Account): number {
-    return account.id;
   }
 
   trackByMonth(_index: number, item: MonthlyBarGroup): number {
@@ -382,7 +361,6 @@ export class StatisticsPageComponent {
   private loadFilterOptions(): void {
     this.isLoadingAccounts.set(true);
     this.isLoadingUsers.set(true);
-
     forkJoin({
       accounts: this.accountService.getAccounts(),
       users: this.accountService.getFilterUsers()
@@ -405,7 +383,7 @@ export class StatisticsPageComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.statisticsService.getYearly(this.selectedYear(), this.selectedMonth(), this.selectedUserId(), this.selectedUserType(), this.selectedAccountId())
+    this.statisticsService.getYearly(this.selectedYear(), this.selectedMonth(), this.selectedUserId(), this.selectedUserType(), null)
       .pipe(finalize(() => {
         this.isLoading.set(false);
       }))
@@ -442,11 +420,7 @@ export class StatisticsPageComponent {
 
     this.transactionsService.getTransactions(query).subscribe({
       next: (response) => {
-        const accountId = this.selectedAccountId();
-        const filtered = accountId === null
-          ? response.data
-          : response.data.filter((transaction) => transaction.fromAccountId === accountId || transaction.toAccountId === accountId);
-        this.monthTransactions.set(filtered);
+        this.monthTransactions.set(response.data);
       },
       error: () => this.monthTransactions.set([])
     });
@@ -536,10 +510,12 @@ export class StatisticsPageComponent {
     }
 
     if (type === 'savings') {
+      const line = this.buildSavingsLine();
+      const scaledLine = this.scaleSavingsLineForModal(line);
       return {
         kind: 'savings',
         year: statistics.year,
-        line: this.buildSavingsLine(),
+        line: scaledLine,
         ticks: this.buildSavingsTicks()
       };
     }
@@ -718,6 +694,20 @@ export class StatisticsPageComponent {
 
     const points = dots.map((dot) => `${dot.x},${dot.y}`).join(' ');
     return { points, dots, min, max };
+  }
+
+  private scaleSavingsLineForModal(line: { points: string; dots: LinePoint[]; min: number; max: number }): { points: string; dots: LinePoint[] } {
+    const sourceWidth = 600;
+    const targetWidth = 1180;
+    const scaleX = targetWidth / sourceWidth;
+
+    return {
+      points: line.dots.map((dot) => `${dot.x * scaleX},${dot.y}`).join(' '),
+      dots: line.dots.map((dot) => ({
+        ...dot,
+        x: dot.x * scaleX
+      }))
+    };
   }
 
   private buildSavingsTicks(): ChartTick[] {
@@ -1026,6 +1016,7 @@ export class StatisticsPageComponent {
           bucket.savings += transaction.amount;
         }
       }
+
     }
 
     return series;

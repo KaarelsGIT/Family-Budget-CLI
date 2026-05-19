@@ -12,9 +12,10 @@
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(124px, 0.7fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
   gap: 10px;
   align-items: end;
+  width: 100%;
 }
 
 .field {
@@ -58,11 +59,12 @@
   position: relative;
   z-index: 2;
   min-width: 0;
+  justify-self: end;
 }
 
 .filter-action {
   width: auto;
-  min-width: 112px;
+  min-width: 124px;
   min-height: 42px;
   height: 42px;
   padding: 0 12px;

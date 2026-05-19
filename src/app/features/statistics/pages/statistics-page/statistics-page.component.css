@@ -7,9 +7,9 @@
 
 .page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
 }
 
 .page-header h1,
@@ -36,8 +36,9 @@
   display: flex;
   gap: 14px;
   align-items: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-bottom: 8px;
+  min-width: 0;
 }
 
 .filter-group {
@@ -46,6 +47,15 @@
   min-width: 180px;
   flex: 1 1 180px;
   gap: 6px;
+}
+
+.transaction-filters-card .filter-group {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.transaction-filters-card .filter-action {
+  flex: 0 0 auto;
 }
 
 .field {
@@ -70,6 +80,96 @@
 .filter-action {
   align-self: flex-end;
   margin-bottom: 0;
+}
+
+.transaction-filters-card {
+  padding: 18px;
+  background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
+  border: 1px solid #dce9e0;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(17, 43, 24, 0.06);
+}
+
+.transaction-filters-card .filters-bar {
+  margin-bottom: 0;
+}
+
+.transaction-filters-card .filter-group {
+  min-width: 0;
+}
+
+.transaction-filters-card .field span {
+  font-weight: 700;
+  color: #244131;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.transaction-filters-card .filter-control {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid #cbd8cf;
+  background: #fff;
+  padding: 0 14px;
+  color: #17361f;
+}
+
+.transaction-filters-card .filter-control:disabled {
+  background: #f0f3f1;
+  color: #829186;
+  cursor: not-allowed;
+}
+
+.transaction-filters-card .filter-action {
+  width: auto;
+  min-width: 112px;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid #c3d3c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f5b35;
+}
+
+.transaction-filters-card .filter-action:hover:not(:disabled) {
+  background: #f1f7f3;
+}
+
+.transaction-filters-card .filter-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.content-card {
+  padding: 18px;
+  background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
+  border: 1px solid #dce9e0;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(17, 43, 24, 0.06);
+}
+
+.summary-card-shell,
+.chart-card-shell,
+.table-card-shell {
+  display: block;
+}
+
+.chart-card-shell .charts-grid {
+  margin: 0;
+}
+
+.table-card-shell {
+  overflow: hidden;
+}
+
+.table-card-shell app-category-table {
+  display: block;
 }
 
 .summary-grid,
@@ -327,10 +427,12 @@
 @media (max-width: 900px) {
   .page-header {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .filters-bar {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .filter-group {

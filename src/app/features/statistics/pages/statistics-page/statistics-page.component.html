@@ -5,7 +5,7 @@
       <h1>{{ statisticsTitle() }}</h1>
     </div>
 
-    <div class="filters-bar">
+    <div class="filters-bar transaction-filters-card">
       <div class="filter-group">
         <label class="field">
           <span>{{ i18n.translate('statistics.year') }}</span>
@@ -40,115 +40,106 @@
         </label>
       </div>
 
-      <div class="filter-group account-field">
-        <label class="field">
-          <span>{{ i18n.translate('statistics.accountFilter') }}</span>
-          <select class="filter-control" [ngModel]="selectedAccountId()" (ngModelChange)="onAccountChange($event)">
-            <option [ngValue]="null">{{ i18n.translate('statistics.allAccounts') }}</option>
-            <option *ngFor="let account of accountOptions(); trackBy: trackByAccountId" [ngValue]="account.id">
-              {{ formatAccountLabel(account) }}
-            </option>
-          </select>
-        </label>
-      </div>
-
       <button type="button" class="filter-action" [class.is-active]="hasActiveFilters()" [disabled]="!hasActiveFilters()" (click)="clearFilters()">
         {{ i18n.translate('transactions.clearFilters') }}
       </button>
     </div>
   </header>
 
-  <p class="state-message" *ngIf="isLoadingAccounts() || isLoadingUsers()">{{ i18n.translate('statistics.loadingFilters') }}</p>
+  <p class="state-message" *ngIf="isLoadingUsers()">{{ i18n.translate('statistics.loadingFilters') }}</p>
   <p class="state-message" *ngIf="isLoading()">{{ i18n.translate('statistics.loading') }}</p>
   <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
   <ng-container *ngIf="!errorMessage()">
-    <section class="summary-grid" *ngIf="statistics() as stats">
-      <article class="summary-card summary-card--income">
-        <span>{{ i18n.translate('statistics.summaryIncome') }}</span>
-        <strong>{{ formatAmount(stats.totals.income) }}</strong>
-      </article>
-      <article class="summary-card summary-card--expenses">
-        <span>{{ i18n.translate('statistics.summaryExpenses') }}</span>
-        <strong>{{ formatAmount(stats.totals.expenses) }}</strong>
-      </article>
-      <article class="summary-card summary-card--net">
-        <span>{{ i18n.translate('statistics.summaryNet') }}</span>
-        <strong>{{ formatAmount(stats.totals.net) }}</strong>
-      </article>
-      <article class="summary-card summary-card--savings">
-        <span>{{ i18n.translate('statistics.summarySavings') }}</span>
-        <strong>{{ formatAmount(stats.totals.savings) }}</strong>
-      </article>
-      <article class="summary-card summary-card--rate">
-        <span>{{ i18n.translate('statistics.summarySavingsRate') }}</span>
-        <strong>{{ formatPercent(stats.totals.savingsRateYear) }}</strong>
-      </article>
-    </section>
+    <article class="content-card summary-card-shell" *ngIf="statistics() as stats">
+      <section class="summary-grid">
+        <article class="summary-card summary-card--income">
+          <span>{{ i18n.translate('statistics.summaryIncome') }}</span>
+          <strong>{{ formatAmount(stats.totals.income) }}</strong>
+        </article>
+        <article class="summary-card summary-card--expenses">
+          <span>{{ i18n.translate('statistics.summaryExpenses') }}</span>
+          <strong>{{ formatAmount(stats.totals.expenses) }}</strong>
+        </article>
+        <article class="summary-card summary-card--net">
+          <span>{{ i18n.translate('statistics.summaryNet') }}</span>
+          <strong>{{ formatAmount(stats.totals.net) }}</strong>
+        </article>
+        <article class="summary-card summary-card--savings">
+          <span>{{ i18n.translate('statistics.summarySavings') }}</span>
+          <strong>{{ formatAmount(stats.totals.savings) }}</strong>
+        </article>
+        <article class="summary-card summary-card--rate">
+          <span>{{ i18n.translate('statistics.summarySavingsRate') }}</span>
+          <strong>{{ formatPercent(stats.totals.savingsRateYear) }}</strong>
+        </article>
+      </section>
+    </article>
 
-    <section class="charts-grid" *ngIf="statistics() as stats">
-      <article class="chart-card chart-card--clickable" (click)="openChartModal('monthly')" tabindex="0" role="button">
-        <header class="section-header">
-          <div>
-            <p class="eyebrow">{{ i18n.translate('statistics.monthlyChartTitle') }}</p>
-            <h2>{{ selectedYear() }}</h2>
-          </div>
-        </header>
+    <article class="content-card chart-card-shell" *ngIf="statistics() as stats">
+      <section class="charts-grid">
+        <article class="chart-card chart-card--clickable" (click)="openChartModal('monthly')" tabindex="0" role="button">
+          <header class="section-header">
+            <div>
+              <p class="eyebrow">{{ i18n.translate('statistics.monthlyChartTitle') }}</p>
+              <h2>{{ selectedYear() }}</h2>
+            </div>
+          </header>
 
-        <ng-container *ngIf="hasStatisticsData(); else monthlyEmpty">
-          <svg viewBox="0 0 1180 240" class="monthly-chart" aria-hidden="true" focusable="false">
-            <line x1="64" y1="20" x2="64" y2="200" class="axis-line"></line>
-            <line x1="64" y1="200" x2="1116" y2="200" class="axis-line"></line>
-            <g *ngFor="let tick of monthlyChartTicks(); trackBy: trackByTick">
-              <line x1="64" [attr.y1]="tick.y" x2="1116" [attr.y2]="tick.y" class="chart-grid-line"></line>
-              <text x="56" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
-            </g>
-            <g *ngFor="let guideX of selectedMonth() === null ? monthlyGuideXs() : dailyGuideXs(); trackBy: trackByIndex">
-              <line [attr.x1]="guideX" y1="20" [attr.x2]="guideX" y2="200" class="chart-vertical-guide"></line>
-            </g>
-            <g *ngFor="let group of monthlyBars(); trackBy: trackByMonth">
-              <rect *ngIf="group.incomeHeight > 0" class="bar-income" [attr.x]="group.incomeX" [attr.y]="group.incomeY" width="12" [attr.height]="group.incomeHeight"></rect>
-              <rect *ngIf="group.expenseHeight > 0" class="bar-expense" [attr.x]="group.expenseX" [attr.y]="group.expenseY" width="12" [attr.height]="group.expenseHeight"></rect>
-              <text
-                *ngIf="shouldShowDayLabel(group.month)"
-                class="bar-label"
-                [attr.x]="group.x"
-                [attr.y]="dayLabelYOffset()"
-                [attr.text-anchor]="dayLabelAnchor()"
-                [attr.transform]="'rotate(' + dayLabelRotation() + ' ' + group.x + ' ' + dayLabelYOffset() + ')'">
-                {{ group.label }}
-              </text>
-            </g>
-          </svg>
+          <ng-container *ngIf="hasStatisticsData(); else monthlyEmpty">
+            <svg viewBox="0 0 1180 240" class="monthly-chart" aria-hidden="true" focusable="false">
+              <line x1="64" y1="20" x2="64" y2="200" class="axis-line"></line>
+              <line x1="64" y1="200" x2="1116" y2="200" class="axis-line"></line>
+              <g *ngFor="let tick of monthlyChartTicks(); trackBy: trackByTick">
+                <line x1="64" [attr.y1]="tick.y" x2="1116" [attr.y2]="tick.y" class="chart-grid-line"></line>
+                <text x="56" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
+              </g>
+              <g *ngFor="let guideX of selectedMonth() === null ? monthlyGuideXs() : dailyGuideXs(); trackBy: trackByIndex">
+                <line [attr.x1]="guideX" y1="20" [attr.x2]="guideX" y2="200" class="chart-vertical-guide"></line>
+              </g>
+              <g *ngFor="let group of monthlyBars(); trackBy: trackByMonth">
+                <rect *ngIf="group.incomeHeight > 0" class="bar-income" [attr.x]="group.incomeX" [attr.y]="group.incomeY" width="12" [attr.height]="group.incomeHeight"></rect>
+                <rect *ngIf="group.expenseHeight > 0" class="bar-expense" [attr.x]="group.expenseX" [attr.y]="group.expenseY" width="12" [attr.height]="group.expenseHeight"></rect>
+                <text
+                  *ngIf="shouldShowDayLabel(group.month)"
+                  class="bar-label"
+                  [attr.x]="group.x"
+                  [attr.y]="dayLabelYOffset()"
+                  [attr.text-anchor]="dayLabelAnchor()"
+                  [attr.transform]="'rotate(' + dayLabelRotation() + ' ' + group.x + ' ' + dayLabelYOffset() + ')'">
+                  {{ group.label }}
+                </text>
+              </g>
+            </svg>
 
-          <div class="chart-legend">
-            <span class="legend-item"><i class="legend-swatch income"></i>{{ i18n.translate('statistics.summaryIncome') }}</span>
-            <span class="legend-item"><i class="legend-swatch expenses"></i>{{ i18n.translate('statistics.summaryExpenses') }}</span>
-          </div>
-        </ng-container>
+            <div class="chart-legend">
+              <span class="legend-item"><i class="legend-swatch income"></i>{{ i18n.translate('statistics.summaryIncome') }}</span>
+              <span class="legend-item"><i class="legend-swatch expenses"></i>{{ i18n.translate('statistics.summaryExpenses') }}</span>
+            </div>
+          </ng-container>
 
-        <ng-template #monthlyEmpty>
-          <p class="empty-state">{{ i18n.translate('statistics.empty') }}</p>
-        </ng-template>
-      </article>
+          <ng-template #monthlyEmpty>
+            <p class="empty-state">{{ i18n.translate('statistics.empty') }}</p>
+          </ng-template>
+        </article>
 
-      <article class="chart-card chart-card--clickable" (click)="openChartModal('savings')" tabindex="0" role="button">
-        <header class="section-header">
-          <div>
-            <p class="eyebrow">{{ i18n.translate('statistics.savingsChartTitle') }}</p>
-            <h2>{{ i18n.translate('statistics.summarySavings') }}</h2>
-          </div>
-        </header>
+        <article class="chart-card chart-card--clickable" (click)="openChartModal('savings')" tabindex="0" role="button">
+          <header class="section-header">
+            <div>
+              <p class="eyebrow">{{ i18n.translate('statistics.savingsChartTitle') }}</p>
+              <h2>{{ i18n.translate('statistics.summarySavings') }}</h2>
+            </div>
+          </header>
 
           <svg viewBox="0 0 600 240" class="line-chart" aria-hidden="true" focusable="false">
             <line x1="40" y1="20" x2="40" y2="200" class="axis-line"></line>
             <line x1="40" y1="200" x2="580" y2="200" class="axis-line"></line>
-          <g *ngFor="let tick of savingsChartTicks(); trackBy: trackByTick">
+            <g *ngFor="let tick of savingsChartTicks(); trackBy: trackByTick">
               <line x1="40" [attr.y1]="tick.y" x2="580" [attr.y2]="tick.y" class="chart-grid-line"></line>
               <text x="32" [attr.y]="tick.y + 4" class="axis-label">{{ tick.label }}</text>
             </g>
             <polyline [attr.points]="savingsLine().points" class="line-path"></polyline>
-            <circle *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" [attr.cx]="dot.x" [attr.cy]="dot.y" r="4" class="line-dot"></circle>
+            <circle *ngFor="let dot of savingsLine().dots; trackBy: trackByLinePoint" [attr.cx]="dot.x" [attr.cy]="dot.y" r="2.5" class="line-dot"></circle>
             <ng-container *ngFor="let dot of savingsLine().dots; let index = index; trackBy: trackByLinePoint">
               <text
                 *ngIf="shouldShowDayLabel(dot.month)"
@@ -161,52 +152,55 @@
               </text>
             </ng-container>
           </svg>
-      </article>
+        </article>
 
-      <article class="chart-card pie-card chart-card--clickable" (click)="openChartModal('category')" tabindex="0" role="button">
-        <header class="section-header">
-          <div>
-            <p class="eyebrow">{{ i18n.translate('statistics.categoryChartTitle') }}</p>
-            <h2>{{ i18n.translate('statistics.categoryDistribution') }}</h2>
-          </div>
-        </header>
+        <article class="chart-card pie-card chart-card--clickable" (click)="openChartModal('category')" tabindex="0" role="button">
+          <header class="section-header">
+            <div>
+              <p class="eyebrow">{{ i18n.translate('statistics.categoryChartTitle') }}</p>
+              <h2>{{ i18n.translate('statistics.categoryDistribution') }}</h2>
+            </div>
+          </header>
 
-        <ng-container *ngIf="categoryPieSlices().length > 0; else categoryEmpty">
-          <div class="pie-layout">
-            <svg viewBox="0 0 100 100" class="pie-chart" aria-hidden="true" focusable="false">
-              <circle class="pie-chart-base" cx="50" cy="50" r="42"></circle>
-              <g *ngFor="let slice of categoryPieSlices(); trackBy: trackByPieSlice">
-                <path [attr.d]="slice.path" [attr.fill]="slice.color"></path>
-              </g>
-              <circle class="pie-chart-hole" cx="50" cy="50" r="18"></circle>
-            </svg>
+          <ng-container *ngIf="categoryPieSlices().length > 0; else categoryEmpty">
+            <div class="pie-layout">
+              <svg viewBox="0 0 100 100" class="pie-chart" aria-hidden="true" focusable="false">
+                <circle class="pie-chart-base" cx="50" cy="50" r="42"></circle>
+                <g *ngFor="let slice of categoryPieSlices(); trackBy: trackByPieSlice">
+                  <path [attr.d]="slice.path" [attr.fill]="slice.color"></path>
+                </g>
+                <circle class="pie-chart-hole" cx="50" cy="50" r="18"></circle>
+              </svg>
 
-            <div class="pie-legend">
-              <div class="legend-row" *ngFor="let slice of categoryPieSlices(); trackBy: trackByPieSlice">
-                <span class="legend-swatch" [style.background]="slice.color"></span>
-                <div>
-                  <strong>{{ slice.label }}</strong>
-                  <span>{{ formatAmount(slice.total) }} · {{ formatPercent(slice.percent) }}</span>
+              <div class="pie-legend">
+                <div class="legend-row" *ngFor="let slice of categoryPieSlices(); trackBy: trackByPieSlice">
+                  <span class="legend-swatch" [style.background]="slice.color"></span>
+                  <div>
+                    <strong>{{ slice.label }}</strong>
+                    <span>{{ formatAmount(slice.total) }} · {{ formatPercent(slice.percent) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ng-container>
+          </ng-container>
 
-        <ng-template #categoryEmpty>
-          <p class="empty-state">{{ i18n.translate('statistics.empty') }}</p>
-        </ng-template>
-      </article>
-    </section>
+          <ng-template #categoryEmpty>
+            <p class="empty-state">{{ i18n.translate('statistics.empty') }}</p>
+          </ng-template>
+        </article>
+      </section>
+    </article>
 
-    <app-category-table
-      [categories]="categoryTableCategories()"
-      [columns]="categoryTableColumns()"
-      [columnLabels]="categoryTableColumnLabels()"
-      [viewMode]="selectedMonth() === null ? 'year' : 'month'"
-      [activeTab]="selectedCategoryTab()"
-      (activeTabChange)="setCategoryTab($event)">
-    </app-category-table>
+    <article class="content-card table-card-shell">
+      <app-category-table
+        [categories]="categoryTableCategories()"
+        [columns]="categoryTableColumns()"
+        [columnLabels]="categoryTableColumnLabels()"
+        [viewMode]="selectedMonth() === null ? 'year' : 'month'"
+        [activeTab]="selectedCategoryTab()"
+        (activeTabChange)="setCategoryTab($event)">
+      </app-category-table>
+    </article>
   </ng-container>
 
   <div class="loading-overlay" *ngIf="isLoading()">
