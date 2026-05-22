@@ -46,6 +46,7 @@ export class SavingsGoalModalComponent implements OnInit {
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
   readonly animatedProgress = signal(0);
+  readonly ringCircumference = 2 * Math.PI * 52;
 
   private dragging = false;
   private dragStartX = 0;
