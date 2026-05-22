@@ -11,14 +11,17 @@
     </div>
 
     <div class="hero">
-      <div class="ring" [style.--progress.%]="progress()">
+      <div class="ring" [style.--progress.%]="animatedProgress()">
         <svg class="ring__chart" viewBox="0 0 120 120" aria-hidden="true">
           <defs>
             <linearGradient id="savingsGoalRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#8ad07d" />
-              <stop offset="52%" stop-color="#49ab66" />
-              <stop offset="100%" stop-color="#1f7f45" />
+              <stop offset="0%" stop-color="#baf7b5" />
+              <stop offset="45%" stop-color="#5ce08a" />
+              <stop offset="100%" stop-color="#15803d" />
             </linearGradient>
+            <filter id="savingsGoalRingGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#4bb96d" flood-opacity="0.24" />
+            </filter>
           </defs>
           <circle class="ring__track" cx="60" cy="60" r="52" pathLength="100"></circle>
           <circle class="ring__fill" cx="60" cy="60" r="52" pathLength="100"></circle>

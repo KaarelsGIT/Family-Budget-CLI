@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
@@ -28,7 +28,7 @@ interface CalendarDay {
   templateUrl: './savings-goal-modal.component.html',
   styleUrl: './savings-goal-modal.component.css'
 })
-export class SavingsGoalModalComponent {
+export class SavingsGoalModalComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly accountService = inject(AccountService);
   readonly i18n = inject(TranslationService);
@@ -45,6 +45,7 @@ export class SavingsGoalModalComponent {
   readonly yearGridStart = signal(0);
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
+  readonly animatedProgress = signal(0);
 
   private dragging = false;
   private dragStartX = 0;
@@ -79,6 +80,7 @@ export class SavingsGoalModalComponent {
     }, { emitEvent: false });
     this.calendarMonthAnchor.set(this.getCalendarAnchorDate());
     this.yearGridStart.set(this.getYearGridStart(this.calendarMonthAnchor().getFullYear()));
+    this.animateProgressRing();
   }
 
   close(): void {
@@ -342,14 +344,31 @@ export class SavingsGoalModalComponent {
   private calculateMonthlyAmount(): number {
     const targetAmount = this.account().targetAmount ?? 0;
     const targetDateValue = this.account().targetDate;
-    const targetDate = targetDateValue ? new Date(targetDateValue) : null;
-    if (!targetDate || Number.isNaN(targetDate.getTime())) {
+    const targetDate = targetDateValue ? new Date(`${targetDateValue}T00:00:00`) : null;
+    if (!targetDate || Number.isNaN(targetDate.getTime()) || targetAmount <= 0) {
       return 0;
     }
 
     const remaining = Math.max(0, targetAmount - this.account().balance);
     const today = new Date();
-    const months = Math.max(1, (targetDate.getFullYear() - today.getFullYear()) * 12 + (targetDate.getMonth() - today.getMonth()) - (targetDate.getDate() < today.getDate() ? 1 : 0));
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const end = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const diffDays = Math.ceil((end.getTime() - start.getTime()) / 86_400_000);
+    if (diffDays <= 0) {
+      return 0;
+    }
+
+    const months = Math.max(1, Math.ceil(diffDays / 30.42));
     return remaining / months;
+  }
+
+  private animateProgressRing(): void {
+    this.animatedProgress.set(0);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.animatedProgress.set(this.progress());
+      });
+    });
   }
 }
