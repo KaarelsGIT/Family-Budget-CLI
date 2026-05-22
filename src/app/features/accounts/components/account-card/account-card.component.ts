@@ -7,7 +7,11 @@ import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { EditAccountInlineComponent } from '../edit-account-inline/edit-account-inline.component';
 import { formatMoney } from '../../../shared/utils/money-format';
-import { canShareAccount as canShareAccountForUser, canTransactFromAccount } from '../../utils/account-access';
+import {
+  canManageSavingsGoal,
+  canShareAccount as canShareAccountForUser,
+  canTransactFromAccount
+} from '../../utils/account-access';
 
 @Component({
   selector: 'app-account-card',
@@ -58,6 +62,10 @@ export class AccountCardComponent {
     return this.isOwner() || this.isAdmin();
   }
 
+  canEditSavingsGoal(): boolean {
+    return canManageSavingsGoal(this.account(), this.authService.getUserId(), this.authService.getRole());
+  }
+
   getTypeTranslationKey(type: Account['type']): 'accounts.typeMain' | 'accounts.typeSavings' | 'accounts.typeSubAccount' | 'accounts.typeCash' {
     switch (type) {
       case 'MAIN':
@@ -93,7 +101,7 @@ export class AccountCardComponent {
   }
 
   openSavingsGoal(): void {
-    if (!this.isSavingsAccount()) {
+    if (!this.isSavingsAccount() || !this.canEditSavingsGoal()) {
       return;
     }
 

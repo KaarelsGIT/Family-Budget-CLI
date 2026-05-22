@@ -27,3 +27,21 @@ export function canShareAccount(
 ): boolean {
   return currentUserRole === 'ADMIN' || (currentUserId !== null && account.ownerId === currentUserId);
 }
+
+export function canManageSavingsGoal(
+  account: Pick<Account, 'ownerId' | 'sharedUsers'>,
+  currentUserId: number | null,
+  currentUserRole: string | null
+): boolean {
+  if (currentUserRole === 'ADMIN') {
+    return true;
+  }
+
+  if (currentUserId !== null && account.ownerId === currentUserId) {
+    return true;
+  }
+
+  return currentUserId !== null && account.sharedUsers?.some(
+    (sharedUser) => sharedUser.userId === currentUserId && sharedUser.role === 'EDITOR'
+  ) === true;
+}

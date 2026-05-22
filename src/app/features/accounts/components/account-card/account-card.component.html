@@ -1,4 +1,4 @@
-<article class="account-card" [class.account-card--goal]="isSavingsAccount()" [style.--accent-color]="accentColor() || null" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (click)="onCardClick()" (keydown)="onCardKeydown($event)" [attr.tabindex]="isSavingsAccount() ? 0 : null" [attr.role]="isSavingsAccount() ? 'button' : null">
+<article class="account-card" [class.account-card--goal]="isSavingsAccount()" [style.--accent-color]="accentColor() || null" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (click)="onCardClick()" (keydown)="onCardKeydown($event)" [attr.tabindex]="isSavingsAccount() && canEditSavingsGoal() ? 0 : null" [attr.role]="isSavingsAccount() && canEditSavingsGoal() ? 'button' : null">
   <div class="card-header">
     <div class="card-main">
       <div class="card-title-row">
@@ -94,17 +94,23 @@
         {{ formatBalance(account().balance) }} / {{ formatBalance(account().targetAmount ?? 0) }}
       </span>
       <ng-template #goalMissing>
-        <span class="goal-progress__values">Lisa sihtsumma ja kuupäev</span>
+        <span class="goal-progress__values">{{ i18n.translate('accounts.savingsGoalSetHint') }}</span>
       </ng-template>
     </div>
     <div class="goal-progress__track" aria-hidden="true">
       <div class="goal-progress__fill" [style.width.%]="hasSavingsGoal() ? getSavingsProgress() : 0"></div>
     </div>
+    <p class="goal-progress__hint" *ngIf="canEditSavingsGoal(); else viewOnlyHint">
+      {{ i18n.translate('accounts.savingsGoalManageHint') }}
+    </p>
+    <ng-template #viewOnlyHint>
+      <p class="goal-progress__hint">{{ i18n.translate('accounts.savingsGoalViewOnlyHint') }}</p>
+    </ng-template>
     <div class="goal-progress__meta">
-      <span>Target</span>
+      <span>{{ i18n.translate('accounts.targetLabel') }}</span>
       <span *ngIf="account().targetDate; else targetMissing">{{ formatTargetDate(account().targetDate) }}</span>
       <ng-template #targetMissing>
-        <span>Puudub</span>
+        <span>{{ i18n.translate('accounts.targetUnset') }}</span>
       </ng-template>
     </div>
   </div>
