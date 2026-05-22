@@ -84,7 +84,7 @@ export class AccountCardComponent {
   }
 
   isSavingsAccount(): boolean {
-    return this.account().type === 'SAVINGS';
+    return this.account().type === 'SAVINGS' || this.account().type === 'CASH';
   }
 
   hasSavingsGoal(): boolean {

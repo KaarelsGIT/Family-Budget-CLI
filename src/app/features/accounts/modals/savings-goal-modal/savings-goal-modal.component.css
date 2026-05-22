@@ -78,23 +78,60 @@
 .ring {
   --size: 176px;
   --track: #d8e6dc;
-  --fill: #2f8f57;
+  --fill-start: #8ad07d;
+  --fill-mid: #49ab66;
+  --fill-end: #1f7f45;
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: conic-gradient(var(--fill) calc(var(--progress) * 1%), var(--track) 0);
+  position: relative;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(31, 127, 69, 0.12);
+}
+
+.ring__chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  pointer-events: none;
+}
+
+.ring__track,
+.ring__fill {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+.ring__track {
+  stroke: var(--track);
+  opacity: 0.7;
+}
+
+.ring__fill {
+  stroke: url(#savingsGoalRingGradient);
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: calc(100 - var(--progress));
+  filter: drop-shadow(0 0 8px rgba(74, 171, 102, 0.22));
 }
 
 .ring__inner {
-  width: calc(var(--size) - 28px);
-  height: calc(var(--size) - 28px);
+  width: calc(var(--size) - 30px);
+  height: calc(var(--size) - 30px);
   border-radius: 50%;
-  background: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 252, 248, 0.98));
   display: grid;
   place-items: center;
   text-align: center;
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .ring__percent {
