@@ -102,7 +102,7 @@
     </div>
     <div class="goal-progress__meta">
       <span>Target</span>
-      <span *ngIf="account().targetDate; else targetMissing">{{ account().targetDate }}</span>
+      <span *ngIf="account().targetDate; else targetMissing">{{ formatTargetDate(account().targetDate) }}</span>
       <ng-template #targetMissing>
         <span>Puudub</span>
       </ng-template>

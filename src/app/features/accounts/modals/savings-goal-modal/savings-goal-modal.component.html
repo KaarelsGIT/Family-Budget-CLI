@@ -1,13 +1,13 @@
 <div class="modal-overlay">
   <div class="modal-backdrop" (click)="close()"></div>
 
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="savings-goal-title">
-    <div class="modal-header">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="savings-goal-title" [style.transform]="getModalTransform()">
+    <div class="modal-header" (pointerdown)="startDrag($event)" (pointermove)="onDragMove($event)" (pointerup)="stopDrag($event)" (pointercancel)="stopDrag($event)">
       <div>
         <p class="eyebrow">{{ i18n.translate('accounts.savingsGoalEyebrow') }}</p>
         <h2 id="savings-goal-title">{{ account().name }}</h2>
       </div>
-      <button type="button" class="close-button" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✕</button>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="i18n.translate('login.cancel')">✕</button>
     </div>
 
     <div class="hero">
@@ -58,7 +58,7 @@
       </div>
     </section>
 
-    <form class="goal-form" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="goal-form" [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="submit()">
       <h3>{{ i18n.translate('accounts.editGoal') }}</h3>
 
       <label class="field">
@@ -68,17 +68,58 @@
 
       <label class="field">
         <span>{{ i18n.translate('accounts.targetDate') }}</span>
-        <input type="date" formControlName="targetDate" />
+        <div class="date-picker-trigger">
+          <button type="button" class="date-display" (click)="isDatePickerOpen() ? closeDatePicker() : openDatePicker()">
+            <span *ngIf="getDisplayedTargetDate(); else datePlaceholder">{{ getDisplayedTargetDate() }}</span>
+            <ng-template #datePlaceholder>{{ i18n.translate('accounts.targetDate') }}</ng-template>
+          </button>
+
+          <input type="hidden" formControlName="targetDate" />
+        </div>
       </label>
 
       <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
       <div class="modal-actions">
-        <button type="button" class="secondary" (click)="close()">{{ i18n.translate('login.cancel') }}</button>
         <button type="submit" class="primary" [disabled]="isSubmitting()">
           {{ isSubmitting() ? i18n.translate('accounts.processing') : i18n.translate('accounts.saveGoal') }}
         </button>
       </div>
     </form>
   </section>
+
+  <div class="date-picker-shell" *ngIf="isDatePickerOpen()">
+    <div class="date-picker">
+      <button type="button" class="date-nav" (click)="previousCalendarMonth()">‹</button>
+      <button type="button" class="date-picker-title" (click)="toggleCalendarYearMode()">{{ monthTitle() }}</button>
+      <button type="button" class="date-nav" (click)="nextCalendarMonth()">›</button>
+    </div>
+
+    <div class="year-grid" *ngIf="calendarMode() === 'year'">
+      <button type="button" class="year-chip" *ngFor="let year of yearOptions()" (click)="selectCalendarYear(year.year)">
+        {{ year.year }}
+      </button>
+      <div class="year-grid-actions">
+        <button type="button" class="date-nav" (click)="changeYearGrid(-12)">‹</button>
+        <button type="button" class="date-nav" (click)="changeYearGrid(12)">›</button>
+      </div>
+    </div>
+
+    <div class="weekday-row">
+      <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+    </div>
+
+    <div class="day-grid" *ngIf="calendarMode() === 'month'">
+      <button
+        type="button"
+        class="day-cell"
+        *ngFor="let day of calendarDays()"
+        [class.is-outside]="!day.isCurrentMonth"
+        [class.is-today]="day.isToday"
+        [class.is-selected]="day.isSelected"
+        (click)="selectCalendarDate(day)">
+        {{ day.label }}
+      </button>
+    </div>
+  </div>
 </div>

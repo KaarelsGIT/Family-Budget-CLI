@@ -162,6 +162,23 @@ export class AccountCardComponent {
     return formatMoney(balance);
   }
 
+  formatTargetDate(value: string | null | undefined): string {
+    if (!value) {
+      return 'Puudub';
+    }
+
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat(this.i18n.language(), {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(parsed);
+  }
+
   hasAccentColor(): boolean {
     return !!this.accentColor();
   }
