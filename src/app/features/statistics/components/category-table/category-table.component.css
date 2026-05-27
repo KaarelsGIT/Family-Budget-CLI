@@ -200,3 +200,127 @@
   padding: 16px 0;
   color: #5b6b61;
 }
+
+@media (max-width: 640px) {
+  .category-table-card {
+    gap: 10px;
+  }
+
+  .section-header--tabs {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tabs {
+    width: 100%;
+  }
+
+  .tab-button {
+    flex: 1 1 0;
+    text-align: center;
+  }
+
+  .scroll-container {
+    overflow-x: visible !important;
+  }
+
+  .category-grid {
+    min-width: 0;
+    width: 100%;
+    table-layout: auto;
+    font-size: 0.88rem;
+  }
+
+  .category-grid thead {
+    display: none;
+  }
+
+  .category-grid,
+  .category-grid tbody,
+  .category-grid tr,
+  .category-grid td {
+    display: block;
+  }
+
+  .category-grid tr {
+    margin-bottom: 10px;
+    border: 1px solid #e4ece5;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .category-grid tbody tr:hover,
+  .category-grid tbody tr:hover td,
+  .category-grid tbody tr:hover .category-cell,
+  .category-grid tbody tr:hover .total-cell {
+    background-color: #fff;
+  }
+
+  .category-grid td {
+    border-bottom: none;
+    white-space: normal;
+    padding: 10px 12px;
+  }
+
+  .category-grid td:first-child,
+  .category-grid td:last-child {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto;
+    background: transparent;
+    border-left: none;
+    box-shadow: none;
+  }
+
+  .category-grid .category-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 12px;
+    background: #f8fbf8 !important;
+  }
+
+  .category-grid .category-cell::after {
+    content: '';
+  }
+
+  .category-grid .category-name {
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .category-grid .month-cell {
+    display: none;
+  }
+
+  .category-grid .total-cell {
+    text-align: left;
+    padding-top: 0;
+    padding-bottom: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    color: #213029;
+  }
+
+  .category-grid .total-cell::before {
+    content: 'Kokku';
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6d7d72;
+  }
+
+  .category-grid .expand-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .child-row .category-name {
+    font-size: 0.9rem;
+  }
+}

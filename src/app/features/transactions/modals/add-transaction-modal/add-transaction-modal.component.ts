@@ -25,6 +25,7 @@ import {
   TransferTargetUser,
 } from '../../../accounts/utils/transfer-targets';
 import { TransactionCategory } from '../../models/transaction.model';
+import { CreateTransactionPayload, TransactionItem } from '../../models/transaction.model';
 import { TransactionDraftService } from '../../services/transaction-draft.service';
 import { TransactionsService } from '../../services/transactions.service';
 
@@ -56,6 +57,18 @@ interface SelectedTransferTarget {
   id: number;
 }
 
+interface TransactionPayload {
+  amount: number;
+  type: TransactionType;
+  accountId: number;
+  categoryId: number | null;
+  transactionDate: string;
+  comment: string;
+  reminderId: number | null;
+  useMicroSavings: boolean;
+  multiplier: 1 | 2 | null;
+}
+
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
@@ -76,6 +89,7 @@ export class AddTransactionModalComponent {
   private readonly draftService = inject(TransactionDraftService);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
+  readonly formatMoney = formatMoney;
 
   readonly categories = input<TransactionCategory[]>([]);
   readonly localNewCategories = signal<TransactionCategory[]>([]);
@@ -97,6 +111,9 @@ export class AddTransactionModalComponent {
   readonly successMessage = signal('');
   readonly isCategoryEditorOpen = signal(false);
   readonly isSubcategoryConfirmOpen = signal(false);
+  readonly isDuplicateConfirmOpen = signal(false);
+  readonly duplicateMatches = signal<TransactionItem[]>([]);
+  readonly pendingTransactionPayload = signal<TransactionPayload | null>(null);
   readonly lastCreatedMainCategory = signal<TransactionCategory | null>(null);
   readonly categoryEditorMode = signal<'create-main' | 'create-sub'>('create-main');
   readonly categoryEditorParentCategory = signal<TransactionCategory | null>(null);
@@ -612,7 +629,6 @@ export class AddTransactionModalComponent {
     }
 
     this.errorMessage.set('');
-    this.isSubmitting.set(true);
 
     const useMicroSavings =
       this.transactionType() === 'EXPENSE' &&
@@ -620,28 +636,32 @@ export class AddTransactionModalComponent {
       this.useMicroSavings();
     const multiplier = useMicroSavings ? this.microSavingsMultiplier() : null;
 
+    const payload = {
+      amount: parsedAmount,
+      type,
+      accountId: selectedAccountId,
+      categoryId: parsedCategoryId,
+      transactionDate,
+      comment: trimmedComment,
+      reminderId: parsedReminderId,
+      useMicroSavings,
+      multiplier,
+    };
+
+    this.isSubmitting.set(true);
     this.transactionsService
-      .createTransaction({
-        amount: parsedAmount,
-        type,
-        accountId: selectedAccountId,
-        categoryId: parsedCategoryId,
-        transactionDate,
-        comment: trimmedComment,
-        reminderId: parsedReminderId,
-        useMicroSavings,
-        multiplier,
-      })
+      .checkTransactionDuplicate(payload)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
-        next: (response) => {
-          this.showSuccessMessage(this.buildSuccessMessage(response.microSavingsAmount));
-          this.transactionForm.patchValue(
-            { amount: null as unknown as string, comment: '', reminderId: '' },
-            { emitEvent: false },
-          );
-          this.loadAccounts();
-          this.created.emit();
+        next: (duplicateResult) => {
+          if (duplicateResult.duplicate) {
+            this.duplicateMatches.set(duplicateResult.matches);
+            this.pendingTransactionPayload.set(payload);
+            this.isDuplicateConfirmOpen.set(true);
+            return;
+          }
+
+          this.createTransaction(payload);
         },
         error: (error) =>
           this.errorMessage.set(this.resolveErrorMessage(error, 'transactions.createFailed')),
@@ -750,6 +770,105 @@ export class AddTransactionModalComponent {
   }
   trackByAccountId(_index: number, account: Account): number {
     return account.id;
+  }
+
+  confirmDuplicateTransaction(): void {
+    const payload = this.pendingTransactionPayload();
+    this.isDuplicateConfirmOpen.set(false);
+    this.duplicateMatches.set([]);
+    this.pendingTransactionPayload.set(null);
+    if (payload) {
+      this.createTransaction(payload);
+    }
+  }
+
+  cancelDuplicateTransaction(): void {
+    this.isDuplicateConfirmOpen.set(false);
+    this.duplicateMatches.set([]);
+    this.pendingTransactionPayload.set(null);
+    this.errorMessage.set('');
+  }
+
+  formatTransactionDate(value: string | null | undefined): string {
+    if (!value) return '—';
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat(this.i18n.language(), {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(parsed);
+  }
+
+  getDuplicateAmountLabel(match: TransactionItem | null | undefined): string {
+    if (!match) return '—';
+
+    const isExpense = match.type === 'EXPENSE' || match.amount < 0;
+    const prefix = isExpense ? '- ' : '+ ';
+    return `${prefix}${formatMoney(Math.abs(match.amount))}`;
+  }
+
+  private buildTransactionPayload(): CreateTransactionPayload {
+    const {
+      type,
+      accountId,
+      mainCategoryId,
+      categoryId,
+      reminderId,
+      transactionDate,
+      amount,
+      comment,
+    } = this.transactionForm.getRawValue();
+    const parsedAmount = parseMoneyInput(amount);
+    const trimmedComment = (comment || '').trim();
+    const parsedReminderId = this.parseNumber(reminderId);
+    const parsedCategoryId = this.parseNumber(categoryId);
+    const selectedAccountId = this.parseNumber(accountId);
+    const useMicroSavings =
+      this.transactionType() === 'EXPENSE' &&
+      this.savingsAccountAvailable() &&
+      this.useMicroSavings();
+    const multiplier = useMicroSavings ? this.microSavingsMultiplier() : null;
+
+    if (selectedAccountId === null) {
+      throw new Error('Account id is required');
+    }
+
+    return {
+      amount: parsedAmount,
+      type,
+      accountId: selectedAccountId,
+      categoryId: parsedCategoryId,
+      transactionDate,
+      comment: trimmedComment,
+      reminderId: parsedReminderId,
+      useMicroSavings,
+      multiplier,
+    };
+  }
+
+  private createTransaction(payload: CreateTransactionPayload): void {
+    this.isSubmitting.set(true);
+    this.transactionsService
+      .createTransaction(payload)
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.showSuccessMessage(this.buildSuccessMessage(response.microSavingsAmount));
+          this.transactionForm.patchValue(
+            { amount: null as unknown as string, comment: '', reminderId: '' },
+            { emitEvent: false },
+          );
+          this.loadAccounts();
+          this.created.emit();
+        },
+        error: (error) =>
+          this.errorMessage.set(this.resolveErrorMessage(error, 'transactions.createFailed')),
+      });
   }
 
   isExpenseAmountWithinBalance(): boolean {
@@ -1034,10 +1153,10 @@ export class AddTransactionModalComponent {
         this.transactionForm.controls.transferFromAccountId.getRawValue(),
       );
       if (currentFromAccountId !== defaultFromAccount.id) {
-      this.transactionForm.patchValue(
-        { transferFromAccountId: String(defaultFromAccount.id) },
-        { emitEvent: false },
-      );
+        this.transactionForm.patchValue(
+          { transferFromAccountId: String(defaultFromAccount.id) },
+          { emitEvent: false },
+        );
       }
       this.selectedTransferFromAccountId.set(defaultFromAccount.id);
     }

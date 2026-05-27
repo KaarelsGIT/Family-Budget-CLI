@@ -30,6 +30,11 @@ interface TransactionCreateResponseApiResponse {
   microSavingsAmount: number | string | null;
 }
 
+interface TransactionDuplicateCheckResponseApiResponse {
+  duplicate: boolean;
+  matches: TransactionApiResponse[];
+}
+
 interface TransactionApiResponse {
   id: number;
   amount: number | string | null;
@@ -156,6 +161,35 @@ export class TransactionsService {
         microSavingsAmount: typeof response.data.microSavingsAmount === 'number'
           ? response.data.microSavingsAmount
           : Number(response.data.microSavingsAmount ?? 0)
+      }))
+    );
+  }
+
+  checkTransactionDuplicate(payload: CreateTransactionPayload): Observable<{ duplicate: boolean; matches: TransactionItem[] }> {
+    const body = {
+      amount: payload.amount,
+      type: payload.type,
+      fromAccountId: payload.type === 'TRANSFER'
+        ? (payload.transferFromAccountId ?? payload.accountId)
+        : (payload.type === 'EXPENSE' ? payload.accountId : null),
+      toAccountId: payload.type === 'TRANSFER'
+        ? (payload.transferToAccountId ?? payload.toAccountId ?? null)
+        : (payload.type === 'INCOME' ? payload.accountId : null),
+      categoryId: payload.categoryId,
+      transactionDate: payload.transactionDate,
+      comment: payload.comment || null,
+      reminderId: payload.reminderId ?? null,
+      useMicroSavings: payload.useMicroSavings ?? false,
+      multiplier: payload.multiplier ?? null
+    };
+
+    return this.http.post<ApiResponse<TransactionDuplicateCheckResponseApiResponse>>(
+      `${environment.apiUrl}/transactions/duplicate-check`,
+      body,
+    ).pipe(
+      map((response) => ({
+        duplicate: response.data.duplicate,
+        matches: response.data.matches.map((item) => this.mapTransaction(item))
       }))
     );
   }

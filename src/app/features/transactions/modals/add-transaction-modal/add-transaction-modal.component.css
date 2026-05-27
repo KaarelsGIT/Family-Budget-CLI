@@ -630,6 +630,108 @@ button.secondary:disabled {
   color: crimson;
 }
 
+.confirm-modal {
+  width: min(720px, calc(100vw - 24px));
+  padding: 22px;
+}
+
+.confirm-modal .modal-header {
+  margin-bottom: 10px;
+}
+
+.confirm-copy {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #5e6f63;
+  font-weight: 500;
+}
+
+.duplicate-card-wrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.duplicate-badge {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef4ef;
+  border: 1px solid #d6e1d8;
+  color: #4f6256;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.duplicate-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #dce9e0;
+  border-radius: 16px;
+  background: #fbfcfb;
+  box-shadow: 0 10px 24px rgba(23, 54, 31, 0.06);
+}
+
+.duplicate-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.duplicate-card-title {
+  font-size: 16px;
+  color: #17361f;
+}
+
+.duplicate-card-date,
+.duplicate-card-comment {
+  color: #6a7970;
+  font-size: 13px;
+}
+
+.duplicate-card-comment {
+  white-space: pre-wrap;
+}
+
+.duplicate-card-amount {
+  flex: 0 0 auto;
+  font-size: 18px;
+  color: #c62828;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.action-button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.secondary.action-button {
+  background: #f2f5f3;
+  border: 1px solid #cfd8d3;
+  color: #274235;
+}
+
+.primary.action-button {
+  background: linear-gradient(180deg, #2f8f3a 0%, #24712f 100%);
+  border: 1px solid #23722d;
+  color: #ffffff;
+}
+
 @media (max-width: 860px) {
   .modal-card {
     width: min(100vw - 16px, 980px);
@@ -686,6 +788,10 @@ button.secondary:disabled {
   .modal-footer button,
   .inline-actions button {
     width: 100%;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
   }
 
   .transfer-select-grid {

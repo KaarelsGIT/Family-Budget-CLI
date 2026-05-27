@@ -367,3 +367,39 @@
     </div>
   </section>
 </div>
+
+<div class="modal-overlay" *ngIf="isDuplicateConfirmOpen()">
+  <div class="modal-backdrop" (click)="cancelDuplicateTransaction()"></div>
+
+  <section class="modal-card confirm-modal" role="dialog" aria-modal="true" aria-labelledby="duplicate-transaction-title">
+    <div class="modal-header">
+      <h2 id="duplicate-transaction-title">{{ i18n.translate('transactions.duplicateConfirmTitle') }}</h2>
+      <button type="button" class="close-button" (click)="cancelDuplicateTransaction()" [attr.aria-label]="i18n.translate('login.cancel')">✖</button>
+    </div>
+
+    <p class="confirm-copy">{{ i18n.translate('transactions.duplicateConfirmMessage') }}</p>
+
+    <div class="duplicate-card-wrap" *ngIf="duplicateMatches()[0] as duplicateMatch">
+      <span class="duplicate-badge">1 vaste</span>
+      <article class="duplicate-card">
+        <div class="duplicate-card-text">
+          <strong class="duplicate-card-title">{{ duplicateMatch.categoryName ?? '—' }}</strong>
+          <span class="duplicate-card-date">{{ formatTransactionDate(duplicateMatch.transactionDate) }}</span>
+          <span class="duplicate-card-comment" *ngIf="duplicateMatch.comment">{{ duplicateMatch.comment }}</span>
+        </div>
+        <div class="duplicate-card-amount">
+          {{ getDuplicateAmountLabel(duplicateMatch) }}
+        </div>
+      </article>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="secondary action-button" (click)="cancelDuplicateTransaction()">
+        {{ i18n.translate('transactions.duplicateConfirmNo') }}
+      </button>
+      <button type="button" class="primary action-button" (click)="confirmDuplicateTransaction()">
+        {{ i18n.translate('transactions.duplicateConfirmYes') }}
+      </button>
+    </div>
+  </section>
+</div>
