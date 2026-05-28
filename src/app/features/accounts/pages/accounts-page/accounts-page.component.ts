@@ -501,7 +501,7 @@ export class AccountsPageComponent {
       return [{
         accountId: singleAccount.id,
         color: this.getChartColor(accounts.findIndex((account) => account.id === singleAccount.id)),
-        path: this.describeFullCircle(70, 70, 42)
+        path: this.describeFullCircle(50, 50, 42)
       }];
     }
 
@@ -523,7 +523,7 @@ export class AccountsPageComponent {
         color: hoveredAccountId === null || hoveredAccountId === account.id
           ? this.getChartColor(index)
           : 'rgba(183, 228, 199, 0.24)',
-        path: this.describePieSlice(70, 70, 42, startAngle, endAngle)
+        path: this.describePieSlice(50, 50, 42, startAngle, endAngle)
       }];
     });
   }
