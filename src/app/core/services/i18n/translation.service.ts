@@ -67,6 +67,9 @@ const translations = {
     'accounts.myAccounts': 'Minu kontod',
     'accounts.summaryTitle': 'Sisselogitud kasutaja konto seis',
     'accounts.familyAccounts': 'Pere kontod',
+    'accounts.familyContribution': 'Pereliikmete panus',
+    'accounts.familyMembers': 'Pereliikmed',
+    'accounts.familyMembersCount': 'liiget',
     'accounts.createSavingTitle': 'Loo säästukonto',
     'accounts.createSavingCopy': 'Igal kasutajal on vaikimisi põhikonto ja soovi korral saab lisada säästukontosid.',
     'accounts.accountName': 'Konto nimi',
@@ -80,6 +83,8 @@ const translations = {
     'accounts.currentMonth': 'Käesolev kuu',
     'accounts.currentMonthIncome': 'Sissetulekud',
     'accounts.currentMonthExpenses': 'Väljaminekud',
+    'accounts.savingsDeposited': 'Sissemakstud',
+    'accounts.savingsWithdrawn': 'Väljavõetud',
     'accounts.totalBalance': 'Kogusaldo',
     'accounts.addAccount': '+ Lisa konto',
     'accounts.addAccountTitle': 'Lisa konto',
@@ -509,6 +514,9 @@ const translations = {
     'accounts.myAccounts': 'My accounts',
     'accounts.summaryTitle': 'Signed-in account status',
     'accounts.familyAccounts': 'Family accounts',
+    'accounts.familyContribution': 'Family contribution',
+    'accounts.familyMembers': 'Members',
+    'accounts.familyMembersCount': 'members',
     'accounts.createSavingTitle': 'Create Saving Account',
     'accounts.createSavingCopy': 'Every user keeps a default main account and can add extra saving accounts.',
     'accounts.accountName': 'Account name',
@@ -522,6 +530,8 @@ const translations = {
     'accounts.currentMonth': 'This month',
     'accounts.currentMonthIncome': 'Income',
     'accounts.currentMonthExpenses': 'Expenses',
+    'accounts.savingsDeposited': 'Deposited',
+    'accounts.savingsWithdrawn': 'Withdrawn',
     'accounts.totalBalance': 'Total Balance',
     'accounts.addAccount': '+ Add Account',
     'accounts.addAccountTitle': 'Add Account',
@@ -971,6 +981,9 @@ const translations = {
     'accounts.myAccounts': 'Omat tilit',
     'accounts.summaryTitle': 'Kirjautuneen käyttäjän tilanne',
     'accounts.familyAccounts': 'Perheen tilit',
+    'accounts.familyContribution': 'Perheen panos',
+    'accounts.familyMembers': 'Perheenjäsenet',
+    'accounts.familyMembersCount': 'jäsentä',
     'accounts.createSavingTitle': 'Luo säästötili',
     'accounts.createSavingCopy': 'Jokaisella käyttäjällä on oletuksena päätili ja mahdollisuus lisätä säästötilejä.',
     'accounts.accountName': 'Tilin nimi',
@@ -984,6 +997,8 @@ const translations = {
     'accounts.currentMonth': 'Tämä kuukausi',
     'accounts.currentMonthIncome': 'Tulot',
     'accounts.currentMonthExpenses': 'Menot',
+    'accounts.savingsDeposited': 'Talletettu',
+    'accounts.savingsWithdrawn': 'Nostettu',
     'accounts.totalBalance': 'Kokonaissaldo',
     'accounts.addAccount': '+ Lisää tili',
     'accounts.addAccountTitle': 'Lisää tili',
@@ -1420,8 +1435,9 @@ export class TranslationService {
     this.applyDocumentLanguage(language);
   }
 
-  translate(key: TranslationKey, params?: TranslationParams): string {
-    const template = translations[this.language()][key] ?? translations.et[key];
+  translate(key: TranslationKey | string, params?: TranslationParams): string {
+    const safeKey = key as TranslationKey;
+    const template = translations[this.language()][safeKey] ?? translations.et[safeKey] ?? key;
     return this.interpolate(template, params);
   }
 

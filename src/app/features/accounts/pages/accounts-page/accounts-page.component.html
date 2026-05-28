@@ -1,26 +1,44 @@
 <section class="accounts-container">
   <section class="family-dashboard" *ngIf="isPrivilegedUser() && familyDashboardUsers().length > 0">
-    <div class="dashboard-chart">
-      <svg viewBox="0 0 140 140" class="pie-chart pie-chart--family" aria-hidden="true" focusable="false">
-        <circle class="pie-chart-base" cx="50" cy="50" r="44"></circle>
-        <ng-container *ngIf="familyDashboardSlices().length > 0; else emptyFamilyChart">
-          <path
-            *ngFor="let slice of familyDashboardSlices(); trackBy: trackByChartSliceId"
-            [attr.d]="slice.path"
-            [attr.fill]="slice.color"
-            stroke="#ffffff"
-            stroke-width="1.8"></path>
-        </ng-container>
-        <ng-template #emptyFamilyChart>
-          <circle class="pie-chart-empty" cx="50" cy="50" r="44"></circle>
-        </ng-template>
-        <circle class="pie-chart-hole" cx="50" cy="50" r="30"></circle>
-        <text x="50" y="48" text-anchor="middle" class="pie-center-value">{{ formatBalance(familyDashboardTotal()) }}</text>
-        <text x="50" y="58" text-anchor="middle" class="pie-center-label">{{ i18n.translate('accounts.familyTotal') }}</text>
-      </svg>
+    <div class="family-dashboard-card family-dashboard-card--chart">
+      <div class="family-dashboard-card__header">
+        <div>
+          <h2 class="family-dashboard-card__title">{{ i18n.translate('accounts.familyContribution') }}</h2>
+        </div>
+      </div>
+
+      <div class="dashboard-chart">
+        <svg viewBox="0 0 140 140" class="pie-chart pie-chart--family" aria-hidden="true" focusable="false">
+          <circle class="pie-chart-base" cx="70" cy="70" r="44"></circle>
+          <ng-container *ngIf="familyDashboardSlices().length > 0; else emptyFamilyChart">
+            <path
+              *ngFor="let slice of familyDashboardSlices(); trackBy: trackByChartSliceId"
+              [attr.d]="slice.path"
+              [attr.fill]="slice.color"
+              stroke="#ffffff"
+              stroke-width="1.8"></path>
+          </ng-container>
+          <ng-template #emptyFamilyChart>
+            <circle class="pie-chart-empty" cx="70" cy="70" r="44"></circle>
+          </ng-template>
+          <circle class="pie-chart-hole" cx="70" cy="70" r="30"></circle>
+          <text x="70" y="68" text-anchor="middle" class="pie-center-value">{{ formatBalance(familyDashboardTotal()) }}</text>
+          <text x="70" y="78" text-anchor="middle" class="pie-center-label">{{ i18n.translate('accounts.familyTotal') }}</text>
+        </svg>
+      </div>
     </div>
 
-    <div class="family-legend">
+    <div class="family-dashboard-card family-dashboard-card--legend">
+      <div class="family-dashboard-card__header">
+        <div>
+          <h2 class="family-dashboard-card__title">{{ i18n.translate('accounts.familyMembers') }}</h2>
+          <div class="family-dashboard-card__total">
+            {{ familyDashboardUsers().length }} {{ i18n.translate('accounts.familyMembersCount') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="family-legend">
       <button
         type="button"
         class="family-legend-item"
@@ -45,6 +63,7 @@
         </div>
         <span class="percent">{{ user.share | number:'1.0-0' }}%</span>
       </button>
+      </div>
     </div>
   </section>
 

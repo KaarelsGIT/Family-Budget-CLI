@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
@@ -391,7 +391,7 @@ export class AccountsPageComponent {
     });
   }
 
-  private loadMonthlySummaries(accounts: Account[]) {
+  private loadMonthlySummaries(accounts: Account[]): Observable<Record<number, AccountMonthlySummary>> {
     const eligibleAccounts = accounts.filter((account) => account.type === 'MAIN' || account.type === 'SUB_ACCOUNT');
     if (eligibleAccounts.length === 0) {
       return of({} as Record<number, AccountMonthlySummary>);
@@ -490,7 +490,7 @@ export class AccountsPageComponent {
       return [{
         accountId: singleAccount.id,
         color: this.getChartColor(accounts.findIndex((account) => account.id === singleAccount.id)),
-        path: this.describeFullCircle(50, 50, 42)
+        path: this.describeFullCircle(70, 70, 42)
       }];
     }
 
@@ -512,7 +512,7 @@ export class AccountsPageComponent {
         color: hoveredAccountId === null || hoveredAccountId === account.id
           ? this.getChartColor(index)
           : 'rgba(183, 228, 199, 0.24)',
-        path: this.describePieSlice(50, 50, 42, startAngle, endAngle)
+        path: this.describePieSlice(70, 70, 42, startAngle, endAngle)
       }];
     });
   }
@@ -540,7 +540,7 @@ export class AccountsPageComponent {
       return [{
         accountId: user.userId,
         color: hoveredUserId === null || hoveredUserId === user.userId ? user.color : 'rgba(183, 228, 199, 0.26)',
-        path: this.describePieSlice(50, 50, 42, startAngle, endAngle)
+        path: this.describePieSlice(70, 70, 42, startAngle, endAngle)
       }];
     });
   }

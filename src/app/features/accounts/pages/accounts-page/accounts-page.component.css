@@ -4,25 +4,75 @@
 
 /* UUENDATUD: Perepaneel ühtlustatud täpselt teiste gruppide disainiga (gradient ja piirjoon) */
 .family-dashboard {
-  background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
-  border-radius: 24px;
-  padding: 28px;
-  box-shadow: 0 10px 30px rgba(17, 43, 24, 0.04);
-  border: 1px solid #dce9e0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
   margin-bottom: 36px; /* Rohkem õhku enne "Minu kontod" pealkirja */
 
   display: grid;
   /* Sätib vasakule poole diagrammi (fikseeritud laius) ja paremale poole pereliikmed (veniv) */
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 32px;
-  align-items: center;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
   box-sizing: border-box;
 }
 
-.dashboard-chart {
+.family-dashboard-card {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  padding: 20px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
+  border: 1px solid #dce9e0;
+  box-shadow: 0 10px 30px rgba(17, 43, 24, 0.04);
+  box-sizing: border-box;
+}
+
+.family-dashboard-card--chart {
+  width: 100%;
+  max-width: 340px;
+  justify-self: start;
+  align-self: stretch;
+  gap: 0;
+}
+
+.family-dashboard-card--legend {
+  min-width: 0;
+}
+
+.family-dashboard-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.family-dashboard-card__title {
+  margin: 0;
+  font-size: 18px;
+  color: #244131;
+}
+
+.family-dashboard-card__total {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #5e7064;
+  font-weight: 500;
+}
+
+.dashboard-chart {
+  display: grid;
+  flex: 1;
+  place-items: center;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
 }
 
 .header {
@@ -58,8 +108,10 @@
 
 /* UUENDATUD: Kohendatud mõõtu, et diagramm mahuks uue puhta kaardi sisse ideaalselt ära */
 .pie-chart--family {
-  width: 240px;
-  height: 240px;
+  display: block;
+  width: 276px;
+  height: auto;
+  margin: 0;
   filter: drop-shadow(0 12px 20px rgba(17, 43, 24, 0.08));
 }
 
@@ -346,8 +398,11 @@ button.primary:active {
 @media (max-width: 900px) {
   .family-dashboard {
     grid-template-columns: 1fr; /* Keskmistel ekraanidel läheb diagramm legendi kohale */
-    justify-items: center;
-    gap: 24px;
+    gap: 16px;
+  }
+
+  .family-dashboard-card--chart {
+    max-width: 100%;
   }
 }
 
@@ -357,6 +412,10 @@ button.primary:active {
   }
 
   .family-dashboard {
+    margin-bottom: 28px;
+  }
+
+  .family-dashboard-card {
     padding: 16px;
     border-radius: 16px;
   }
@@ -376,8 +435,7 @@ button.primary:active {
   }
 
   .pie-chart--family {
-    width: 200px;
-    height: 200px;
+    width: 236px;
   }
 
   .pie-chart--small {

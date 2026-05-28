@@ -84,7 +84,7 @@
     <span class="badge">{{ i18n.translate(getTypeTranslationKey(account().type)) }}</span>
   </div>
 
-  <div class="account-month-summary" *ngIf="monthlySummary() as summary">
+  <div class="account-month-summary" *ngIf="!isSavingsAccount() && monthlySummary() as summary">
     <div class="account-month-summary__title">{{ i18n.translate('accounts.currentMonth') }}</div>
     <div class="account-month-summary__grid">
       <div class="account-month-summary__item">

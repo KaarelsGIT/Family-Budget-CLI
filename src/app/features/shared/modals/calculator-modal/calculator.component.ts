@@ -45,6 +45,7 @@ export class CalculatorComponent {
         this.calculate();
         break;
       case 'Backspace':
+      case 'Delete':
         this.delete();
         break;
       case 'Escape':

@@ -194,6 +194,43 @@
   align-items: center;
 }
 
+.goal-progress__topline--savings {
+  justify-content: space-between;
+  flex-wrap: nowrap;
+}
+
+.goal-progress__flow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5b6a61;
+  white-space: nowrap;
+}
+
+.goal-progress__flow strong {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-family: 'SFMono-Regular', ui-monospace, 'Cascadia Mono', monospace;
+}
+
+.goal-progress__flow--income strong {
+  color: #1f6f4a;
+}
+
+.goal-progress__flow--expense strong {
+  color: #d64545;
+}
+
+.goal-progress__flow-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+}
+
 .goal-progress__percent {
   font-weight: 800;
   color: #145c30;
