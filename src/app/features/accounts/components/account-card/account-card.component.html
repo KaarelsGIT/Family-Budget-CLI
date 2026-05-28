@@ -83,6 +83,21 @@
   <div class="card-meta">
     <span class="badge">{{ i18n.translate(getTypeTranslationKey(account().type)) }}</span>
   </div>
+
+  <div class="account-month-summary" *ngIf="monthlySummary() as summary">
+    <div class="account-month-summary__title">{{ i18n.translate('accounts.currentMonth') }}</div>
+    <div class="account-month-summary__grid">
+      <div class="account-month-summary__item">
+        <span>{{ i18n.translate('accounts.currentMonthIncome') }}</span>
+        <strong class="account-month-summary__income">{{ formatBalance(summary.income) }}</strong>
+      </div>
+      <div class="account-month-summary__item">
+        <span>{{ i18n.translate('accounts.currentMonthExpenses') }}</span>
+        <strong class="account-month-summary__expenses">{{ formatBalance(summary.expenses) }}</strong>
+      </div>
+    </div>
+  </div>
+
   <div class="account-balance">{{ formatBalance(account().balance) }}</div>
 
   <div class="goal-progress" *ngIf="isSavingsAccount()">

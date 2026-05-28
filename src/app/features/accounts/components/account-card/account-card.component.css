@@ -113,9 +113,63 @@
 
   margin-top: auto; /* Surub jäägi kaardi põhja */
   padding-top: 16px;
+  order: 4;
 }
 
-/* KRIITILINE MUUDATUS: Säästukontol vahetame elemendid kohakuti */
+.account-month-summary {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  order: 3;
+}
+
+.account-month-summary__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #446254;
+}
+
+.account-month-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.account-month-summary__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7fbf8;
+  border: 1px solid #e3ebe5;
+}
+
+.account-month-summary__item span {
+  font-size: 12px;
+  color: #5b6a61;
+  font-weight: 600;
+}
+
+.account-month-summary__item strong {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-family: 'SFMono-Regular', ui-monospace, 'Cascadia Mono', monospace;
+}
+
+.account-month-summary__income {
+  color: #1f6f4a;
+}
+
+.account-month-summary__expenses {
+  color: #d64545;
+}
+
+/* SÄÄSTUKONTO PROGRESS JA JÄÄK */
 .account-card--goal .account-balance {
   margin-top: 12px; /* Teeb ruumi ülemise joone ja jäägi vahele */
   padding-top: 0;
@@ -127,10 +181,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: auto;  /* Nüüd surub hoopis progressiplokk end ja summa kaardi põhja */
   padding-top: 16px;
   border-top: 1px dashed #e3ebe5;
-  order: 3;          /* Määrab progressiploki summa kohale */
+  order: 2;          /* Määrab progressiploki summa kohale */
 }
 
 .goal-progress__topline,
@@ -232,5 +285,9 @@
   .account-balance {
     font-size: 24px;
     margin-top: 16px;
+  }
+
+  .account-month-summary__grid {
+    grid-template-columns: 1fr;
   }
 }

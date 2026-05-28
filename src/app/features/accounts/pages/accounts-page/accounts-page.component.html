@@ -101,6 +101,7 @@
               *ngFor="let account of group.accounts; trackBy: trackByAccountId"
               [account]="account"
               [accentColor]="getAccountColor(group.accounts, account)"
+              [monthlySummary]="getMonthlySummary(account.id)"
               (changed)="handleAccountsChanged()"
               (hovered)="setHoveredAccount($event ? account.id : null)"
               (transferRequested)="openTransactionModal({ type: 'TRANSFER', preselectedFromAccount: $event.id })"
