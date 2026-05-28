@@ -3,7 +3,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
-import { AccountCardComponent } from '../../components/account-card/account-card.component';
 import { FamilyUserCardComponent } from '../../components/family-user-card/family-user-card.component';
 import { AddAccountModalComponent } from '../../modals/add-account-modal/add-account-modal.component';
 import { AdjustBalanceModalComponent } from '../../modals/adjust-balance-modal/adjust-balance-modal.component';
@@ -50,7 +49,7 @@ interface FamilyDashboardUser {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, AccountCardComponent, FamilyUserCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, SavingsGoalModalComponent, AddTransactionModalComponent],
+  imports: [CommonModule, FamilyUserCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, SavingsGoalModalComponent, AddTransactionModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
@@ -275,7 +274,7 @@ export class AccountsPageComponent {
     return this.monthlySummaries()[accountId] ?? null;
   }
 
-  buildMonthlySummaryMap(accounts: Account[]): Record<number, AccountMonthlySummary> {
+  buildMonthlySummaryMap(accounts: Account[]): Partial<Record<number, AccountMonthlySummary>> {
     const summaries = this.monthlySummaries();
     return accounts.reduce((map, account) => {
       const summary = summaries[account.id];
@@ -283,7 +282,7 @@ export class AccountsPageComponent {
         map[account.id] = summary;
       }
       return map;
-    }, {} as Record<number, AccountMonthlySummary>);
+    }, {} as Partial<Record<number, AccountMonthlySummary>>);
   }
 
   toggleFamilyUser(userId: number, checked: boolean): void {

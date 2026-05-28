@@ -16,7 +16,7 @@ export interface FamilyUserCardData {
   ownerUsername: string;
   ownerRole: Account['ownerRole'] | null;
   accounts: Account[];
-  monthlySummaries: Record<number, AccountMonthlySummary>;
+  monthlySummaries: Partial<Record<number, AccountMonthlySummary>>;
   chartSlices: FamilyUserCardChartSlice[];
 }
 
