@@ -101,31 +101,33 @@
   <div class="account-balance">{{ formatBalance(account().balance) }}</div>
 
   <div class="goal-progress" *ngIf="isSavingsAccount()">
-    <div class="goal-progress__topline">
-      <span class="goal-progress__percent">
-        {{ hasSavingsGoal() ? (getSavingsProgress() | number:'1.0-0') : '0' }}%
-      </span>
-      <span class="goal-progress__values" *ngIf="hasSavingsGoal(); else goalMissing">
-        {{ formatBalance(account().balance) }} / {{ formatBalance(account().targetAmount ?? 0) }}
-      </span>
-      <ng-template #goalMissing>
-        <span class="goal-progress__values">{{ i18n.translate('accounts.savingsGoalSetHint') }}</span>
-      </ng-template>
-    </div>
-    <div class="goal-progress__track" aria-hidden="true">
-      <div class="goal-progress__fill" [style.width.%]="hasSavingsGoal() ? getSavingsProgress() : 0"></div>
-    </div>
-    <p class="goal-progress__hint" *ngIf="canEditSavingsGoal(); else viewOnlyHint">
-      {{ i18n.translate('accounts.savingsGoalManageHint') }}
-    </p>
-    <ng-template #viewOnlyHint>
-      <p class="goal-progress__hint">{{ i18n.translate('accounts.savingsGoalViewOnlyHint') }}</p>
-    </ng-template>
-    <div class="goal-progress__meta">
-      <span>{{ i18n.translate('accounts.targetLabel') }}</span>
-      <span *ngIf="account().targetDate; else targetMissing">{{ formatTargetDate(account().targetDate) }}</span>
-      <ng-template #targetMissing>
-        <span>{{ i18n.translate('accounts.targetUnset') }}</span>
+    <div class="goal-progress__card">
+      <div class="goal-progress__topline">
+        <span class="goal-progress__percent">
+          {{ hasSavingsGoal() ? (getSavingsProgress() | number:'1.0-0') : '0' }}%
+        </span>
+        <span class="goal-progress__values" *ngIf="hasSavingsGoal(); else goalMissing">
+          {{ formatBalance(account().balance) }} / {{ formatBalance(account().targetAmount ?? 0) }}
+        </span>
+        <ng-template #goalMissing>
+          <span class="goal-progress__values">{{ i18n.translate('accounts.savingsGoalSetHint') }}</span>
+        </ng-template>
+      </div>
+      <div class="goal-progress__track" aria-hidden="true">
+        <div class="goal-progress__fill" [style.width.%]="hasSavingsGoal() ? getSavingsProgress() : 0"></div>
+      </div>
+      <div class="goal-progress__meta">
+        <span>{{ i18n.translate('accounts.targetLabel') }}:</span>
+        <span *ngIf="account().targetDate; else targetMissing">{{ formatTargetDate(account().targetDate) }}</span>
+        <ng-template #targetMissing>
+          <span>{{ i18n.translate('accounts.targetUnset') }}</span>
+        </ng-template>
+      </div>
+      <p class="goal-progress__hint" *ngIf="canEditSavingsGoal(); else viewOnlyHint">
+        {{ i18n.translate('accounts.savingsGoalManageHint') }}
+      </p>
+      <ng-template #viewOnlyHint>
+        <p class="goal-progress__hint">{{ i18n.translate('accounts.savingsGoalViewOnlyHint') }}</p>
       </ng-template>
     </div>
   </div>

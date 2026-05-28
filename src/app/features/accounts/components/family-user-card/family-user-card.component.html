@@ -1,10 +1,27 @@
 <section class="family-user-card">
   <div class="family-user-card__header">
-    <div>
+    <div class="family-user-card__titleblock">
       <h3>{{ i18n.translate('accounts.ownerLabel', { username: user().ownerUsername }) }}</h3>
       <div class="family-user-card__total">
         {{ i18n.translate('accounts.groupTotal') }}: {{ formatBalance(total()) }}
       </div>
+    </div>
+
+    <div class="family-user-card__chart">
+      <svg viewBox="0 0 100 100" class="pie-chart pie-chart--small" aria-hidden="true" focusable="false">
+        <circle class="pie-chart-base" cx="50" cy="50" r="42"></circle>
+        <ng-container *ngIf="user().chartSlices.length > 0; else emptyChart">
+          <path
+            *ngFor="let slice of user().chartSlices; trackBy: trackByChartSliceId"
+            [attr.d]="slice.path"
+            [attr.fill]="slice.color"
+            stroke="#ffffff"
+            stroke-width="2"></path>
+        </ng-container>
+        <ng-template #emptyChart>
+          <circle class="pie-chart-empty" cx="50" cy="50" r="42"></circle>
+        </ng-template>
+      </svg>
     </div>
   </div>
 
@@ -13,9 +30,12 @@
       *ngFor="let account of user().accounts; trackBy: trackByAccountId; let index = index"
       [account]="account"
       [accentColor]="getAccountColor(index)"
+      [monthlySummary]="user().monthlySummaries[account.id] ?? null"
       (changed)="changed.emit()"
+      (hovered)="hovered.emit({ accountId: account.id, hovered: $event })"
       (transferRequested)="transferRequested.emit($event)"
       (adjustBalanceRequested)="adjustBalanceRequested.emit($event)"
-      (shareRequested)="shareRequested.emit($event)" />
+      (shareRequested)="shareRequested.emit($event)"
+      (savingsGoalRequested)="savingsGoalRequested.emit($event)" />
   </div>
 </section>

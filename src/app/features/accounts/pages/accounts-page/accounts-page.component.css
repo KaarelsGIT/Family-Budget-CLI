@@ -65,14 +65,14 @@
 }
 
 .dashboard-chart {
-  display: grid;
-  flex: 1;
-  place-items: center;
+  position: relative;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 0;
-  padding: 0;
+  min-height: 276px;
+  padding: 12px 0 0;
+  box-sizing: border-box;
 }
 
 .header {
@@ -108,14 +108,17 @@
 
 /* UUENDATUD: Kohendatud mõõtu, et diagramm mahuks uue puhta kaardi sisse ideaalselt ära */
 .pie-chart--family {
+  position: absolute;
+  top: 12px;
+  right: 12px;
   display: block;
   width: 276px;
-  height: auto;
+  height: 276px;
   margin: 0;
-  filter: drop-shadow(0 12px 20px rgba(17, 43, 24, 0.08));
 }
 
 .pie-chart--small {
+  display: block;
   width: 96px;
   height: 96px;
 }
@@ -317,7 +320,7 @@
 
 .owner-group-header {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 4px;
@@ -348,6 +351,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 96px;
+  height: 96px;
+  line-height: 0;
 }
 
 .account-grid,
@@ -434,8 +440,13 @@ button.primary:active {
     height: 140px;
   }
 
+  /*.pie-chart--family {*/
+  /*  width: 236px;*/
+  /*  transform: translate(-14px, -12px);*/
+  /*}*/
   .pie-chart--family {
     width: 236px;
+    height: 236px; /* Lisa kindluse mõttes ka kõrgus */
   }
 
   .pie-chart--small {

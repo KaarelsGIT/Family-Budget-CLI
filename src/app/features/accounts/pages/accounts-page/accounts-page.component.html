@@ -85,50 +85,22 @@
       </div>
 
       <div class="owner-group-grid" *ngIf="section.groups.length > 0; else emptySection">
-        <section
-          class="owner-group"
-          [class.current-user-group]="section.key === 'currentUser'"
-          *ngFor="let group of section.groups; trackBy: trackByOwnerId">
-          <div class="owner-group-header">
-            <div class="owner-group-title">
-              <h3>{{ i18n.translate('accounts.ownerLabel', { username: group.ownerUsername }) }}</h3>
-              <div class="owner-group-total">
-                {{ i18n.translate('accounts.groupTotal') }}: {{ formatBalance(getGroupTotal(group.accounts)) }}
-              </div>
-            </div>
-
-            <div class="owner-group-chart">
-              <svg viewBox="0 0 100 100" class="pie-chart pie-chart--small" aria-hidden="true" focusable="false">
-                <circle class="pie-chart-base" cx="50" cy="50" r="42"></circle>
-                <ng-container *ngIf="buildAccountChartSlices(group.accounts).length > 0; else emptyChart">
-                  <path
-                    *ngFor="let slice of buildAccountChartSlices(group.accounts); trackBy: trackByChartSliceId"
-                    [attr.d]="slice.path"
-                    [attr.fill]="slice.color"
-                    stroke="#ffffff"
-                    stroke-width="2"></path>
-                </ng-container>
-                <ng-template #emptyChart>
-                  <circle class="pie-chart-empty" cx="50" cy="50" r="42"></circle>
-                </ng-template>
-              </svg>
-            </div>
-          </div>
-
-          <div class="account-grid owner-accounts">
-            <app-account-card
-              *ngFor="let account of group.accounts; trackBy: trackByAccountId"
-              [account]="account"
-              [accentColor]="getAccountColor(group.accounts, account)"
-              [monthlySummary]="getMonthlySummary(account.id)"
-              (changed)="handleAccountsChanged()"
-              (hovered)="setHoveredAccount($event ? account.id : null)"
-              (transferRequested)="openTransactionModal({ type: 'TRANSFER', preselectedFromAccount: $event.id })"
-              (adjustBalanceRequested)="openAdjustBalanceModal($event)"
-              (shareRequested)="openShareModal($event)"
-              (savingsGoalRequested)="openSavingsGoalModal($event)" />
-          </div>
-        </section>
+        <app-family-user-card
+          *ngFor="let group of section.groups; trackBy: trackByOwnerId"
+          [user]="{
+            ownerId: group.ownerId,
+            ownerUsername: group.ownerUsername,
+            ownerRole: group.ownerRole,
+            accounts: group.accounts,
+            monthlySummaries: buildMonthlySummaryMap(group.accounts),
+            chartSlices: buildAccountChartSlices(group.accounts)
+          }"
+          (changed)="handleAccountsChanged()"
+          (hovered)="setHoveredAccount($event.hovered ? $event.accountId : null)"
+          (transferRequested)="openTransactionModal({ type: 'TRANSFER', preselectedFromAccount: $event.id })"
+          (adjustBalanceRequested)="openAdjustBalanceModal($event)"
+          (shareRequested)="openShareModal($event)"
+          (savingsGoalRequested)="openSavingsGoalModal($event)" />
       </div>
 
       <ng-template #emptySection>
