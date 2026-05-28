@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
 import { AccountCardComponent } from '../../components/account-card/account-card.component';
@@ -8,11 +9,12 @@ import { AdjustBalanceModalComponent } from '../../modals/adjust-balance-modal/a
 import { ShareAccountModalComponent } from '../../modals/share-account-modal/share-account-modal.component';
 import { SavingsGoalModalComponent } from '../../modals/savings-goal-modal/savings-goal-modal.component';
 import { AddTransactionModalComponent } from '../../../transactions/modals/add-transaction-modal/add-transaction-modal.component';
-import { Account } from '../../models/account.model';
+import { Account, AccountMonthlySummary } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { TransactionsService } from '../../../transactions/services/transactions.service';
 import { TransactionCategory } from '../../../transactions/models/transaction.model';
 import { TransactionDraftService } from '../../../transactions/services/transaction-draft.service';
+import { StatisticsService } from '../../../statistics/services/statistics.service';
 import { formatMoney } from '../../../shared/utils/money-format';
 
 interface AccountOwnerGroup {
@@ -54,11 +56,13 @@ interface FamilyDashboardUser {
 export class AccountsPageComponent {
   private readonly accountService = inject(AccountService);
   private readonly transactionsService = inject(TransactionsService);
+  private readonly statisticsService = inject(StatisticsService);
   private readonly transactionDraftService = inject(TransactionDraftService);
   private readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
 
   readonly accounts = signal<Account[]>([]);
+  readonly monthlySummaries = signal<Record<number, AccountMonthlySummary>>({});
   readonly categories = signal<TransactionCategory[]>([]);
   readonly isLoading = signal(false);
   readonly isModalOpen = signal(false);
@@ -161,10 +165,18 @@ export class AccountsPageComponent {
             this.selectedSavingsGoalAccount.set(refreshedAccount);
           }
         }
-        this.isLoading.set(false);
+        this.loadMonthlySummaries(accounts).subscribe({
+          next: (summaries) => this.monthlySummaries.set(summaries),
+          error: () => {
+            this.monthlySummaries.set({});
+            this.isLoading.set(false);
+          },
+          complete: () => this.isLoading.set(false)
+        });
       },
       error: (error: { error?: { message?: string } }) => {
         this.errorMessage.set(error.error?.message || this.i18n.translate('accounts.loadFailed'));
+        this.monthlySummaries.set({});
         this.isLoading.set(false);
       }
     });
@@ -256,6 +268,10 @@ export class AccountsPageComponent {
 
   formatBalance(value: number): string {
     return formatMoney(value);
+  }
+
+  getMonthlySummary(accountId: number): AccountMonthlySummary | null {
+    return this.monthlySummaries()[accountId] ?? null;
   }
 
   toggleFamilyUser(userId: number, checked: boolean): void {
@@ -373,6 +389,42 @@ export class AccountsPageComponent {
         // Keep the local fallback if persistence fails.
       }
     });
+  }
+
+  private loadMonthlySummaries(accounts: Account[]) {
+    const eligibleAccounts = accounts.filter((account) => account.type === 'MAIN' || account.type === 'SUB_ACCOUNT');
+    if (eligibleAccounts.length === 0) {
+      return of({} as Record<number, AccountMonthlySummary>);
+    }
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+
+    return forkJoin(
+      eligibleAccounts.map((account) =>
+        this.statisticsService.getYearly(year, month, null, null, account.id).pipe(
+          map((response) => ({
+            accountId: account.id,
+            income: Number(response.totals.income ?? 0),
+            expenses: Number(response.totals.expenses ?? 0)
+          })),
+          catchError(() => of({
+            accountId: account.id,
+            income: 0,
+            expenses: 0
+          }))
+        )
+      )
+    ).pipe(
+      map((items) => items.reduce((summaries, item) => {
+        summaries[item.accountId] = {
+          income: item.income,
+          expenses: item.expenses
+        };
+        return summaries;
+      }, {} as Record<number, AccountMonthlySummary>))
+    );
   }
 
 

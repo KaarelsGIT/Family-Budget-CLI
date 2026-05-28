@@ -3,7 +3,7 @@ import { Component, inject, input, output, signal, viewChild } from '@angular/co
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
-import { Account } from '../../models/account.model';
+import { Account, AccountMonthlySummary } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
 import { EditAccountInlineComponent } from '../edit-account-inline/edit-account-inline.component';
 import { formatMoney } from '../../../shared/utils/money-format';
@@ -27,6 +27,7 @@ export class AccountCardComponent {
 
   readonly account = input.required<Account>();
   readonly accentColor = input<string | null>(null);
+  readonly monthlySummary = input<AccountMonthlySummary | null>(null);
   readonly changed = output<void>();
   readonly hovered = output<boolean>();
   readonly transferRequested = output<Account>();

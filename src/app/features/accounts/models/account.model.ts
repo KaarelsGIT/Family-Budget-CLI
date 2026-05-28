@@ -17,3 +17,8 @@ export interface AccountSharedUser {
   username: string;
   role: 'EDITOR' | 'VIEWER';
 }
+
+export interface AccountMonthlySummary {
+  income: number;
+  expenses: number;
+}
