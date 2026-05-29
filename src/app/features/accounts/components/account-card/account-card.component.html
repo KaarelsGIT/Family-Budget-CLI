@@ -123,12 +123,6 @@
           <span>{{ i18n.translate('accounts.targetUnset') }}</span>
         </ng-template>
       </div>
-      <p class="goal-progress__hint" *ngIf="canEditSavingsGoal(); else viewOnlyHint">
-        {{ i18n.translate('accounts.savingsGoalManageHint') }}
-      </p>
-      <ng-template #viewOnlyHint>
-        <p class="goal-progress__hint">{{ i18n.translate('accounts.savingsGoalViewOnlyHint') }}</p>
-      </ng-template>
     </div>
   </div>
 
