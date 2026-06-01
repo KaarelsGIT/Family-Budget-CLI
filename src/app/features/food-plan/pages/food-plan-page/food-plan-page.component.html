@@ -1,6 +1,7 @@
 <section class="food-plan-shell" cdkDropListGroup>
   <aside class="recipe-sidebar">
     <div class="sidebar-copy">
+      <p class="eyebrow">{{ labels().recipeBook }}</p>
       <h1>{{ labels().title }}</h1>
       <p>{{ labels().copy }}</p>
     </div>
@@ -16,12 +17,17 @@
       <button type="button" [class.active]="selectedType() === 'MAGUSTOIT'" (click)="onTypeChange('MAGUSTOIT')">Magustoit</button>
     </div>
 
-      <button *ngIf="isEditable()" type="button" class="primary-button sidebar-add-button" (click)="openRecipeEditor()">
+    <button *ngIf="isEditable()" type="button" class="primary-button sidebar-add-button" (click)="openRecipeEditor()">
       + Lisa uus retsept
     </button>
 
     <div class="recipe-list" cdkDropList [cdkDropListData]="filteredRecipes()">
-      <article class="recipe-card" *ngFor="let recipe of filteredRecipes(); trackBy: trackById" cdkDrag [cdkDragData]="recipe" (click)="openRecipe(recipe)">
+      <article
+        class="recipe-card"
+        *ngFor="let recipe of filteredRecipes(); trackBy: trackById"
+        cdkDrag
+        [cdkDragData]="recipe"
+        (click)="openRecipe(recipe)">
         <div class="recipe-card-main">
           <div class="recipe-card-title-row">
             <div class="recipe-card-title">
@@ -55,9 +61,13 @@
         <h2>{{ viewMode() === 'week' ? weekStart() : monthAnchor() | date:'MMMM yyyy' }}</h2>
       </div>
       <div class="calendar-toolbar-right">
+        <button *ngIf="isEditable()" type="button" class="primary-button shopping-list-button" (click)="generateShoppingList()">
+          Genereeri ostunimekiri
+        </button>
         <p class="read-only" *ngIf="!isEditable()">{{ labels().readOnly }}</p>
       </div>
     </div>
+
     <div class="calendar-actions">
       <button type="button" class="secondary-button" (click)="changeMonth(-1)">‹</button>
       <button type="button" class="secondary-button" (click)="goToCurrentWeek()">See nädal</button>
@@ -67,18 +77,25 @@
     </div>
 
     <div class="calendar-grid week-grid" *ngIf="viewMode() === 'week'">
-      <section class="day-column" *ngFor="let day of days(); let dayIndex = index">
+      <section class="day-column" *ngFor="let day of days(); let dayIndex = index" (click)="openDayRecipePicker(day.date)">
         <header>
           <strong>{{ weekdayLabel(dayIndex) }}</strong>
           <span class="date-number" [class.today]="isToday(day.date)">{{ day.label }}</span>
         </header>
+
         <div class="day-dropzone" cdkDropList [cdkDropListData]="day.entries" (cdkDropListDropped)="handleDrop($event, day.date)">
-          <article class="calendar-entry" *ngFor="let entry of day.entries; trackBy: trackById" cdkDrag [cdkDragData]="entry" (click)="openRecipe(entry.recipe)">
+          <article
+            class="calendar-entry"
+            *ngFor="let entry of day.entries; trackBy: trackById"
+            cdkDrag
+            [cdkDragData]="entry"
+            (click)="$event.stopPropagation(); openRecipe(entry.recipe)">
             <span class="entry-stripe" [style.background]="recipeStripeColor(entry.recipe.type)"></span>
             <div class="entry-content">
+              <p class="entry-recipe-name">{{ entry.recipe.name }}</p>
               <div class="entry-meta">
-                <button type="button" class="entry-title" [attr.title]="entry.recipe.name">{{ entry.recipe.name }}</button>
-                <span class="entry-rating">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
+                <span class="entry-cost">{{ entry.recipe.cost | number:'1.2-2' }} €</span>
+                <span class="entry-rating" *ngIf="entry.recipe.ratingCount > 0">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
               </div>
             </div>
             <div class="entry-actions">
@@ -90,24 +107,39 @@
               <button *ngIf="isEditable()" type="button" class="entry-delete entry-delete--calendar" (click)="$event.stopPropagation(); deleteEntry(entry)">Eemalda</button>
             </div>
           </article>
-          <p class="empty-state" *ngIf="day.entries.length === 0">{{ labels().noCalendar }}</p>
+
+          <button
+            type="button"
+            class="empty-day-card"
+            *ngIf="day.entries.length === 0"
+            (click)="$event.stopPropagation(); openDayRecipePicker(day.date)">
+            <span class="empty-day-plus">+ Lisa toitu</span>
+            <span class="empty-day-hint">{{ labels().noCalendar }}</span>
+          </button>
         </div>
       </section>
     </div>
 
     <div class="calendar-grid month-grid" *ngIf="viewMode() === 'month'">
-      <section class="day-column month-day" *ngFor="let day of monthDays()">
+      <section class="day-column month-day" *ngFor="let day of monthDays()" (click)="openDayRecipePicker(day.date)">
         <header [class.dimmed]="!day.isCurrentMonth">
           <strong class="date-number" [class.today]="isToday(day.date)">{{ day.label }}</strong>
           <span class="month-weekday">{{ weekdayFromDate(day.date) }}</span>
         </header>
+
         <div class="day-dropzone" cdkDropList [cdkDropListData]="day.entries" (cdkDropListDropped)="handleDrop($event, day.date)">
-          <article class="calendar-entry compact" *ngFor="let entry of day.entries; trackBy: trackById" cdkDrag [cdkDragData]="entry" (click)="openRecipe(entry.recipe)">
+          <article
+            class="calendar-entry compact"
+            *ngFor="let entry of day.entries; trackBy: trackById"
+            cdkDrag
+            [cdkDragData]="entry"
+            (click)="$event.stopPropagation(); openRecipe(entry.recipe)">
             <span class="entry-stripe" [style.background]="recipeStripeColor(entry.recipe.type)"></span>
             <div class="entry-content">
+              <p class="entry-recipe-name">{{ entry.recipe.name }}</p>
               <div class="entry-meta">
-                <button type="button" class="entry-title" [attr.title]="entry.recipe.name">{{ entry.recipe.name }}</button>
-                <span class="entry-rating">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
+                <span class="entry-cost">{{ entry.recipe.cost | number:'1.2-2' }} €</span>
+                <span class="entry-rating" *ngIf="entry.recipe.ratingCount > 0">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
               </div>
             </div>
             <div class="entry-actions">
@@ -119,7 +151,14 @@
               <button *ngIf="isEditable()" type="button" class="entry-delete entry-delete--calendar" (click)="$event.stopPropagation(); deleteEntry(entry)">Eemalda</button>
             </div>
           </article>
-          <p class="empty-state subdued" *ngIf="day.entries.length === 0">Selles päevas pole veel toite</p>
+
+          <button
+            type="button"
+            class="empty-day-card empty-day-card--month"
+            *ngIf="day.entries.length === 0"
+            (click)="$event.stopPropagation(); openDayRecipePicker(day.date)">
+            <span class="empty-day-plus">+ Lisa toitu</span>
+          </button>
         </div>
       </section>
     </div>
@@ -208,6 +247,39 @@
   (closed)="closeRecipe()"
   (ratingSaved)="saveRating($event)">
 </app-food-recipe-modal>
+
+<div class="modal-overlay" *ngIf="recipePickerDate() as pickerDate">
+  <div class="modal-backdrop" (click)="closeDayRecipePicker()"></div>
+  <section class="modal-card recipe-picker-modal" role="dialog" aria-modal="true" aria-labelledby="recipe-picker-title">
+    <div class="modal-header">
+      <div>
+        <p class="confirm-eyebrow">Toidu lisamine</p>
+        <h2 id="recipe-picker-title">{{ pickerDate | date:'dd.MM.yyyy' }}</h2>
+      </div>
+      <button type="button" class="close-button" (click)="closeDayRecipePicker()" aria-label="Sulge">✖</button>
+    </div>
+
+    <p class="picker-copy">Vali retsept ja lisa see sellele päevale.</p>
+
+    <div class="picker-list" cdkDropList [cdkDropListData]="filteredRecipes()">
+      <button
+        type="button"
+        class="picker-item"
+        *ngFor="let recipe of filteredRecipes(); trackBy: trackById"
+        (click)="addRecipeToDate(recipe, pickerDate); closeDayRecipePicker()">
+        <div>
+          <p class="recipe-type">{{ recipe.type }}</p>
+          <strong>{{ recipe.name }}</strong>
+        </div>
+        <div class="picker-item-meta">
+          <span>{{ recipe.cost | number:'1.2-2' }} €</span>
+          <span *ngIf="recipe.ratingCount > 0">⭐ {{ formatRating(recipe.averageRating) }}</span>
+        </div>
+      </button>
+      <p class="empty-state" *ngIf="filteredRecipes().length === 0">{{ labels().noRecipes }}</p>
+    </div>
+  </section>
+</div>
 
 <div class="modal-overlay" *ngIf="pendingRecipeDelete() as pendingRecipe">
   <div class="modal-backdrop" (click)="closeRecipeDeleteConfirmation()"></div>

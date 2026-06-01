@@ -68,6 +68,7 @@ export class FoodPlanPageComponent {
   readonly weekStart = signal(this.getWeekStart(new Date()));
   readonly monthAnchor = signal(new Date());
   readonly viewMode = signal<'week' | 'month'>('week');
+  readonly recipePickerDate = signal<string | null>(null);
   readonly errorMessage = signal('');
   private recipeModalDragging = false;
   private recipeDragStartX = 0;
@@ -184,6 +185,17 @@ export class FoodPlanPageComponent {
 
   openRecipe(recipe: FoodRecipe): void {
     this.selectedRecipe.set(recipe);
+  }
+
+  openDayRecipePicker(date: string): void {
+    if (!this.isEditable()) {
+      return;
+    }
+    this.recipePickerDate.set(date);
+  }
+
+  closeDayRecipePicker(): void {
+    this.recipePickerDate.set(null);
   }
 
   canEditRecipe(recipe: FoodRecipe | null | undefined): boolean {
@@ -443,6 +455,10 @@ export class FoodPlanPageComponent {
     });
   }
 
+  generateShoppingList(): void {
+    this.showToast('Ostunimekirja genereerimine lisatakse peagi');
+  }
+
   saveRating(rating: number): void {
     const recipe = this.selectedRecipe();
     if (!recipe) return;
@@ -526,6 +542,10 @@ export class FoodPlanPageComponent {
 
   @HostListener('document:keydown.escape')
   handleEscape(): void {
+    if (this.recipePickerDate()) {
+      this.closeDayRecipePicker();
+      return;
+    }
     this.closeRecipe();
   }
 
