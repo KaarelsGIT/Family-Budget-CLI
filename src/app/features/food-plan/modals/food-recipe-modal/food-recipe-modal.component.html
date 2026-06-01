@@ -1,0 +1,87 @@
+<div class="modal-overlay" *ngIf="isOpen && recipe">
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <section class="modal-card" tabindex="-1" role="dialog" aria-modal="true" [style.transform]="getModalTransform()" (keydown.escape)="close()">
+    <div class="modal-header" (pointerdown)="startDrag($event)">
+      <h2>{{ recipe.name }}</h2>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="close()" [attr.aria-label]="'Sulge'">✖</button>
+    </div>
+
+    <div class="recipe-meta-row">
+      <div class="food-modal-meta">
+        <span>Summa</span>
+        <strong>{{ recipe.cost | number:'1.2-2' }} €</strong>
+      </div>
+        <button
+          type="button"
+          class="calculator-button"
+          (pointerdown)="$event.stopPropagation()"
+          (click)="openCalculator()"
+          [attr.aria-label]="'Kalkulaator'"
+          [attr.title]="'Kalkulaator'">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+          <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+          <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" />
+          <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+          <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-form">
+      <div class="input-grid">
+        <label class="field">
+          <span>Tüüp</span>
+          <select class="form-input-rounded" style="appearance:none; -webkit-appearance:none; -moz-appearance:none;">
+            <option [value]="recipe.type">{{ recipe.type }}</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Sööjate arv</span>
+          <input class="form-input-rounded" type="number" min="1" [ngModel]="servings()" (ngModelChange)="servings.set($event)" />
+        </label>
+      </div>
+
+      <section>
+        <h3>Koostisosad</h3>
+        <ul class="ingredient-list">
+          <li *ngFor="let ingredient of scaledIngredients()">
+            <span>{{ ingredient.name }}</span>
+            <strong>{{ ingredient.amount | number:'1.0-2' }} {{ ingredient.unit }}</strong>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Valmistamisõpetus</h3>
+        <p class="instructions">{{ recipe.instructions }}</p>
+      </section>
+
+    <section class="rating-section">
+      <h3>Hinnang</h3>
+      <div class="star-row" [class.pulsing]="ratingPulse()">
+        <button
+          type="button"
+          class="star"
+          *ngFor="let star of starValues()"
+          [class.active]="isStarFilled(star)"
+          (mouseenter)="previewRating(star)"
+          (mouseleave)="clearPreview()"
+          (click)="rate(star)">
+          ★
+        </button>
+        <span class="rating-saved" *ngIf="ratingSavedHint()">
+          <span class="rating-check">✓</span>
+          Saved
+        </span>
+      </div>
+    </section>
+  </div>
+</section>
+</div>
+
+<app-calculator
+  [isVisible]="isCalculatorVisible()"
+  (closeCalculator)="closeCalculator()">
+</app-calculator>

@@ -1,0 +1,234 @@
+<section class="food-plan-shell" cdkDropListGroup>
+  <aside class="recipe-sidebar">
+    <div class="sidebar-copy">
+      <h1>{{ labels().title }}</h1>
+      <p>{{ labels().copy }}</p>
+    </div>
+
+    <label class="search-field">
+      <input [ngModel]="searchTerm()" (ngModelChange)="onSearchChange($event)" [placeholder]="labels().searchPlaceholder" />
+    </label>
+
+    <div class="type-filters">
+      <button type="button" [class.active]="selectedType() === null" (click)="onTypeChange(null)">{{ labels().allTypes }}</button>
+      <button type="button" [class.active]="selectedType() === 'PRAAD'" (click)="onTypeChange('PRAAD')">Praad</button>
+      <button type="button" [class.active]="selectedType() === 'SUPP'" (click)="onTypeChange('SUPP')">Supp</button>
+      <button type="button" [class.active]="selectedType() === 'MAGUSTOIT'" (click)="onTypeChange('MAGUSTOIT')">Magustoit</button>
+    </div>
+
+      <button *ngIf="isEditable()" type="button" class="primary-button sidebar-add-button" (click)="openRecipeEditor()">
+      + Lisa uus retsept
+    </button>
+
+    <div class="recipe-list" cdkDropList [cdkDropListData]="filteredRecipes()">
+      <article class="recipe-card" *ngFor="let recipe of filteredRecipes(); trackBy: trackById" cdkDrag [cdkDragData]="recipe" (click)="openRecipe(recipe)">
+        <div class="recipe-card-main">
+          <div class="recipe-card-title-row">
+            <div class="recipe-card-title">
+              <p class="recipe-type">{{ recipe.type }}</p>
+              <h3>{{ recipe.name }}</h3>
+            </div>
+            <div class="recipe-card-actions">
+              <button *ngIf="canEditRecipe(recipe)" type="button" class="recipe-edit-button" (click)="$event.stopPropagation(); openRecipeEditor(recipe)" aria-label="Muuda retsepti" title="Muuda">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+                  <path d="M3 17.25V21h3.75L17.8 9.95l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.2 1.2 3.75 3.75 1.36-1.04Z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button *ngIf="canEditRecipe(recipe)" type="button" class="recipe-delete-button" (click)="$event.stopPropagation(); requestRecipeDelete(recipe)" aria-label="Kustuta retsept" title="Kustuta retsept">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+                  <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v8h-2V9Zm4 0h2v8h-2V9ZM6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7Z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <span class="recipe-cost">{{ recipe.cost | number:'1.2-2' }} €</span>
+        </div>
+      </article>
+      <p class="empty-state sidebar-empty" *ngIf="filteredRecipes().length === 0">{{ labels().noRecipes }}</p>
+    </div>
+  </aside>
+
+  <main class="calendar-panel">
+    <div class="panel-header calendar-toolbar">
+      <div>
+        <p class="eyebrow">{{ labels().weekView }}</p>
+        <h2>{{ viewMode() === 'week' ? weekStart() : monthAnchor() | date:'MMMM yyyy' }}</h2>
+      </div>
+      <div class="calendar-toolbar-right">
+        <p class="read-only" *ngIf="!isEditable()">{{ labels().readOnly }}</p>
+      </div>
+    </div>
+    <div class="calendar-actions">
+      <button type="button" class="secondary-button" (click)="changeMonth(-1)">‹</button>
+      <button type="button" class="secondary-button" (click)="goToCurrentWeek()">See nädal</button>
+      <button type="button" class="secondary-button" (click)="setViewMode('week')">Nädal</button>
+      <button type="button" class="secondary-button" (click)="setViewMode('month')">Kuu</button>
+      <button type="button" class="secondary-button" (click)="changeMonth(1)">›</button>
+    </div>
+
+    <div class="calendar-grid week-grid" *ngIf="viewMode() === 'week'">
+      <section class="day-column" *ngFor="let day of days(); let dayIndex = index">
+        <header>
+          <strong>{{ weekdayLabel(dayIndex) }}</strong>
+          <span class="date-number" [class.today]="isToday(day.date)">{{ day.label }}</span>
+        </header>
+        <div class="day-dropzone" cdkDropList [cdkDropListData]="day.entries" (cdkDropListDropped)="handleDrop($event, day.date)">
+          <article class="calendar-entry" *ngFor="let entry of day.entries; trackBy: trackById" cdkDrag [cdkDragData]="entry" (click)="openRecipe(entry.recipe)">
+            <span class="entry-stripe" [style.background]="recipeStripeColor(entry.recipe.type)"></span>
+            <div class="entry-content">
+              <div class="entry-meta">
+                <button type="button" class="entry-title" [attr.title]="entry.recipe.name">{{ entry.recipe.name }}</button>
+                <span class="entry-rating">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
+              </div>
+            </div>
+            <div class="entry-actions">
+              <button *ngIf="canEditRecipe(entry.recipe)" type="button" class="entry-edit" (click)="$event.stopPropagation(); openRecipeEditor(entry.recipe)" aria-label="Muuda retsepti" title="Muuda">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+                  <path d="M3 17.25V21h3.75L17.8 9.95l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.2 1.2 3.75 3.75 1.36-1.04Z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button *ngIf="isEditable()" type="button" class="entry-delete entry-delete--calendar" (click)="$event.stopPropagation(); deleteEntry(entry)">Eemalda</button>
+            </div>
+          </article>
+          <p class="empty-state" *ngIf="day.entries.length === 0">{{ labels().noCalendar }}</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="calendar-grid month-grid" *ngIf="viewMode() === 'month'">
+      <section class="day-column month-day" *ngFor="let day of monthDays()">
+        <header [class.dimmed]="!day.isCurrentMonth">
+          <strong class="date-number" [class.today]="isToday(day.date)">{{ day.label }}</strong>
+          <span class="month-weekday">{{ weekdayFromDate(day.date) }}</span>
+        </header>
+        <div class="day-dropzone" cdkDropList [cdkDropListData]="day.entries" (cdkDropListDropped)="handleDrop($event, day.date)">
+          <article class="calendar-entry compact" *ngFor="let entry of day.entries; trackBy: trackById" cdkDrag [cdkDragData]="entry" (click)="openRecipe(entry.recipe)">
+            <span class="entry-stripe" [style.background]="recipeStripeColor(entry.recipe.type)"></span>
+            <div class="entry-content">
+              <div class="entry-meta">
+                <button type="button" class="entry-title" [attr.title]="entry.recipe.name">{{ entry.recipe.name }}</button>
+                <span class="entry-rating">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
+              </div>
+            </div>
+            <div class="entry-actions">
+              <button *ngIf="canEditRecipe(entry.recipe)" type="button" class="entry-edit" (click)="$event.stopPropagation(); openRecipeEditor(entry.recipe)" aria-label="Muuda retsepti" title="Muuda">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+                  <path d="M3 17.25V21h3.75L17.8 9.95l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.2 1.2 3.75 3.75 1.36-1.04Z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button *ngIf="isEditable()" type="button" class="entry-delete entry-delete--calendar" (click)="$event.stopPropagation(); deleteEntry(entry)">Eemalda</button>
+            </div>
+          </article>
+          <p class="empty-state subdued" *ngIf="day.entries.length === 0">Selles päevas pole veel toite</p>
+        </div>
+      </section>
+    </div>
+  </main>
+</section>
+
+<div class="modal-overlay" *ngIf="isRecipeEditorOpen()">
+  <div class="modal-backdrop" (click)="closeRecipeEditor()"></div>
+  <section class="modal-card recipe-editor" [style.transform]="getRecipeModalTransform()" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-header" (pointerdown)="startRecipeModalDrag($event)">
+      <h2>{{ editingRecipeId() ? 'Muuda retsepti' : 'Lisa uus retsept' }}</h2>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()" (click)="closeRecipeEditor()">✖</button>
+    </div>
+
+    <div class="editor-grid">
+      <label class="field field-wide">
+        <span>Nimi</span>
+        <input class="form-input-rounded" [ngModel]="recipeForm().name" (ngModelChange)="recipeForm.update((form) => ({ ...form, name: $event }))" />
+      </label>
+      <label class="field">
+        <span>Tüüp</span>
+        <div class="category-picker-container">
+          <select class="form-input-rounded" [ngModel]="recipeForm().type" (ngModelChange)="recipeForm.update((form) => ({ ...form, type: $event }))">
+            <option value="PRAAD">Praad</option>
+            <option value="SUPP">Supp</option>
+            <option value="MAGUSTOIT">Magustoit</option>
+          </select>
+        </div>
+      </label>
+      <label class="field">
+        <span>Sööjate arv</span>
+        <input class="form-input-rounded" type="number" min="1" [ngModel]="recipeForm().baseServings" (ngModelChange)="recipeForm.update((form) => ({ ...form, baseServings: $event }))" />
+      </label>
+      <label class="field">
+        <span>Summa</span>
+        <div class="amount-input-row">
+          <input class="form-input-rounded amount-input" type="number" min="0" step="0.01" [ngModel]="recipeForm().cost" (ngModelChange)="recipeForm.update((form) => ({ ...form, cost: $event }))" />
+          <button type="button" class="calculator-button" (pointerdown)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()" (click)="openRecipeEditorCalculator()" aria-label="Kalkulaator" title="Kalkulaator">
+            <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+              <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+              <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="2" />
+              <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+              <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </button>
+        </div>
+      </label>
+    </div>
+
+    <label class="full-width">
+      <span>Valmistamisõpetus</span>
+      <textarea rows="4" [ngModel]="recipeForm().instructions" (ngModelChange)="recipeForm.update((form) => ({ ...form, instructions: $event }))"></textarea>
+    </label>
+
+    <div class="ingredients-editor">
+      <div class="ingredients-header">
+        <h3>{{ labels().ingredients }}</h3>
+        <button type="button" class="secondary-button" (click)="addIngredient()">+ Lisa koostisosa</button>
+      </div>
+      <div class="ingredient-row" *ngFor="let ingredient of recipeForm().ingredients; let index = index; trackBy: trackByIngredientId">
+        <input class="form-input-rounded" [name]="'ingredient-name-' + ingredient.tempId" placeholder="Nimi" [ngModel]="ingredient.name" (ngModelChange)="recipeForm.update((form) => ({ ...form, ingredients: form.ingredients.map((item, i) => i === index ? { ...item, name: $event } : item) }))" />
+        <input class="form-input-rounded" [name]="'ingredient-amount-' + ingredient.tempId" type="number" min="0" step="0.01" placeholder="Kogus" [ngModel]="ingredient.baseAmount" (ngModelChange)="recipeForm.update((form) => ({ ...form, ingredients: form.ingredients.map((item, i) => i === index ? { ...item, baseAmount: $event } : item) }))" />
+        <input class="form-input-rounded" [name]="'ingredient-unit-' + ingredient.tempId" placeholder="Ühik" [ngModel]="ingredient.unit" (ngModelChange)="recipeForm.update((form) => ({ ...form, ingredients: form.ingredients.map((item, i) => i === index ? { ...item, unit: $event } : item) }))" />
+        <button type="button" class="secondary-button" (click)="removeIngredient(index)">Eemalda</button>
+      </div>
+    </div>
+
+    <div class="editor-actions">
+      <button type="button" class="secondary-button" (click)="closeRecipeEditor()">Tühista</button>
+      <button type="button" class="primary-button" (click)="saveRecipe()">Salvesta</button>
+    </div>
+  </section>
+</div>
+
+<div class="recipe-toast" *ngIf="recipeToast()">{{ recipeToast() }}</div>
+
+<app-calculator
+  [isVisible]="isRecipeCalculatorVisible()"
+  (closeCalculator)="closeRecipeEditorCalculator()">
+</app-calculator>
+
+<app-food-recipe-modal
+  [isOpen]="selectedRecipe() !== null"
+  [recipe]="selectedRecipe()"
+  [canEdit]="canEditRecipe(selectedRecipe())"
+  (closed)="closeRecipe()"
+  (ratingSaved)="saveRating($event)">
+</app-food-recipe-modal>
+
+<div class="modal-overlay" *ngIf="pendingRecipeDelete() as pendingRecipe">
+  <div class="modal-backdrop" (click)="closeRecipeDeleteConfirmation()"></div>
+  <section class="modal-card confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-recipe-title">
+    <div class="modal-header">
+      <h2 id="delete-recipe-title">Kustuta</h2>
+      <button type="button" class="close-button" (click)="closeRecipeDeleteConfirmation()" aria-label="Sulge">✖</button>
+    </div>
+
+    <p class="confirm-eyebrow">Retsepti kustutamine</p>
+    <p class="confirm-copy">
+      Kas oled kindel, et soovid retsepti <strong>{{ pendingRecipe.name }}</strong> jäädavalt kustutada?
+    </p>
+    <p class="confirm-meta">{{ pendingRecipe.type }} · {{ pendingRecipe.cost | number:'1.2-2' }} €</p>
+    <p class="confirm-error" *ngIf="recipeDeleteError()">{{ recipeDeleteError() }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="secondary" (click)="closeRecipeDeleteConfirmation()">Tühista</button>
+      <button type="button" class="secondary danger-action" [disabled]="isDeletingRecipe()" (click)="confirmRecipeDelete()">
+        {{ isDeletingRecipe() ? 'Kustutab...' : 'Kustuta retsept' }}
+      </button>
+    </div>
+  </section>
+</div>

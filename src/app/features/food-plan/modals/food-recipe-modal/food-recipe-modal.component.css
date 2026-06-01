@@ -1,0 +1,242 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 20, 0.4);
+  backdrop-filter: blur(3px);
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(860px, calc(100vw - 32px));
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at top right, rgba(34, 139, 34, 0.08), transparent 32%),
+    #ffffff;
+  border: 1px solid rgba(199, 214, 202, 0.8);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  overflow: visible !important;
+  will-change: transform;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #17361f;
+  font-weight: 800;
+}
+
+.close-button {
+  border: none;
+  background: #f1f5f2;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  color: #526457;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recipe-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.food-modal-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #244131;
+  font-weight: 700;
+}
+
+.calculator-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #cfd8d3;
+  border-radius: 12px;
+  background: #fff;
+  color: #17361f;
+  cursor: pointer;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: visible !important;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field span,
+.rating-section h3,
+.modal-form h3 {
+  font-size: 12px;
+  font-weight: 800;
+  color: #244131;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input-rounded {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #dbe5de;
+  border-radius: 12px;
+  font: inherit;
+  background: #fff;
+  color: #16311f;
+}
+
+.ingredient-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ingredient-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f4f7ef;
+}
+
+.rating-section {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.star-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.star {
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+  color: #c2c8b5;
+  cursor: pointer;
+  transition: transform 140ms ease, color 140ms ease, filter 140ms ease;
+  text-shadow: 0 0 0 transparent;
+}
+
+.star.active {
+  color: #f4b400;
+  filter: drop-shadow(0 0 10px rgba(244, 180, 0, 0.25));
+}
+
+.star:hover {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.star-row.pulsing .star.active {
+  animation: starPop 220ms ease;
+}
+
+.star-row:hover .star {
+  filter: drop-shadow(0 0 8px rgba(244, 180, 0, 0.18));
+}
+
+.rating-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rating-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: white;
+  font-size: 11px;
+}
+
+.save-rating {
+  justify-self: start;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 0;
+  background: #1f7a1f;
+  color: white;
+  font-weight: 700;
+}
+
+@keyframes starPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+  .input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-meta-row {
+    align-items: flex-start;
+  }
+}

@@ -67,6 +67,7 @@ export class TransactionFiltersComponent {
   readonly calendarMode = signal<CalendarMode>('month');
   readonly calendarMonthAnchor = signal(new Date());
   readonly yearGridStart = signal(0);
+  private pickerInteraction = false;
 
   readonly userFilterValue = computed(() => {
     const f = this.filters();
@@ -144,8 +145,9 @@ export class TransactionFiltersComponent {
   }
 
   onDateInput(field: DateFieldKey, value: string): void {
-    if (value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      this.onDateChange(field, value);
+    const parsed = this.parseDateInput(value);
+    if (value === '' || parsed !== null) {
+      this.onDateChange(field, parsed ?? '');
     }
   }
 
@@ -181,8 +183,15 @@ export class TransactionFiltersComponent {
 
   onFieldBlur(event: FocusEvent): void {
     setTimeout(() => {
+      if (this.pickerInteraction) {
+        this.pickerInteraction = false;
+        return;
+      }
+
       const nextTarget = event.relatedTarget as Node | null;
-      if (!nextTarget || !this.elementRef.nativeElement.contains(nextTarget)) {
+      const activeElement = document.activeElement as Node | null;
+      if ((!nextTarget || !this.elementRef.nativeElement.contains(nextTarget))
+        && (!activeElement || !this.elementRef.nativeElement.contains(activeElement))) {
         this.closeDatePicker();
       }
     }, 150);
@@ -216,6 +225,50 @@ export class TransactionFiltersComponent {
     this.yearGridStart.update((start) => start + offset);
   }
 
+  onPickerPointerDown(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.pickerInteraction = true;
+  }
+
+  formatDateForDisplay(value: string): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+  }
+
+  private parseDateInput(value: string): string | null {
+    if (value === '') {
+      return '';
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+
+    const match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (!match) {
+      return null;
+    }
+
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+
+    return this.toIsoDate(date);
+  }
+
   calendarDays(): CalendarDay[] {
     const anchor = this.calendarMonthAnchor();
     const currentDate = new Date();
@@ -244,7 +297,10 @@ export class TransactionFiltersComponent {
     });
   }
 
-  selectCalendarDate(day: CalendarDay): void {
+  selectCalendarDate(day: CalendarDay, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
     if (!day.isCurrentMonth || day.isDisabled) {
       return;
     }

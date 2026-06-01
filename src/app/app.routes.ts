@@ -5,6 +5,7 @@ import { CategoryManagementPageComponent } from './features/categories/pages/cat
 import { StatisticsPageComponent } from './features/statistics/pages/statistics-page/statistics-page.component';
 import { RecurringPaymentsPageComponent } from './features/transactions/pages/recurring-payments-page/recurring-payments-page.component';
 import { TransactionsPageComponent } from './features/transactions/pages/transactions-page/transactions-page.component';
+import { FoodPlanPageComponent } from './features/food-plan/pages/food-plan-page/food-plan-page.component';
 import { Home } from './features/home/home';
 import { User } from './core/user/user';
 
@@ -36,6 +37,11 @@ export const routes: Routes = [
   {
     path: 'statistics',
     component: StatisticsPageComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'food-plan',
+    component: FoodPlanPageComponent,
     canActivate: [authGuard]
   },
   {

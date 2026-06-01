@@ -36,25 +36,25 @@
         class="filter-control date-trigger"
         type="text"
         [attr.data-date-field]="'fromDate'"
-        [value]="filters().fromDate"
+        [value]="formatDateForDisplay(filters().fromDate)"
         (input)="onDateInput('fromDate', $any($event.target).value)"
         (focusout)="onFieldBlur($event)"
         (click)="$event.stopPropagation(); openDatePicker('fromDate')"
-        [placeholder]="i18n.translate('transactions.filterFrom')" />
-      <div class="date-picker-shell" *ngIf="isDatePickerOpen('fromDate')">
+        placeholder="päev.kuu.aasta" />
+      <div class="date-picker-shell" *ngIf="isDatePickerOpen('fromDate')" (pointerdown)="onPickerPointerDown($event)" (mousedown)="onPickerPointerDown($event)">
         <div class="date-picker">
-          <button type="button" class="date-nav" (click)="$event.stopPropagation(); previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
-          <button type="button" class="date-picker-title" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
-          <button type="button" class="date-nav" (click)="$event.stopPropagation(); nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
+          <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
+          <button type="button" class="date-picker-title" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
+          <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
         </div>
 
         <div class="year-grid" *ngIf="calendarMode() === 'year'">
-          <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
+          <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
             {{ option.year }}
           </button>
           <div class="year-grid-actions">
-            <button type="button" class="date-nav" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
-            <button type="button" class="date-nav" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
+            <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
+            <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
           </div>
         </div>
 
@@ -70,6 +70,8 @@
               [class.is-outside]="!day.isCurrentMonth"
               [class.is-selected]="day.isSelected"
               [class.is-today]="day.isToday"
+              (pointerdown)="selectCalendarDate(day, $event)"
+              (mousedown)="selectCalendarDate(day, $event)"
               (click)="$event.stopPropagation(); selectCalendarDate(day)">
               {{ day.label }}
             </button>
@@ -83,25 +85,25 @@
         class="filter-control date-trigger"
         type="text"
         [attr.data-date-field]="'toDate'"
-        [value]="filters().toDate"
+        [value]="formatDateForDisplay(filters().toDate)"
         (input)="onDateInput('toDate', $any($event.target).value)"
         (focusout)="onFieldBlur($event)"
         (click)="$event.stopPropagation(); openDatePicker('toDate')"
-        [placeholder]="i18n.translate('transactions.filterTo')" />
-      <div class="date-picker-shell" *ngIf="isDatePickerOpen('toDate')">
+        placeholder="päev.kuu.aasta" />
+      <div class="date-picker-shell" *ngIf="isDatePickerOpen('toDate')" (pointerdown)="onPickerPointerDown($event)" (mousedown)="onPickerPointerDown($event)">
         <div class="date-picker">
-          <button type="button" class="date-nav" (click)="$event.stopPropagation(); previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
-          <button type="button" class="date-picker-title" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
-          <button type="button" class="date-nav" (click)="$event.stopPropagation(); nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
+          <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); previousCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.previousPage')">‹</button>
+          <button type="button" class="date-picker-title" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
+          <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); nextCalendarMonth()" [attr.aria-label]="i18n.translate('transactions.nextPage')">›</button>
         </div>
 
         <div class="year-grid" *ngIf="calendarMode() === 'year'">
-          <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
+          <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
             {{ option.year }}
           </button>
           <div class="year-grid-actions">
-            <button type="button" class="date-nav" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
-            <button type="button" class="date-nav" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
+            <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
+            <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
           </div>
         </div>
 
@@ -117,6 +119,8 @@
               [class.is-outside]="!day.isCurrentMonth"
               [class.is-selected]="day.isSelected"
               [class.is-today]="day.isToday"
+              (pointerdown)="selectCalendarDate(day, $event)"
+              (mousedown)="selectCalendarDate(day, $event)"
               (click)="$event.stopPropagation(); selectCalendarDate(day)">
               {{ day.label }}
             </button>
