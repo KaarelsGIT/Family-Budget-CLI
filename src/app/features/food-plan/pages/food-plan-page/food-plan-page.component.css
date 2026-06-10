@@ -15,6 +15,11 @@
   box-shadow: 0 18px 40px rgba(15, 53, 15, 0.1);
 }
 
+.calendar-panel {
+  display: flex;
+  flex-direction: column;
+}
+
 .recipe-sidebar {
   display: flex;
   flex-direction: column;
@@ -271,12 +276,89 @@
   margin-top: 18px;
 }
 
+.calendar-trash-zone {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1250;
+  width: min(420px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 2px dashed rgba(122, 141, 122, 0.35);
+  background: rgba(255, 255, 255, 0.7);
+  color: #5b675b;
+  box-shadow: 0 12px 26px rgba(20, 46, 20, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(18px) scale(0.98);
+}
+
+.calendar-trash-zone strong {
+  display: block;
+  font-size: 15px;
+  color: #314031;
+}
+
+.calendar-trash-zone p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.calendar-trash-zone__icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(231, 238, 225, 0.9);
+  font-size: 20px;
+}
+
+.calendar-trash-zone--active {
+  border-color: rgba(190, 53, 53, 0.42);
+  background: rgba(255, 241, 241, 0.95);
+  color: #8d2f2f;
+  box-shadow: 0 10px 24px rgba(190, 53, 53, 0.08);
+  transform: translateY(-1px);
+}
+
+.calendar-trash-zone--visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.calendar-trash-zone--active strong {
+  color: #8d2f2f;
+}
+
+.calendar-trash-zone--active .calendar-trash-zone__icon {
+  background: rgba(255, 222, 222, 0.95);
+}
+
 .week-grid {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(230px, 1fr));
+  min-width: 1700px;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.week-grid--animating {
+  opacity: 0.72;
+  transform: translateY(2px);
 }
 
 .month-grid {
   grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-panel {
+  overflow-x: auto;
 }
 
 .day-column {
@@ -284,10 +366,12 @@
   border: 1px solid rgba(200, 214, 200, 0.7);
   border-radius: 20px;
   padding: 12px;
-  min-height: 500px;
+  min-height: 360px;
   box-shadow: 0 8px 18px rgba(15, 53, 15, 0.05);
   transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
 .day-column:hover {
@@ -359,7 +443,9 @@
 .day-dropzone {
   display: grid;
   gap: 10px;
-  min-height: 420px;
+  min-height: 0;
+  align-content: start;
+  flex: 1;
 }
 
 .entry-recipe-name {
@@ -367,7 +453,9 @@
   font-weight: 700;
   color: #1d2d1d;
   line-height: 1.25;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .entry-cost {
@@ -394,6 +482,7 @@
 
 .calendar-entry {
   cursor: pointer;
+  align-self: start;
 }
 
 .calendar-entry:hover .entry-title,
@@ -870,6 +959,10 @@
 
   .calendar-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .week-grid {
+    min-width: 0;
   }
 
   .editor-grid,

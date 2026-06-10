@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { finalize } from 'rxjs';
@@ -57,17 +57,27 @@ export class FoodPlanPageComponent {
   private toastTimeout: ReturnType<typeof window.setTimeout> | null = null;
   readonly recipeModalOffsetX = signal(0);
   readonly recipeModalOffsetY = signal(0);
+  private readonly createIngredientId = () => {
+    if (typeof globalThis.crypto?.randomUUID === 'function') {
+      return globalThis.crypto.randomUUID();
+    }
+
+    return `ingredient-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  };
   readonly recipeForm = signal({
     name: '',
     type: 'PRAAD' as FoodRecipeType,
     instructions: '',
     baseServings: 2,
     cost: 0,
-    ingredients: [{ tempId: crypto.randomUUID(), name: '', baseAmount: 1, unit: 'tk' }] as RecipeFormIngredient[]
+    ingredients: [{ tempId: this.createIngredientId(), name: '', baseAmount: 1, unit: 'tk' }] as RecipeFormIngredient[]
   });
   readonly weekStart = signal(this.getWeekStart(new Date()));
   readonly monthAnchor = signal(new Date());
   readonly viewMode = signal<'week' | 'month'>('week');
+  readonly isWeekAnimating = signal(false);
+  readonly isCalendarDragging = signal(false);
+  readonly draggedCalendarEntry = signal<FoodCalendarEntry | null>(null);
   readonly recipePickerDate = signal<string | null>(null);
   readonly errorMessage = signal('');
   private recipeModalDragging = false;
@@ -75,6 +85,8 @@ export class FoodPlanPageComponent {
   private recipeDragStartY = 0;
   private recipeDragOriginX = 0;
   private recipeDragOriginY = 0;
+  private trashDropCommitted = false;
+  @ViewChild('trashZone') private trashZone?: ElementRef<HTMLElement>;
 
   readonly labels = computed(() => ({
     locale: this.language(),
@@ -100,9 +112,15 @@ export class FoodPlanPageComponent {
     thursday: this.i18n.translate('foodPlan.thursday'),
     friday: this.i18n.translate('foodPlan.friday'),
     saturday: this.i18n.translate('foodPlan.saturday'),
-    sunday: this.i18n.translate('foodPlan.sunday')
+    sunday: this.i18n.translate('foodPlan.sunday'),
+    dragToRemoveTitle: this.i18n.translate('foodPlan.dragToRemoveTitle')
   }));
-  readonly todayIso = new Date().toISOString().slice(0, 10);
+  readonly dragToRemoveHint = computed(() =>
+    this.i18n.translate('foodPlan.dragToRemoveHint', {
+      recipe: this.draggedCalendarEntry()?.recipe.name ?? ''
+    })
+  );
+  readonly todayIso = this.toLocalIso(new Date());
 
   readonly filteredRecipes = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -113,12 +131,12 @@ export class FoodPlanPageComponent {
   });
 
   readonly days = computed<CalendarDay[]>(() => {
-    const start = new Date(this.weekStart());
+    const start = this.parseLocalDate(this.weekStart());
     const entries = this.weekEntries();
     return Array.from({ length: 7 }, (_, index) => {
       const date = new Date(start);
       date.setDate(start.getDate() + index);
-      const isoDate = date.toISOString().slice(0, 10);
+      const isoDate = this.toLocalIso(date);
       return {
         date: isoDate,
         label: date.getDate(),
@@ -140,7 +158,7 @@ export class FoodPlanPageComponent {
     const days: CalendarDay[] = [];
     const cursor = new Date(start);
     while (cursor <= end) {
-      const isoDate = cursor.toISOString().slice(0, 10);
+      const isoDate = this.toLocalIso(cursor);
       days.push({
         date: isoDate,
         label: cursor.getDate(),
@@ -215,7 +233,7 @@ export class FoodPlanPageComponent {
       baseServings: recipe.baseServings,
       cost: recipe.cost,
       ingredients: recipe.ingredients.map((ingredient) => ({
-        tempId: crypto.randomUUID(),
+        tempId: this.createIngredientId(),
         name: ingredient.name,
         baseAmount: ingredient.baseAmount,
         unit: ingredient.unit
@@ -226,7 +244,7 @@ export class FoodPlanPageComponent {
       instructions: '',
       baseServings: 2,
       cost: 0,
-      ingredients: [{ tempId: crypto.randomUUID(), name: '', baseAmount: 1, unit: 'tk' }]
+      ingredients: [{ tempId: this.createIngredientId(), name: '', baseAmount: 1, unit: 'tk' }]
     });
     this.isRecipeEditorOpen.set(true);
   }
@@ -301,7 +319,7 @@ export class FoodPlanPageComponent {
   addIngredient(): void {
     this.recipeForm.update((form) => ({
       ...form,
-      ingredients: [...form.ingredients, { tempId: crypto.randomUUID(), name: '', baseAmount: 1, unit: 'tk' }]
+      ingredients: [...form.ingredients, { tempId: this.createIngredientId(), name: '', baseAmount: 1, unit: 'tk' }]
     }));
   }
 
@@ -407,6 +425,21 @@ export class FoodPlanPageComponent {
     });
   }
 
+  selectRecipeForDate(recipe: FoodRecipe, date: string): void {
+    this.addRecipeToDate(recipe, date);
+    this.closeDayRecipePicker();
+    this.showToast(this.i18n.translate('foodPlan.addedToCalendar'));
+  }
+
+  formatPickerDate(dateIso: string): string {
+    const date = this.parseLocalDate(dateIso);
+    return new Intl.DateTimeFormat(this.labels().locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  }
+
   handleDrop(event: CdkDragDrop<any>, targetDate?: string): void {
     if (!this.isEditable()) return;
     const dragged = event.item.data as FoodRecipe | FoodCalendarEntry;
@@ -432,6 +465,33 @@ export class FoodPlanPageComponent {
       },
       error: () => this.weekEntries.set(previousEntries)
     });
+  }
+
+  onCalendarDragStarted(entry: FoodCalendarEntry): void {
+    this.isCalendarDragging.set(true);
+    this.draggedCalendarEntry.set(entry);
+  }
+
+  onCalendarDragEnded(event: any): void {
+    if (!this.trashDropCommitted && this.isPointInsideTrashZone(event?.dropPoint ?? event?.pointerPosition ?? event)) {
+      const entry = this.draggedCalendarEntry();
+      if (entry) {
+        this.deleteEntry(entry);
+      }
+    }
+    this.trashDropCommitted = false;
+    this.isCalendarDragging.set(false);
+    this.draggedCalendarEntry.set(null);
+  }
+
+  deleteDraggedEntryFromCalendar(event: CdkDragDrop<any>): void {
+    if (!this.isEditable()) return;
+    const dragged = event.item.data as FoodCalendarEntry | FoodRecipe;
+    if ('baseServings' in dragged) {
+      return;
+    }
+    this.trashDropCommitted = true;
+    this.deleteEntry(dragged);
   }
 
   moveDayEntry(entry: FoodCalendarEntry, date: string): void {
@@ -514,12 +574,13 @@ export class FoodPlanPageComponent {
   }
 
   weekdayFromDate(date: string): string {
-    const day = new Date(date).getDay();
+    const day = this.parseLocalDate(date).getDay();
     const map = [this.labels().sunday, this.labels().monday, this.labels().tuesday, this.labels().wednesday, this.labels().thursday, this.labels().friday, this.labels().saturday];
     return map[day];
   }
 
   changeMonth(delta: number): void {
+    this.animateWeekChange();
     const anchor = new Date(this.monthAnchor());
     anchor.setMonth(anchor.getMonth() + delta);
     this.monthAnchor.set(anchor);
@@ -528,6 +589,7 @@ export class FoodPlanPageComponent {
   }
 
   goToCurrentWeek(): void {
+    this.animateWeekChange();
     const today = new Date();
     this.monthAnchor.set(today);
     this.weekStart.set(this.getWeekStart(today));
@@ -535,6 +597,7 @@ export class FoodPlanPageComponent {
   }
 
   setViewMode(mode: 'week' | 'month'): void {
+    this.animateWeekChange();
     this.viewMode.set(mode);
     this.weekStart.set(this.getWeekStart(this.monthAnchor()));
     this.loadWeek();
@@ -553,7 +616,19 @@ export class FoodPlanPageComponent {
     const copy = new Date(date);
     const day = copy.getDay() || 7;
     copy.setDate(copy.getDate() - day + 1);
-    return copy.toISOString().slice(0, 10);
+    return this.toLocalIso(copy);
+  }
+
+  private parseLocalDate(isoDate: string): Date {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  private toLocalIso(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   weekdayLabel(index: number): string {
@@ -561,7 +636,14 @@ export class FoodPlanPageComponent {
   }
 
   private syncRecipe(recipe: FoodRecipe): void {
-    this.recipes.update((items) => items.map((item) => item.id === recipe.id ? { ...item, ...recipe } : item));
+    this.recipes.update((items) => {
+      const exists = items.some((item) => item.id === recipe.id);
+      if (!exists) {
+        return [recipe, ...items];
+      }
+
+      return items.map((item) => (item.id === recipe.id ? { ...item, ...recipe } : item));
+    });
     this.weekEntries.update((entries) =>
       entries.map((entry) => entry.recipe.id === recipe.id ? { ...entry, recipe: { ...entry.recipe, ...recipe } } : entry)
     );
@@ -576,5 +658,21 @@ export class FoodPlanPageComponent {
       window.clearTimeout(this.toastTimeout);
     }
     this.toastTimeout = window.setTimeout(() => this.recipeToast.set(''), 1800);
+  }
+
+  private animateWeekChange(): void {
+    this.isWeekAnimating.set(false);
+    requestAnimationFrame(() => this.isWeekAnimating.set(true));
+    window.setTimeout(() => this.isWeekAnimating.set(false), 220);
+  }
+
+  private isPointInsideTrashZone(point: { x?: number; y?: number } | null | undefined): boolean {
+    const zone = this.trashZone?.nativeElement;
+    if (!zone || point?.x === undefined || point?.y === undefined) {
+      return false;
+    }
+
+    const rect = zone.getBoundingClientRect();
+    return point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom;
   }
 }

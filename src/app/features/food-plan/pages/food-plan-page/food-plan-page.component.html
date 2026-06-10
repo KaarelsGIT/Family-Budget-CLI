@@ -76,7 +76,7 @@
       <button type="button" class="secondary-button" (click)="changeMonth(1)">›</button>
     </div>
 
-    <div class="calendar-grid week-grid" *ngIf="viewMode() === 'week'">
+    <div class="calendar-grid week-grid" *ngIf="viewMode() === 'week'" [class.week-grid--animating]="isWeekAnimating()">
       <section class="day-column" *ngFor="let day of days(); let dayIndex = index" (click)="openDayRecipePicker(day.date)">
         <header>
           <strong>{{ weekdayLabel(dayIndex) }}</strong>
@@ -89,6 +89,8 @@
             *ngFor="let entry of day.entries; trackBy: trackById"
             cdkDrag
             [cdkDragData]="entry"
+            (cdkDragStarted)="onCalendarDragStarted(entry)"
+            (cdkDragEnded)="onCalendarDragEnded($event)"
             (click)="$event.stopPropagation(); openRecipe(entry.recipe)">
             <span class="entry-stripe" [style.background]="recipeStripeColor(entry.recipe.type)"></span>
             <div class="entry-content">
@@ -97,14 +99,6 @@
                 <span class="entry-cost">{{ entry.recipe.cost | number:'1.2-2' }} €</span>
                 <span class="entry-rating" *ngIf="entry.recipe.ratingCount > 0">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
               </div>
-            </div>
-            <div class="entry-actions">
-              <button *ngIf="canEditRecipe(entry.recipe)" type="button" class="entry-edit" (click)="$event.stopPropagation(); openRecipeEditor(entry.recipe)" aria-label="Muuda retsepti" title="Muuda">
-                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
-                  <path d="M3 17.25V21h3.75L17.8 9.95l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.2 1.2 3.75 3.75 1.36-1.04Z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button *ngIf="isEditable()" type="button" class="entry-delete entry-delete--calendar" (click)="$event.stopPropagation(); deleteEntry(entry)">Eemalda</button>
             </div>
           </article>
 
@@ -133,6 +127,8 @@
             *ngFor="let entry of day.entries; trackBy: trackById"
             cdkDrag
             [cdkDragData]="entry"
+            (cdkDragStarted)="onCalendarDragStarted(entry)"
+            (cdkDragEnded)="onCalendarDragEnded($event)"
             (click)="$event.stopPropagation(); openRecipe(entry.recipe)">
             <span class="entry-stripe" [style.background]="recipeStripeColor(entry.recipe.type)"></span>
             <div class="entry-content">
@@ -141,14 +137,6 @@
                 <span class="entry-cost">{{ entry.recipe.cost | number:'1.2-2' }} €</span>
                 <span class="entry-rating" *ngIf="entry.recipe.ratingCount > 0">⭐ {{ formatRating(entry.recipe.averageRating) }}</span>
               </div>
-            </div>
-            <div class="entry-actions">
-              <button *ngIf="canEditRecipe(entry.recipe)" type="button" class="entry-edit" (click)="$event.stopPropagation(); openRecipeEditor(entry.recipe)" aria-label="Muuda retsepti" title="Muuda">
-                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
-                  <path d="M3 17.25V21h3.75L17.8 9.95l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.2 1.2 3.75 3.75 1.36-1.04Z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button *ngIf="isEditable()" type="button" class="entry-delete entry-delete--calendar" (click)="$event.stopPropagation(); deleteEntry(entry)">Eemalda</button>
             </div>
           </article>
 
@@ -161,6 +149,22 @@
           </button>
         </div>
       </section>
+    </div>
+
+    <div
+      #trashZone
+      *ngIf="isEditable()"
+      class="calendar-trash-zone"
+      [class.calendar-trash-zone--active]="isCalendarDragging()"
+      [class.calendar-trash-zone--visible]="isCalendarDragging()"
+      cdkDropList
+      [cdkDropListData]="[]"
+      (cdkDropListDropped)="deleteDraggedEntryFromCalendar($event)">
+      <span class="calendar-trash-zone__icon">🗑️</span>
+      <div>
+        <strong>{{ labels().dragToRemoveTitle }}</strong>
+        <p>{{ dragToRemoveHint() }}</p>
+      </div>
     </div>
   </main>
 </section>
@@ -254,19 +258,19 @@
     <div class="modal-header">
       <div>
         <p class="confirm-eyebrow">Toidu lisamine</p>
-        <h2 id="recipe-picker-title">{{ pickerDate | date:'dd.MM.yyyy' }}</h2>
+        <h2 id="recipe-picker-title">{{ formatPickerDate(pickerDate) }}</h2>
       </div>
       <button type="button" class="close-button" (click)="closeDayRecipePicker()" aria-label="Sulge">✖</button>
     </div>
 
     <p class="picker-copy">Vali retsept ja lisa see sellele päevale.</p>
 
-    <div class="picker-list" cdkDropList [cdkDropListData]="filteredRecipes()">
+    <div class="picker-list">
       <button
         type="button"
         class="picker-item"
         *ngFor="let recipe of filteredRecipes(); trackBy: trackById"
-        (click)="addRecipeToDate(recipe, pickerDate); closeDayRecipePicker()">
+        (click)="selectRecipeForDate(recipe, pickerDate)">
         <div>
           <p class="recipe-type">{{ recipe.type }}</p>
           <strong>{{ recipe.name }}</strong>
