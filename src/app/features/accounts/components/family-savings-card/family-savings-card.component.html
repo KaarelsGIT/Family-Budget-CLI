@@ -1,0 +1,37 @@
+<article class="family-savings-card" [class.is-ready]="isReady()">
+  <div class="family-savings-card__header">
+    <button
+      type="button"
+      class="family-savings-card__add"
+      (click)="addRequested.emit()"
+      [attr.aria-label]="i18n.translate('accounts.familySavingsAdd')"
+      [attr.title]="i18n.translate('accounts.familySavingsAdd')">
+      +
+    </button>
+  </div>
+
+  <div class="family-savings-card__chart">
+    <svg viewBox="0 0 120 120" class="family-savings-card__ring" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="familySavingsRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#baf7b5" />
+          <stop offset="45%" stop-color="#5ce08a" />
+          <stop offset="100%" stop-color="#15803d" />
+        </linearGradient>
+      </defs>
+      <circle class="family-savings-card__track" cx="60" cy="60" r="52"></circle>
+      <circle
+        class="family-savings-card__fill"
+        cx="60"
+        cy="60"
+        r="52"
+        [attr.stroke-dasharray]="ringCircumference"
+        [attr.stroke-dashoffset]="strokeDashoffset()"></circle>
+    </svg>
+
+    <div class="family-savings-card__inner">
+      <div class="family-savings-card__amount">{{ formatBalance(total()) }}</div>
+      <div class="family-savings-card__label">{{ i18n.translate('accounts.familySavings') }}</div>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,139 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.family-savings-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding: 20px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #f7fbf8 0%, #eef5f0 100%);
+  border: 1px solid #dce9e0;
+  box-shadow: 0 10px 30px rgba(17, 43, 24, 0.04);
+  box-sizing: border-box;
+}
+
+.family-savings-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.family-savings-card__title {
+  margin: 0;
+  font-size: 18px;
+  color: #244131;
+}
+
+.family-savings-card__add {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #b9e1c5;
+  background: #ffffff;
+  color: #1f6f4a;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(17, 43, 24, 0.05);
+}
+
+.family-savings-card__chart {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 1 1 auto;
+  min-height: 276px;
+}
+
+.family-savings-card__ring {
+  width: 276px;
+  height: 276px;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+.family-savings-card__track,
+.family-savings-card__fill {
+  fill: none;
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+
+.family-savings-card__track {
+  stroke: #d8e6dc;
+}
+
+.family-savings-card__fill {
+  stroke: url(#familySavingsRingGradient);
+  transition: stroke-dashoffset 500ms ease;
+}
+
+.family-savings-card__inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: transparent;
+  box-shadow: none;
+}
+
+.family-savings-card__amount {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #102317;
+  line-height: 1.1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.family-savings-card__label {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6a7c70;
+}
+
+@media (max-width: 720px) {
+  .family-savings-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .family-savings-card__chart {
+    min-height: 236px;
+  }
+
+  .family-savings-card__ring {
+    width: 236px;
+    height: 236px;
+  }
+
+  .family-savings-card__inner {
+    width: 190px;
+    height: 190px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}

@@ -1,0 +1,141 @@
+:host {
+  display: block;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 25, 18, 0.55);
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(720px, 100%);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbf5 100%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  padding: 22px;
+  border: 1px solid rgba(34, 139, 34, 0.12);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #12351d;
+  font-size: 28px;
+}
+
+.modal-copy {
+  margin: 8px 0 0;
+  color: #5f7266;
+}
+
+.close-button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: #e7f1ea;
+  color: #214a2f;
+  cursor: pointer;
+}
+
+.account-list {
+  display: grid;
+  gap: 10px;
+}
+
+.account-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #dfeae2;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.account-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-copy strong {
+  color: #14341d;
+}
+
+.account-copy span {
+  color: #64766d;
+  font-size: 13px;
+}
+
+.empty-state {
+  margin: 0;
+  color: #64766d;
+}
+
+.modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+button.primary,
+button.secondary {
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button.primary {
+  background: forestgreen;
+  color: white;
+}
+
+button.secondary {
+  background: #eef3f0;
+  color: #223128;
+}
+
+button.primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.error-message {
+  margin: 12px 0 0;
+  color: crimson;
+}
+
+@media (max-width: 640px) {
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}

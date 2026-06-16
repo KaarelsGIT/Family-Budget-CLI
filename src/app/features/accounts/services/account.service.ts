@@ -219,6 +219,20 @@ export class AccountService {
     );
   }
 
+  getFamilySavingsSelection(): Observable<number[]> {
+    return this.http.get<SelectionApiResponse>(`${environment.apiUrl}/users/me/family-savings-selection`).pipe(
+      map((response) => Array.isArray(response.data) ? response.data : [])
+    );
+  }
+
+  updateFamilySavingsSelection(selectedAccountIds: number[]): Observable<number[]> {
+    return this.http.put<SelectionApiResponse>(`${environment.apiUrl}/users/me/family-savings-selection`, {
+      selectedAccountIds
+    }).pipe(
+      map((response) => Array.isArray(response.data) ? response.data : [])
+    );
+  }
+
   getTransferTargets(): Observable<TransferTargets> {
     return this.http.get<ApiResponse<TransferTargetsApiResponse>>(`${environment.apiUrl}/transfers/targets`).pipe(
       map((response) => ({

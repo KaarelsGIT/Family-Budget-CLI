@@ -11,8 +11,8 @@
   margin-bottom: 36px; /* Rohkem õhku enne "Minu kontod" pealkirja */
 
   display: grid;
-  /* Sätib vasakule poole diagrammi (fikseeritud laius) ja paremale poole pereliikmed (veniv) */
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  /* Sätib vasakule pere panuse, keskele pereliikmed ja paremale Family Savings */
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) minmax(280px, 340px);
   gap: 24px;
   align-items: stretch;
   box-sizing: border-box;
@@ -42,6 +42,12 @@
 
 .family-dashboard-card--legend {
   min-width: 0;
+}
+
+.family-dashboard-card--savings {
+  width: 100%;
+  max-width: 340px;
+  justify-self: end;
 }
 
 .family-dashboard-card__header {
@@ -403,11 +409,15 @@ button.primary:active {
 /* RESPONSIVSUSE JA MOBIILI PARANDUSED */
 @media (max-width: 900px) {
   .family-dashboard {
-    grid-template-columns: 1fr; /* Keskmistel ekraanidel läheb diagramm legendi kohale */
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 
   .family-dashboard-card--chart {
+    max-width: 100%;
+  }
+
+  .family-dashboard-card--savings {
     max-width: 100%;
   }
 }

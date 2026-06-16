@@ -8,6 +8,8 @@ import { AddAccountModalComponent } from '../../modals/add-account-modal/add-acc
 import { AdjustBalanceModalComponent } from '../../modals/adjust-balance-modal/adjust-balance-modal.component';
 import { ShareAccountModalComponent } from '../../modals/share-account-modal/share-account-modal.component';
 import { SavingsGoalModalComponent } from '../../modals/savings-goal-modal/savings-goal-modal.component';
+import { FamilySavingsCardComponent } from '../../components/family-savings-card/family-savings-card';
+import { FamilySavingsModalComponent } from '../../modals/family-savings-modal/family-savings-modal.component';
 import { AddTransactionModalComponent } from '../../../transactions/modals/add-transaction-modal/add-transaction-modal.component';
 import { Account, AccountMonthlySummary } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
@@ -49,7 +51,7 @@ interface FamilyDashboardUser {
 @Component({
   selector: 'app-accounts-page',
   standalone: true,
-  imports: [CommonModule, FamilyUserCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, SavingsGoalModalComponent, AddTransactionModalComponent],
+  imports: [CommonModule, FamilyUserCardComponent, FamilySavingsCardComponent, AddAccountModalComponent, AdjustBalanceModalComponent, ShareAccountModalComponent, SavingsGoalModalComponent, FamilySavingsModalComponent, AddTransactionModalComponent],
   templateUrl: './accounts-page.component.html',
   styleUrl: './accounts-page.component.css'
 })
@@ -70,6 +72,8 @@ export class AccountsPageComponent {
   readonly selectedAdjustBalanceAccount = signal<Account | null>(null);
   readonly selectedShareAccount = signal<Account | null>(null);
   readonly selectedSavingsGoalAccount = signal<Account | null>(null);
+  readonly isFamilySavingsModalOpen = signal(false);
+  readonly familySavingsSelectedAccountIds = signal<number[]>([]);
   readonly errorMessage = signal('');
   readonly selectedFamilyUserIds = signal<number[]>([]);
   readonly hoveredFamilyUserId = signal<number | null>(null);
@@ -141,6 +145,7 @@ export class AccountsPageComponent {
     this.loadAccounts();
     this.loadCategories();
     this.loadFamilySelection();
+    this.loadFamilySavingsSelection();
   }
 
   loadAccounts(): void {
@@ -165,6 +170,7 @@ export class AccountsPageComponent {
             this.selectedSavingsGoalAccount.set(refreshedAccount);
           }
         }
+        this.ensureFamilySavingsSelection(accounts);
         this.loadMonthlySummaries(accounts).subscribe({
           next: (summaries) => this.monthlySummaries.set(summaries),
           error: () => {
@@ -237,6 +243,14 @@ export class AccountsPageComponent {
     this.selectedSavingsGoalAccount.set(account);
   }
 
+  openFamilySavingsModal(): void {
+    this.isFamilySavingsModalOpen.set(true);
+  }
+
+  closeFamilySavingsModal(): void {
+    this.isFamilySavingsModalOpen.set(false);
+  }
+
   closeShareModal(): void {
     this.selectedShareAccount.set(null);
   }
@@ -250,6 +264,12 @@ export class AccountsPageComponent {
   }
 
   handleSavingsGoalUpdated(): void {
+    this.loadAccounts();
+  }
+
+  handleFamilySavingsSaved(selection: number[]): void {
+    this.familySavingsSelectedAccountIds.set(selection);
+    this.closeFamilySavingsModal();
     this.loadAccounts();
   }
 
@@ -336,6 +356,13 @@ export class AccountsPageComponent {
     this.hoveredAccountId.set(accountId);
   }
 
+  selectedFamilySavingsAccounts = computed(() => {
+    const selected = new Set(this.familySavingsSelectedAccountIds());
+    return this.accounts().filter((account) => selected.has(account.id) && (account.type === 'SAVINGS' || account.type === 'CASH'));
+  });
+
+  familySavingsTotal = computed(() => this.selectedFamilySavingsAccounts().reduce((sum, account) => sum + account.balance, 0));
+
   private groupByVisibleUser(accounts: Account[], currentUserId: number, currentUserUsername: string): Map<number, AccountOwnerGroup> {
     const groups = new Map<number, AccountOwnerGroup>();
 
@@ -364,6 +391,17 @@ export class AccountsPageComponent {
     return groups;
   }
 
+  private loadFamilySavingsSelection(): void {
+    this.accountService.getFamilySavingsSelection().subscribe({
+      next: (selection) => {
+        this.familySavingsSelectedAccountIds.set(selection);
+      },
+      error: () => {
+        this.familySavingsSelectedAccountIds.set([]);
+      }
+    });
+  }
+
   private loadFamilySelection(): void {
     this.accountService.getFamilyDashboardSelection().subscribe({
       next: (selection) => {
@@ -372,7 +410,7 @@ export class AccountsPageComponent {
         }
       },
       error: () => {
-        // Fallback is handled after accounts are loaded.
+        // Dashboard fallback is handled after accounts are loaded.
       }
     });
   }
@@ -400,6 +438,26 @@ export class AccountsPageComponent {
         // Keep the local fallback if persistence fails.
       }
     });
+  }
+
+  private ensureFamilySavingsSelection(accounts: Account[]): void {
+    if (!this.isPrivilegedUser()) {
+      return;
+    }
+
+    if (this.familySavingsSelectedAccountIds().length > 0) {
+      const availableIds = new Set(accounts.map((account) => account.id));
+      const filtered = this.familySavingsSelectedAccountIds().filter((id) => availableIds.has(id));
+      if (filtered.length !== this.familySavingsSelectedAccountIds().length) {
+        this.familySavingsSelectedAccountIds.set(filtered);
+        this.accountService.updateFamilySavingsSelection(filtered).subscribe({
+          next: (saved) => this.familySavingsSelectedAccountIds.set(saved),
+          error: () => {
+            // Keep the local filtered state if persistence fails.
+          }
+        });
+      }
+    }
   }
 
   private loadMonthlySummaries(accounts: Account[]): Observable<Record<number, AccountMonthlySummary>> {

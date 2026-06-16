@@ -65,6 +65,12 @@
       </button>
       </div>
     </div>
+
+    <app-family-savings-card
+      class="family-dashboard-card family-dashboard-card--savings"
+      [accounts]="accounts()"
+      [selectedAccountIds]="familySavingsSelectedAccountIds()"
+      (addRequested)="openFamilySavingsModal()" />
   </section>
 
   <header class="header">
@@ -140,4 +146,11 @@
     [account]="selectedSavingsGoalAccount()!"
     (closed)="closeSavingsGoalModal()"
     (updated)="handleSavingsGoalUpdated()" />
+
+  <app-family-savings-modal
+    *ngIf="isFamilySavingsModalOpen()"
+    [accounts]="accounts().filter((account) => account.type === 'SAVINGS' || account.type === 'CASH')"
+    [selectedAccountIds]="familySavingsSelectedAccountIds()"
+    (closed)="closeFamilySavingsModal()"
+    (saved)="handleFamilySavingsSaved($event)" />
 </section>
