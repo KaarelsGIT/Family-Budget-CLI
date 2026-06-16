@@ -12,10 +12,12 @@
     </div>
 
     <div class="account-list">
-      <label class="account-row" *ngFor="let account of accounts()">
+      <h3 class="section-title">{{ i18n.translate('accounts.familySavingsSelectAccounts') }}</h3>
+      <label class="account-row" *ngFor="let account of accounts()" [class.is-disabled]="isAccountDisabled(account)">
         <input
           type="checkbox"
           [checked]="isSelected(account.id)"
+          [disabled]="isAccountDisabled(account)"
           (change)="toggle(account.id, $any($event.target).checked)" />
         <div class="account-copy">
           <strong>{{ account.name }}</strong>
@@ -32,6 +34,31 @@
       </p>
     </div>
 
+    <form [formGroup]="form" class="goal-form">
+      <h3 class="section-title">{{ i18n.translate('accounts.savingsGoalTitle') }}</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="targetAmount">{{ i18n.translate('accounts.targetAmount') }}</label>
+          <div class="input-wrapper">
+            <input
+              id="targetAmount"
+              type="text"
+              formControlName="targetAmount"
+              (input)="normalizeMoneyInput($event)"
+              placeholder="0.00" />
+            <span class="currency">€</span>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>{{ i18n.translate('accounts.targetDate') }}</label>
+          <button type="button" class="date-picker-trigger" (click)="openDatePicker()">
+            {{ getDisplayedTargetDate() || i18n.translate('accounts.targetDate') }}
+          </button>
+        </div>
+      </div>
+    </form>
+
     <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
     <div class="modal-actions">
@@ -41,4 +68,54 @@
       </button>
     </div>
   </section>
+
+  <!-- Date Picker Shell -->
+  <div class="date-picker-shell" *ngIf="isDatePickerOpen()" (click)="$event.stopPropagation()">
+    <div class="date-picker-header">
+      <button type="button" class="nav-button" (click)="previousCalendarMonth()">‹</button>
+      <button type="button" class="month-title" (click)="toggleCalendarYearMode()">
+        {{ monthTitle() }}
+      </button>
+      <button type="button" class="nav-button" (click)="nextCalendarMonth()">›</button>
+    </div>
+
+    <div class="date-picker-body">
+      <!-- Month Mode -->
+      <ng-container *ngIf="calendarMode() === 'month'">
+        <div class="weekday-labels">
+          <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+        </div>
+        <div class="calendar-grid">
+          <button
+            type="button"
+            *ngFor="let day of calendarDays()"
+            class="calendar-day"
+            [class.is-other-month]="!day.isCurrentMonth"
+            [class.is-selected]="day.isSelected"
+            [class.is-today]="day.isToday"
+            (click)="selectCalendarDate(day)">
+            {{ day.label }}
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Year Mode -->
+      <ng-container *ngIf="calendarMode() === 'year'">
+        <div class="year-grid-nav">
+          <button type="button" (click)="changeYearGrid(-12)">«</button>
+          <span>{{ yearGridStart() }} - {{ yearGridStart() + 11 }}</span>
+          <button type="button" (click)="changeYearGrid(12)">»</button>
+        </div>
+        <div class="year-grid">
+          <button
+            type="button"
+            *ngFor="let option of yearOptions()"
+            class="year-option"
+            (click)="selectCalendarYear(option.year)">
+            {{ option.year }}
+          </button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
 </div>

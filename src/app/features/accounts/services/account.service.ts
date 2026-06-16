@@ -98,6 +98,12 @@ interface SelectionApiResponse {
   data: number[];
 }
 
+export interface FamilySavingsSelection {
+  selectedAccountIds: number[];
+  targetAmount: number | null;
+  targetDate: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -219,17 +225,15 @@ export class AccountService {
     );
   }
 
-  getFamilySavingsSelection(): Observable<number[]> {
-    return this.http.get<SelectionApiResponse>(`${environment.apiUrl}/users/me/family-savings-selection`).pipe(
-      map((response) => Array.isArray(response.data) ? response.data : [])
+  getFamilySavingsSelection(): Observable<FamilySavingsSelection> {
+    return this.http.get<{ data: FamilySavingsSelection }>(`${environment.apiUrl}/users/me/family-savings-selection`).pipe(
+      map((response) => response.data)
     );
   }
 
-  updateFamilySavingsSelection(selectedAccountIds: number[]): Observable<number[]> {
-    return this.http.put<SelectionApiResponse>(`${environment.apiUrl}/users/me/family-savings-selection`, {
-      selectedAccountIds
-    }).pipe(
-      map((response) => Array.isArray(response.data) ? response.data : [])
+  updateFamilySavingsSelection(request: FamilySavingsSelection): Observable<FamilySavingsSelection> {
+    return this.http.put<{ data: FamilySavingsSelection }>(`${environment.apiUrl}/users/me/family-savings-selection`, request).pipe(
+      map((response) => response.data)
     );
   }
 

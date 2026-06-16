@@ -35,7 +35,13 @@ export class FamilySavingsCardComponent {
   });
 
   readonly targetAmount = input<number | null>(null);
-  readonly strokeDashoffset = computed(() => this.ringCircumference * (1 - this.progress() / 100));
+  readonly targetDate = input<string | null>(null);
+  readonly strokeDashoffset = computed(() => {
+    if (!this.isReady()) {
+      return this.ringCircumference;
+    }
+    return this.ringCircumference * (1 - this.progress() / 100);
+  });
 
   constructor() {
     requestAnimationFrame(() => this.isReady.set(true));

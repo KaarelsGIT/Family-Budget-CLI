@@ -130,12 +130,245 @@ button.primary:disabled {
   color: crimson;
 }
 
-@media (max-width: 640px) {
-  .modal-actions {
-    flex-direction: column-reverse;
-  }
+.account-row.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f9f9f9;
+}
 
-  .modal-actions button {
-    width: 100%;
+.account-row.is-disabled input {
+  cursor: not-allowed;
+}
+
+.section-title {
+  margin: 18px 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #12351d;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.goal-form {
+  margin-top: 10px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5c52;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 32px 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #dfeae2;
+  font-size: 16px;
+  font-weight: 500;
+  color: #12351d;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.currency {
+  position: absolute;
+  right: 14px;
+  color: #6a7c70;
+  font-weight: 600;
+}
+
+.date-picker-trigger {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #dfeae2;
+  background: #fff;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 500;
+  color: #12351d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-picker-trigger:hover {
+  border-color: #b9e1c5;
+  background: #f7faf8;
+}
+
+/* Date Picker Styles */
+.date-picker-shell {
+  position: fixed;
+  z-index: 1300;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  border: 1px solid #e1ede4;
+  overflow: hidden;
+}
+
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: #f4fbf5;
+  border-bottom: 1px solid #e1ede4;
+}
+
+.nav-button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #1f6f4a;
+  font-size: 20px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.nav-button:hover {
+  background: #e7f1ea;
+}
+
+.month-title {
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  color: #12351d;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.month-title:hover {
+  background: #e7f1ea;
+}
+
+.date-picker-body {
+  padding: 14px;
+}
+
+.weekday-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.weekday-labels span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6a7c70;
+  text-transform: uppercase;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #12351d;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.calendar-day:hover:not(.is-selected) {
+  background: #f0f7f2;
+}
+
+.calendar-day.is-other-month {
+  color: #b0c1b6;
+}
+
+.calendar-day.is-selected {
+  background: #1f6f4a;
+  color: #ffffff;
+}
+
+.calendar-day.is-today:not(.is-selected) {
+  color: #1f6f4a;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 2px #b9e1c5;
+}
+
+.year-grid-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #12351d;
+}
+
+.year-grid-nav button {
+  border: 0;
+  background: transparent;
+  color: #1f6f4a;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.year-option {
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #f4fbf5;
+  color: #12351d;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.year-option:hover {
+  background: #e7f1ea;
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 }

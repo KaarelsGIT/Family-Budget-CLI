@@ -32,6 +32,13 @@
     <div class="family-savings-card__inner">
       <div class="family-savings-card__amount">{{ formatBalance(total()) }}</div>
       <div class="family-savings-card__label">{{ i18n.translate('accounts.familySavings') }}</div>
+      <div class="family-savings-card__percentage" *ngIf="targetAmount() && targetAmount()! > 0">
+        {{ i18n.translate('accounts.collected') }}: {{ progress() | number:'1.0-0' }}%
+      </div>
+      <div class="family-savings-card__target" *ngIf="targetAmount() && targetAmount()! > 0">
+        {{ i18n.translate('accounts.targetLabel') }}: {{ formatBalance(targetAmount()!) }}
+        <span *ngIf="targetDate()">({{ targetDate() | date:'dd.MM.yyyy' }})</span>
+      </div>
     </div>
   </div>
 </article>

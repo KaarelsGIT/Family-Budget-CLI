@@ -74,6 +74,8 @@ export class AccountsPageComponent {
   readonly selectedSavingsGoalAccount = signal<Account | null>(null);
   readonly isFamilySavingsModalOpen = signal(false);
   readonly familySavingsSelectedAccountIds = signal<number[]>([]);
+  readonly familySavingsTargetAmount = signal<number | null>(null);
+  readonly familySavingsTargetDate = signal<string | null>(null);
   readonly errorMessage = signal('');
   readonly selectedFamilyUserIds = signal<number[]>([]);
   readonly hoveredFamilyUserId = signal<number | null>(null);
@@ -267,8 +269,10 @@ export class AccountsPageComponent {
     this.loadAccounts();
   }
 
-  handleFamilySavingsSaved(selection: number[]): void {
-    this.familySavingsSelectedAccountIds.set(selection);
+  handleFamilySavingsSaved(selection: { selectedAccountIds: number[]; targetAmount: number | null; targetDate: string | null }): void {
+    this.familySavingsSelectedAccountIds.set(selection.selectedAccountIds);
+    this.familySavingsTargetAmount.set(selection.targetAmount);
+    this.familySavingsTargetDate.set(selection.targetDate);
     this.closeFamilySavingsModal();
     this.loadAccounts();
   }
@@ -394,10 +398,14 @@ export class AccountsPageComponent {
   private loadFamilySavingsSelection(): void {
     this.accountService.getFamilySavingsSelection().subscribe({
       next: (selection) => {
-        this.familySavingsSelectedAccountIds.set(selection);
+        this.familySavingsSelectedAccountIds.set(selection.selectedAccountIds);
+        this.familySavingsTargetAmount.set(selection.targetAmount);
+        this.familySavingsTargetDate.set(selection.targetDate);
       },
       error: () => {
         this.familySavingsSelectedAccountIds.set([]);
+        this.familySavingsTargetAmount.set(null);
+        this.familySavingsTargetDate.set(null);
       }
     });
   }
@@ -450,8 +458,16 @@ export class AccountsPageComponent {
       const filtered = this.familySavingsSelectedAccountIds().filter((id) => availableIds.has(id));
       if (filtered.length !== this.familySavingsSelectedAccountIds().length) {
         this.familySavingsSelectedAccountIds.set(filtered);
-        this.accountService.updateFamilySavingsSelection(filtered).subscribe({
-          next: (saved) => this.familySavingsSelectedAccountIds.set(saved),
+        this.accountService.updateFamilySavingsSelection({
+          selectedAccountIds: filtered,
+          targetAmount: this.familySavingsTargetAmount(),
+          targetDate: this.familySavingsTargetDate()
+        }).subscribe({
+          next: (saved) => {
+            this.familySavingsSelectedAccountIds.set(saved.selectedAccountIds);
+            this.familySavingsTargetAmount.set(saved.targetAmount);
+            this.familySavingsTargetDate.set(saved.targetDate);
+          },
           error: () => {
             // Keep the local filtered state if persistence fails.
           }

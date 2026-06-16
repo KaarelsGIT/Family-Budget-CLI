@@ -70,6 +70,8 @@
       class="family-dashboard-card family-dashboard-card--savings"
       [accounts]="accounts()"
       [selectedAccountIds]="familySavingsSelectedAccountIds()"
+      [targetAmount]="familySavingsTargetAmount()"
+      [targetDate]="familySavingsTargetDate()"
       (addRequested)="openFamilySavingsModal()" />
   </section>
 
@@ -151,6 +153,8 @@
     *ngIf="isFamilySavingsModalOpen()"
     [accounts]="accounts().filter((account) => account.type === 'SAVINGS' || account.type === 'CASH')"
     [selectedAccountIds]="familySavingsSelectedAccountIds()"
+    [targetAmount]="familySavingsTargetAmount()"
+    [targetDate]="familySavingsTargetDate()"
     (closed)="closeFamilySavingsModal()"
     (saved)="handleFamilySavingsSaved($event)" />
 </section>
