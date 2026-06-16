@@ -23,8 +23,8 @@
 
 .family-savings-card__header {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
 }
 
