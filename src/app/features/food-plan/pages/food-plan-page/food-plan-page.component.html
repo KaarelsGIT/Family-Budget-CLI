@@ -55,25 +55,28 @@
   </aside>
 
   <main class="calendar-panel">
-    <div class="panel-header calendar-toolbar">
-      <div>
+    <div class="calendar-header-sticky">
+      <div class="panel-header calendar-toolbar">
         <p class="eyebrow">{{ labels().weekView }}</p>
         <h2>{{ viewMode() === 'week' ? weekStart() : monthAnchor() | date:'MMMM yyyy' }}</h2>
       </div>
-      <div class="calendar-toolbar-right">
-        <button *ngIf="isEditable()" type="button" class="primary-button shopping-list-button" (click)="generateShoppingList()">
-          Genereeri ostunimekiri
-        </button>
-        <p class="read-only" *ngIf="!isEditable()">{{ labels().readOnly }}</p>
-      </div>
-    </div>
 
-    <div class="calendar-actions">
-      <button type="button" class="secondary-button" (click)="changeMonth(-1)">‹</button>
-      <button type="button" class="secondary-button" (click)="goToCurrentWeek()">See nädal</button>
-      <button type="button" class="secondary-button" (click)="setViewMode('week')">Nädal</button>
-      <button type="button" class="secondary-button" (click)="setViewMode('month')">Kuu</button>
-      <button type="button" class="secondary-button" (click)="changeMonth(1)">›</button>
+      <div class="calendar-header-right">
+        <div class="calendar-actions">
+          <button type="button" class="secondary-button" (click)="changeMonth(-1)">‹</button>
+          <button type="button" class="secondary-button" (click)="goToCurrentWeek()">See nädal</button>
+          <button type="button" class="secondary-button" (click)="setViewMode('week')">Nädal</button>
+          <button type="button" class="secondary-button" (click)="setViewMode('month')">Kuu</button>
+          <button type="button" class="secondary-button" (click)="changeMonth(1)">›</button>
+        </div>
+
+        <div class="calendar-toolbar-right">
+          <button *ngIf="isEditable()" type="button" class="primary-button shopping-list-button" (click)="generateShoppingList()">
+            Genereeri ostunimekiri
+          </button>
+          <p class="read-only" *ngIf="!isEditable()">{{ labels().readOnly }}</p>
+        </div>
+      </div>
     </div>
 
     <div class="calendar-grid week-grid" *ngIf="viewMode() === 'week'" [class.week-grid--animating]="isWeekAnimating()">
