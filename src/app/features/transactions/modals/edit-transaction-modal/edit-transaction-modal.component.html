@@ -11,7 +11,12 @@
       <div class="input-grid">
         <label class="field date-field">
           <span>{{ i18n.translate('transactions.columnDate') }}</span>
-          <input class="form-input-rounded" type="date" formControlName="transactionDate" />
+          <input
+            class="form-input-rounded"
+            type="text"
+            placeholder="PP.KK.AAAA"
+            [value]="formatDateForInput(form.controls.transactionDate.value)"
+            (input)="onDateInput($event)" />
         </label>
 
         <label class="field amount-field">

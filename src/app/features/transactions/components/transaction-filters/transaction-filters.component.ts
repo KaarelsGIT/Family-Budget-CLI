@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, computed, inject, input, output, signal } from '@angular/core';
 import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
+import { formatDateToEstonian } from '../../../shared/utils/date-format';
 import { TransactionCategory, TransactionUserOption } from '../../models/transaction.model';
 
 export type TransactionFilterType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
@@ -232,16 +233,7 @@ export class TransactionFiltersComponent {
   }
 
   formatDateForDisplay(value: string): string {
-    if (!value) {
-      return '';
-    }
-
-    const date = new Date(`${value}T00:00:00`);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+    return formatDateToEstonian(value);
   }
 
   private parseDateInput(value: string): string | null {

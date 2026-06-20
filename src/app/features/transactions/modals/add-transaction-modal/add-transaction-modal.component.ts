@@ -16,6 +16,7 @@ import { TranslationService } from '../../../../core/services/i18n/translation.s
 import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
 import { CategoryEditorModalComponent } from '../../../categories/modals/category-editor-modal/category-editor-modal.component';
 import { formatMoney, parseMoneyInput } from '../../../shared/utils/money-format';
+import { formatDateToEstonian, parseEstonianDateToIso } from '../../../shared/utils/date-format';
 import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
 import { Account } from '../../../accounts/models/account.model';
 import { AccountService, SelectableUser } from '../../../accounts/services/account.service';
@@ -1271,6 +1272,17 @@ export class AddTransactionModalComponent {
   }
   getAccountLabel(a: Account): string {
     return this.formatAccountDisplay(a);
+  }
+  formatDateForInput(isoDate: string): string {
+    return formatDateToEstonian(isoDate);
+  }
+  onDateInput(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    const estDate = input.value;
+    const isoDate = parseEstonianDateToIso(estDate);
+    if (isoDate.length === 10 && !isNaN(Date.parse(isoDate))) {
+      this.transactionForm.patchValue({ transactionDate: isoDate }, { emitEvent: true });
+    }
   }
   getTransferSourceOptionLabel(a: Account): string {
     return this.formatAccountDisplay(a);

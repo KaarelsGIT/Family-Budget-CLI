@@ -11,6 +11,7 @@ import { canTransactFromAccount } from '../../../accounts/utils/account-access';
 import { buildTransferTargetUsers, shouldShowMyAccountsSection, TransferTargetUser } from '../../../accounts/utils/transfer-targets';
 import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
 import { formatMoney, parseMoneyInput } from '../../../shared/utils/money-format';
+import { formatDateToEstonian, parseEstonianDateToIso } from '../../../shared/utils/date-format';
 import { TransactionCategory, TransactionItem, UpdateTransactionPayload } from '../../models/transaction.model';
 import { TransactionsService } from '../../services/transactions.service';
 
@@ -307,6 +308,19 @@ export class EditTransactionModalComponent {
 
   formatCurrentAmount(): string {
     return formatMoney(this.transaction().amount);
+  }
+
+  formatDateForInput(isoDate: string): string {
+    return formatDateToEstonian(isoDate);
+  }
+
+  onDateInput(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    const estDate = input.value;
+    const isoDate = parseEstonianDateToIso(estDate);
+    if (isoDate.length === 10 && !isNaN(Date.parse(isoDate))) {
+      this.form.patchValue({ transactionDate: isoDate }, { emitEvent: true });
+    }
   }
 
   normalizeMoneyInput(event: Event): void {

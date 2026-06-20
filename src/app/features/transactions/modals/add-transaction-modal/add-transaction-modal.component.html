@@ -74,7 +74,12 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
-                <input class="form-input-rounded" type="date" formControlName="transactionDate" />
+                <input
+                  class="form-input-rounded"
+                  type="text"
+                  placeholder="PP.KK.AAAA"
+                  [value]="formatDateForInput(transactionForm.controls.transactionDate.value)"
+                  (input)="onDateInput($event)" />
               </label>
 
               <label class="field">
@@ -174,7 +179,12 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
-                <input class="form-input-rounded" type="date" formControlName="transactionDate" />
+                <input
+                  class="form-input-rounded"
+                  type="text"
+                  placeholder="PP.KK.AAAA"
+                  [value]="formatDateForInput(transactionForm.controls.transactionDate.value)"
+                  (input)="onDateInput($event)" />
               </label>
 
               <label class="field">
@@ -304,7 +314,12 @@
 
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
-                <input class="form-input-rounded" type="date" formControlName="transactionDate" />
+                <input
+                  class="form-input-rounded"
+                  type="text"
+                  placeholder="PP.KK.AAAA"
+                  [value]="formatDateForInput(transactionForm.controls.transactionDate.value)"
+                  (input)="onDateInput($event)" />
               </label>
 
               <label class="field field-wide">
