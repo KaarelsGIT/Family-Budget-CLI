@@ -108,10 +108,10 @@
           <button
             type="button"
             class="empty-day-card"
-            *ngIf="day.entries.length === 0"
+            *ngIf="isEditable()"
             (click)="$event.stopPropagation(); openDayRecipePicker(day.date)">
             <span class="empty-day-plus">+ Lisa toitu</span>
-            <span class="empty-day-hint">{{ labels().noCalendar }}</span>
+            <span class="empty-day-hint" *ngIf="day.entries.length === 0">{{ labels().noCalendar }}</span>
           </button>
         </div>
       </section>
@@ -146,7 +146,7 @@
           <button
             type="button"
             class="empty-day-card empty-day-card--month"
-            *ngIf="day.entries.length === 0"
+            *ngIf="isEditable()"
             (click)="$event.stopPropagation(); openDayRecipePicker(day.date)">
             <span class="empty-day-plus">+ Lisa toitu</span>
           </button>
@@ -174,10 +174,10 @@
 
 <div class="modal-overlay" *ngIf="isRecipeEditorOpen()">
   <div class="modal-backdrop" (click)="closeRecipeEditor()"></div>
-  <section class="modal-card recipe-editor" [style.transform]="getRecipeModalTransform()" tabindex="-1" role="dialog" aria-modal="true">
+  <section class="modal-card recipe-editor" [style.transform]="getRecipeModalTransform()" tabindex="-1" role="dialog" aria-modal="true" (keydown.escape)="closeRecipeEditor()">
     <div class="modal-header" (pointerdown)="startRecipeModalDrag($event)">
       <h2>{{ editingRecipeId() ? 'Muuda retsepti' : 'Lisa uus retsept' }}</h2>
-      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()" (click)="closeRecipeEditor()">✖</button>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="closeRecipeEditor()" aria-label="Sulge">✖</button>
     </div>
 
     <div class="editor-grid">
@@ -257,13 +257,13 @@
 
 <div class="modal-overlay" *ngIf="recipePickerDate() as pickerDate">
   <div class="modal-backdrop" (click)="closeDayRecipePicker()"></div>
-  <section class="modal-card recipe-picker-modal" role="dialog" aria-modal="true" aria-labelledby="recipe-picker-title">
-    <div class="modal-header">
+  <section class="modal-card recipe-picker-modal" role="dialog" aria-modal="true" aria-labelledby="recipe-picker-title" [style.transform]="getPickerModalTransform()" (keydown.escape)="closeDayRecipePicker()">
+    <div class="modal-header" (pointerdown)="startPickerModalDrag($event)">
       <div>
         <p class="confirm-eyebrow">Toidu lisamine</p>
         <h2 id="recipe-picker-title">{{ formatPickerDate(pickerDate) }}</h2>
       </div>
-      <button type="button" class="close-button" (click)="closeDayRecipePicker()" aria-label="Sulge">✖</button>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="closeDayRecipePicker()" aria-label="Sulge">✖</button>
     </div>
 
     <p class="picker-copy">Vali retsept ja lisa see sellele päevale.</p>
@@ -290,10 +290,10 @@
 
 <div class="modal-overlay" *ngIf="pendingRecipeDelete() as pendingRecipe">
   <div class="modal-backdrop" (click)="closeRecipeDeleteConfirmation()"></div>
-  <section class="modal-card confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-recipe-title">
-    <div class="modal-header">
+  <section class="modal-card confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-recipe-title" (keydown.escape)="closeRecipeDeleteConfirmation()" [style.transform]="getPickerModalTransform()">
+    <div class="modal-header" (pointerdown)="startPickerModalDrag($event)">
       <h2 id="delete-recipe-title">Kustuta</h2>
-      <button type="button" class="close-button" (click)="closeRecipeDeleteConfirmation()" aria-label="Sulge">✖</button>
+      <button type="button" class="close-button" (pointerdown)="$event.stopPropagation()" (click)="closeRecipeDeleteConfirmation()" aria-label="Sulge">✖</button>
     </div>
 
     <p class="confirm-eyebrow">Retsepti kustutamine</p>

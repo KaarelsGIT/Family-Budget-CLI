@@ -79,12 +79,19 @@ export class FoodPlanPageComponent {
   readonly isCalendarDragging = signal(false);
   readonly draggedCalendarEntry = signal<FoodCalendarEntry | null>(null);
   readonly recipePickerDate = signal<string | null>(null);
+  readonly pickerModalOffsetX = signal(0);
+  readonly pickerModalOffsetY = signal(0);
   readonly errorMessage = signal('');
   private recipeModalDragging = false;
+  private pickerModalDragging = false;
   private recipeDragStartX = 0;
   private recipeDragStartY = 0;
   private recipeDragOriginX = 0;
   private recipeDragOriginY = 0;
+  private pickerDragStartX = 0;
+  private pickerDragStartY = 0;
+  private pickerDragOriginX = 0;
+  private pickerDragOriginY = 0;
   private trashDropCommitted = false;
   @ViewChild('trashZone') private trashZone?: ElementRef<HTMLElement>;
 
@@ -209,6 +216,8 @@ export class FoodPlanPageComponent {
     if (!this.isEditable()) {
       return;
     }
+    this.pickerModalOffsetX.set(0);
+    this.pickerModalOffsetY.set(0);
     this.recipePickerDate.set(date);
   }
 
@@ -280,6 +289,13 @@ export class FoodPlanPageComponent {
       keyboardEvent.preventDefault();
       keyboardEvent.stopPropagation();
       this.closeRecipeEditor();
+      return;
+    }
+
+    if (this.recipePickerDate()) {
+      keyboardEvent.preventDefault();
+      keyboardEvent.stopPropagation();
+      this.closeDayRecipePicker();
     }
   }
 
@@ -301,19 +317,45 @@ export class FoodPlanPageComponent {
 
   @HostListener('document:pointermove', ['$event'])
   onRecipeModalPointerMove(event: PointerEvent): void {
-    if (!this.recipeModalDragging) return;
-    this.recipeModalOffsetX.set(this.recipeDragOriginX + (event.clientX - this.recipeDragStartX));
-    this.recipeModalOffsetY.set(this.recipeDragOriginY + (event.clientY - this.recipeDragStartY));
+    if (this.recipeModalDragging) {
+      this.recipeModalOffsetX.set(this.recipeDragOriginX + (event.clientX - this.recipeDragStartX));
+      this.recipeModalOffsetY.set(this.recipeDragOriginY + (event.clientY - this.recipeDragStartY));
+    }
+    if (this.pickerModalDragging) {
+      this.pickerModalOffsetX.set(this.pickerDragOriginX + (event.clientX - this.pickerDragStartX));
+      this.pickerModalOffsetY.set(this.pickerDragOriginY + (event.clientY - this.pickerDragStartY));
+    }
   }
 
   @HostListener('document:pointerup')
   @HostListener('document:pointercancel')
   onRecipeModalPointerUp(): void {
     this.recipeModalDragging = false;
+    this.pickerModalDragging = false;
   }
 
   getRecipeModalTransform(): string {
     return `translate3d(${this.recipeModalOffsetX()}px, ${this.recipeModalOffsetY()}px, 0)`;
+  }
+
+  startPickerModalDrag(event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, input, textarea, select')) {
+      return;
+    }
+    if (event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    this.pickerModalDragging = true;
+    this.pickerDragStartX = event.clientX;
+    this.pickerDragStartY = event.clientY;
+    this.pickerDragOriginX = this.pickerModalOffsetX();
+    this.pickerDragOriginY = this.pickerModalOffsetY();
+  }
+
+  getPickerModalTransform(): string {
+    return `translate3d(${this.pickerModalOffsetX()}px, ${this.pickerModalOffsetY()}px, 0)`;
   }
 
   addIngredient(): void {
@@ -442,6 +484,12 @@ export class FoodPlanPageComponent {
 
   handleDrop(event: CdkDragDrop<any>, targetDate?: string): void {
     if (!this.isEditable()) return;
+
+    if (this.isPointInsideTrashZone(event.dropPoint)) {
+      this.deleteDraggedEntryFromCalendar(event);
+      return;
+    }
+
     const dragged = event.item.data as FoodRecipe | FoodCalendarEntry;
     if ('baseServings' in dragged) {
       if (targetDate) {
@@ -477,6 +525,7 @@ export class FoodPlanPageComponent {
       const entry = this.draggedCalendarEntry();
       if (entry) {
         this.deleteEntry(entry);
+        this.trashDropCommitted = true;
       }
     }
     this.trashDropCommitted = false;
@@ -511,6 +560,9 @@ export class FoodPlanPageComponent {
     const previousEntries = this.weekEntries();
     this.weekEntries.update((entries) => entries.filter((current) => current.id !== entry.id));
     this.foodPlanService.deleteCalendarEntry(entry.id).subscribe({
+      next: () => {
+        // Successfully deleted, state is already updated optimistically
+      },
       error: () => this.weekEntries.set(previousEntries)
     });
   }
