@@ -186,7 +186,7 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  z-index: 4000;
+  z-index: 5000;
   width: 320px;
   padding: 12px;
   border: 1px solid #dce9e0;
@@ -287,6 +287,10 @@
   background: #2f7d46;
   color: #fff;
   border-color: #2f7d46;
+}
+
+.date-field {
+  z-index: 2;
 }
 
 .amount-field .amount-input-row {

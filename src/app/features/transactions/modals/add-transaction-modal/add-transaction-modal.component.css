@@ -123,9 +123,8 @@
 /* 1. STOP MODAL SCROLLING while dropdown is open */
 /* Critical: if the container allows scrolling, it hides elements extending to the side */
 .modal-scroll {
-  overflow-y: auto !important;
-  overflow-x: visible !important;
-  max-height: 70vh; /* Restore controlled scrolling for the content area */
+  overflow: visible !important;
+  max-height: 70vh; /* Keep the modal content height cap without clipping the calendar */
 }
 
 .category-picker-container {
@@ -369,7 +368,7 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  z-index: 4000;
+  z-index: 5000;
   width: 320px;
   padding: 12px;
   border: 1px solid #dce9e0;
@@ -429,6 +428,10 @@
   display: flex;
   gap: 8px;
   margin-left: auto;
+}
+
+.date-field {
+  z-index: 2;
 }
 
 .weekday-row {
