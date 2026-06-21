@@ -75,11 +75,51 @@
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
                 <input
-                  class="form-input-rounded"
+                  class="form-input-rounded date-trigger"
                   type="text"
+                  [attr.data-date-field]="'transactionDate'"
                   placeholder="PP.KK.AAAA"
                   [value]="formatDateForInput(transactionForm.controls.transactionDate.value)"
-                  (input)="onDateInput($event)" />
+                  (input)="onDateInput($event)"
+                  (focusout)="onFieldBlur($event)"
+                  (click)="$event.stopPropagation(); openDatePicker()" />
+                <div class="date-picker-shell" *ngIf="isDatePickerOpen()" (pointerdown)="onPickerPointerDown($event)" (mousedown)="onPickerPointerDown($event)">
+                  <div class="date-picker">
+                    <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); previousCalendarMonth()">‹</button>
+                    <button type="button" class="date-picker-title" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
+                    <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); nextCalendarMonth()">›</button>
+                  </div>
+
+                  <div class="year-grid" *ngIf="calendarMode() === 'year'">
+                    <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
+                      {{ option.year }}
+                    </button>
+                    <div class="year-grid-actions">
+                      <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
+                      <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
+                    </div>
+                  </div>
+
+                  <ng-container *ngIf="calendarMode() === 'month'">
+                    <div class="weekday-row">
+                      <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+                    </div>
+                    <div class="day-grid">
+                      <button
+                        type="button"
+                        class="day-cell"
+                        *ngFor="let day of calendarDays()"
+                        [class.is-outside]="!day.isCurrentMonth"
+                        [class.is-selected]="day.isSelected"
+                        [class.is-today]="day.isToday"
+                        (pointerdown)="selectCalendarDate(day, $event)"
+                        (mousedown)="selectCalendarDate(day, $event)"
+                        (click)="$event.stopPropagation(); selectCalendarDate(day)">
+                        {{ day.label }}
+                      </button>
+                    </div>
+                  </ng-container>
+                </div>
               </label>
 
               <label class="field">
@@ -180,11 +220,51 @@
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
                 <input
-                  class="form-input-rounded"
+                  class="form-input-rounded date-trigger"
                   type="text"
+                  [attr.data-date-field]="'transactionDate'"
                   placeholder="PP.KK.AAAA"
                   [value]="formatDateForInput(transactionForm.controls.transactionDate.value)"
-                  (input)="onDateInput($event)" />
+                  (input)="onDateInput($event)"
+                  (focusout)="onFieldBlur($event)"
+                  (click)="$event.stopPropagation(); openDatePicker()" />
+                <div class="date-picker-shell" *ngIf="isDatePickerOpen()" (pointerdown)="onPickerPointerDown($event)" (mousedown)="onPickerPointerDown($event)">
+                  <div class="date-picker">
+                    <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); previousCalendarMonth()">‹</button>
+                    <button type="button" class="date-picker-title" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
+                    <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); nextCalendarMonth()">›</button>
+                  </div>
+
+                  <div class="year-grid" *ngIf="calendarMode() === 'year'">
+                    <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
+                      {{ option.year }}
+                    </button>
+                    <div class="year-grid-actions">
+                      <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
+                      <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
+                    </div>
+                  </div>
+
+                  <ng-container *ngIf="calendarMode() === 'month'">
+                    <div class="weekday-row">
+                      <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+                    </div>
+                    <div class="day-grid">
+                      <button
+                        type="button"
+                        class="day-cell"
+                        *ngFor="let day of calendarDays()"
+                        [class.is-outside]="!day.isCurrentMonth"
+                        [class.is-selected]="day.isSelected"
+                        [class.is-today]="day.isToday"
+                        (pointerdown)="selectCalendarDate(day, $event)"
+                        (mousedown)="selectCalendarDate(day, $event)"
+                        (click)="$event.stopPropagation(); selectCalendarDate(day)">
+                        {{ day.label }}
+                      </button>
+                    </div>
+                  </ng-container>
+                </div>
               </label>
 
               <label class="field">
@@ -315,11 +395,51 @@
               <label class="field">
                 <span>{{ i18n.translate('transactions.columnDate') }}</span>
                 <input
-                  class="form-input-rounded"
+                  class="form-input-rounded date-trigger"
                   type="text"
+                  [attr.data-date-field]="'transactionDate'"
                   placeholder="PP.KK.AAAA"
                   [value]="formatDateForInput(transactionForm.controls.transactionDate.value)"
-                  (input)="onDateInput($event)" />
+                  (input)="onDateInput($event)"
+                  (focusout)="onFieldBlur($event)"
+                  (click)="$event.stopPropagation(); openDatePicker()" />
+                <div class="date-picker-shell" *ngIf="isDatePickerOpen()" (pointerdown)="onPickerPointerDown($event)" (mousedown)="onPickerPointerDown($event)">
+                  <div class="date-picker">
+                    <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); previousCalendarMonth()">‹</button>
+                    <button type="button" class="date-picker-title" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); toggleCalendarYearMode()">{{ monthTitle() }}</button>
+                    <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); nextCalendarMonth()">›</button>
+                  </div>
+
+                  <div class="year-grid" *ngIf="calendarMode() === 'year'">
+                    <button type="button" class="year-chip" *ngFor="let option of yearOptions()" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); selectCalendarYear(option.year)">
+                      {{ option.year }}
+                    </button>
+                    <div class="year-grid-actions">
+                      <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(-12)">‹</button>
+                      <button type="button" class="date-nav" (pointerdown)="$event.preventDefault(); $event.stopPropagation()" (mousedown)="$event.preventDefault(); $event.stopPropagation()" (click)="$event.stopPropagation(); changeYearGrid(12)">›</button>
+                    </div>
+                  </div>
+
+                  <ng-container *ngIf="calendarMode() === 'month'">
+                    <div class="weekday-row">
+                      <span *ngFor="let label of weekDayLabels()">{{ label }}</span>
+                    </div>
+                    <div class="day-grid">
+                      <button
+                        type="button"
+                        class="day-cell"
+                        *ngFor="let day of calendarDays()"
+                        [class.is-outside]="!day.isCurrentMonth"
+                        [class.is-selected]="day.isSelected"
+                        [class.is-today]="day.isToday"
+                        (pointerdown)="selectCalendarDate(day, $event)"
+                        (mousedown)="selectCalendarDate(day, $event)"
+                        (click)="$event.stopPropagation(); selectCalendarDate(day)">
+                        {{ day.label }}
+                      </button>
+                    </div>
+                  </ng-container>
+                </div>
               </label>
 
               <label class="field field-wide">

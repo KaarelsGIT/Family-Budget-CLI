@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -15,6 +15,21 @@ import { formatDateToEstonian, parseEstonianDateToIso } from '../../../shared/ut
 import { TransactionCategory, TransactionItem, UpdateTransactionPayload } from '../../models/transaction.model';
 import { TransactionsService } from '../../services/transactions.service';
 
+type DatePickerField = 'transactionDate';
+type CalendarMode = 'month' | 'year';
+
+interface CalendarDay {
+  date: string;
+  label: number;
+  isCurrentMonth: boolean;
+  isSelected: boolean;
+  isToday: boolean;
+}
+
+interface YearOption {
+  year: number;
+}
+
 @Component({
   selector: 'app-edit-transaction-modal',
   standalone: true,
@@ -27,6 +42,7 @@ export class EditTransactionModalComponent {
   private readonly transactionsService = inject(TransactionsService);
   private readonly accountService = inject(AccountService);
   private readonly authService = inject(AuthService);
+  private readonly elementRef = inject(ElementRef);
   readonly i18n = inject(TranslationService);
 
   readonly transaction = input.required<TransactionItem>();
@@ -45,6 +61,11 @@ export class EditTransactionModalComponent {
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
   readonly isCalculatorVisible = signal(false);
+  readonly activeDatePicker = signal<DatePickerField | null>(null);
+  readonly calendarMode = signal<CalendarMode>('month');
+  readonly calendarMonthAnchor = signal(new Date());
+  readonly yearGridStart = signal(0);
+  private pickerInteraction = false;
 
   private dragging = false;
   private dragStartX = 0;
@@ -99,6 +120,46 @@ export class EditTransactionModalComponent {
   readonly selectedSubCategoryId = computed(() => this.resolveSelectedSubCategoryId());
   readonly categoryPlaceholder = computed(() => this.i18n.translate('transactions.selectCategory'));
   readonly categoryAddLabel = computed(() => this.i18n.translate('transactions.addCategoryOption'));
+  readonly weekDayLabels = computed(() => {
+    const fmt = new Intl.DateTimeFormat(this.i18n.language(), { weekday: 'short' });
+    const base = new Date(2024, 0, 1);
+    return Array.from({ length: 7 }, (_, index) =>
+      fmt.format(new Date(base.getFullYear(), base.getMonth(), base.getDate() + index)),
+    );
+  });
+  readonly yearOptions = computed<YearOption[]>(() => {
+    const start = this.yearGridStart();
+    return Array.from({ length: 12 }, (_, index) => ({ year: start + index }));
+  });
+  readonly monthTitle = computed(() =>
+    new Intl.DateTimeFormat(this.i18n.language(), { month: 'long', year: 'numeric' }).format(
+      this.calendarMonthAnchor(),
+    ),
+  );
+  readonly calendarDays = computed(() => {
+    const anchor = this.calendarMonthAnchor();
+    const currentDate = new Date();
+    const selectedIso = this.form.controls.transactionDate.value || '';
+    const year = anchor.getFullYear();
+    const month = anchor.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const startDay = firstDayOfMonth.getDay();
+    const offset = (startDay + 6) % 7;
+    const startDate = new Date(year, month, 1 - offset);
+
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + index);
+      const iso = this.toIsoDate(date);
+      return {
+        date: iso,
+        label: date.getDate(),
+        isCurrentMonth: date.getMonth() === month,
+        isSelected: iso === selectedIso,
+        isToday: this.isSameDate(date, currentDate),
+      };
+    });
+  });
 
   readonly transferSourceOptions = computed(() => this.ownAccounts());
   readonly selectedTransferSourceAccount = computed(() => {
@@ -121,6 +182,11 @@ export class EditTransactionModalComponent {
   constructor() {
     this.loadAccounts();
     this.loadCategories();
+    this.syncCalendarFromValue(this.form.controls.transactionDate.value);
+
+    this.form.controls.transactionDate.valueChanges.subscribe((value) => {
+      this.syncCalendarFromValue(value);
+    });
 
     effect(() => {
       const transaction = this.transaction();
@@ -134,6 +200,16 @@ export class EditTransactionModalComponent {
       }, { emitEvent: false });
       this.errorMessage.set('');
     });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node | null;
+    if (!target) return;
+
+    if (!this.elementRef.nativeElement.contains(target)) {
+      this.closeDatePicker();
+    }
   }
 
   close(): void {
@@ -321,6 +397,82 @@ export class EditTransactionModalComponent {
     if (isoDate.length === 10 && !isNaN(Date.parse(isoDate))) {
       this.form.patchValue({ transactionDate: isoDate }, { emitEvent: true });
     }
+  }
+
+  openDatePicker(): void {
+    this.activeDatePicker.set('transactionDate');
+    this.calendarMode.set('month');
+    this.calendarMonthAnchor.set(
+      this.getCalendarAnchorDate(this.form.controls.transactionDate.value || this.normalizeDateValue(this.transaction().transactionDate)),
+    );
+    this.yearGridStart.set(this.getYearGridStart(this.calendarMonthAnchor().getFullYear()));
+  }
+
+  closeDatePicker(): void {
+    this.activeDatePicker.set(null);
+    this.calendarMode.set('month');
+  }
+
+  isDatePickerOpen(): boolean {
+    return this.activeDatePicker() === 'transactionDate';
+  }
+
+  toggleCalendarYearMode(): void {
+    this.calendarMode.update((mode) => (mode === 'month' ? 'year' : 'month'));
+    if (this.calendarMode() === 'year') {
+      this.yearGridStart.set(this.getYearGridStart(this.calendarMonthAnchor().getFullYear()));
+    }
+  }
+
+  previousCalendarMonth(): void {
+    this.calendarMonthAnchor.update((date) => new Date(date.getFullYear(), date.getMonth() - 1, 1));
+  }
+
+  nextCalendarMonth(): void {
+    this.calendarMonthAnchor.update((date) => new Date(date.getFullYear(), date.getMonth() + 1, 1));
+  }
+
+  selectCalendarYear(year: number): void {
+    this.calendarMonthAnchor.update((date) => new Date(year, date.getMonth(), 1));
+    this.calendarMode.set('month');
+  }
+
+  changeYearGrid(offset: number): void {
+    this.yearGridStart.update((start) => start + offset);
+  }
+
+  onPickerPointerDown(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.pickerInteraction = true;
+  }
+
+  onFieldBlur(event: FocusEvent): void {
+    setTimeout(() => {
+      if (this.pickerInteraction) {
+        this.pickerInteraction = false;
+        return;
+      }
+
+      const nextTarget = event.relatedTarget as Node | null;
+      const activeElement = document.activeElement as Node | null;
+      if ((!nextTarget || !this.elementRef.nativeElement.contains(nextTarget))
+        && (!activeElement || !this.elementRef.nativeElement.contains(activeElement))) {
+        this.closeDatePicker();
+      }
+    }, 150);
+  }
+
+  selectCalendarDate(day: CalendarDay, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (!day.isCurrentMonth) {
+      return;
+    }
+
+    this.form.patchValue({ transactionDate: day.date }, { emitEvent: true });
+    this.closeDatePicker();
   }
 
   normalizeMoneyInput(event: Event): void {
@@ -623,6 +775,38 @@ export class EditTransactionModalComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private syncCalendarFromValue(value: string | null): void {
+    if (!value) {
+      return;
+    }
+
+    const date = this.getCalendarAnchorDate(value);
+    this.calendarMonthAnchor.set(date);
+    this.yearGridStart.set(this.getYearGridStart(date.getFullYear()));
+  }
+
+  private getCalendarAnchorDate(value: string): Date {
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  }
+
+  private getYearGridStart(year: number): number {
+    return Math.max(1900, Math.floor(year / 12) * 12);
+  }
+
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private isSameDate(left: Date, right: Date): boolean {
+    return left.getFullYear() === right.getFullYear()
+      && left.getMonth() === right.getMonth()
+      && left.getDate() === right.getDate();
   }
 
   private resolveErrorMessage(error: { error?: { message?: string } }): string {
