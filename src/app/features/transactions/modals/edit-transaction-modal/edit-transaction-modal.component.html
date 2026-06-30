@@ -83,23 +83,10 @@
         </label>
       </div>
 
-      <div class="field field-wide category-picker-container" *ngIf="transaction().type !== 'TRANSFER'">
-        <span>{{ i18n.translate('transactions.columnCategory') }}</span>
-        <app-category-dropdown
-          [categories]="categories()"
-          [transactionType]="transaction().type"
-          [selectedMainCategoryId]="selectedMainCategoryId()"
-          [selectedSubCategoryId]="selectedSubCategoryId()"
-          [placeholder]="categoryPlaceholder()"
-          [addLabel]="categoryAddLabel()"
-          (categorySelected)="selectCategory($event.mainId, $event.subId)">
-        </app-category-dropdown>
-      </div>
-
-      <div class="summary-grid" *ngIf="transaction().type === 'TRANSFER'">
-        <label class="field">
-          <span>{{ i18n.translate('accounts.transferFrom') }}</span>
-          <select class="form-input-rounded" formControlName="fromAccountId">
+      <div class="non-transfer-fields" *ngIf="transaction().type !== 'TRANSFER'; else transferFields">
+        <label class="field field-wide">
+          <span>{{ i18n.translate('transactions.columnAccount') }}</span>
+          <select class="form-input-rounded account-select" formControlName="accountId">
             <option value="" disabled hidden>{{ i18n.translate('transactions.selectAccount') }}</option>
             <option *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId" [value]="account.id">
               {{ account.name }} · {{ getTransferAccountDetails(account) }}
@@ -107,21 +94,48 @@
           </select>
         </label>
 
-        <label class="field">
-          <span>{{ i18n.translate('accounts.transferTo') }}</span>
-          <select class="form-input-rounded" formControlName="toAccountId">
-            <option value="" disabled hidden>{{ i18n.translate('transactions.selectAccount') }}</option>
-            <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
-              <option *ngIf="!user.isCurrentUser" [value]="user.id">
-                {{ user.username }}
-              </option>
-              <option *ngFor="let account of user.accounts" [value]="account.id">
+        <div class="field field-wide category-picker-container">
+          <span>{{ i18n.translate('transactions.columnCategory') }}</span>
+          <app-category-dropdown
+            [categories]="categories()"
+            [transactionType]="transaction().type"
+            [selectedMainCategoryId]="selectedMainCategoryId()"
+            [selectedSubCategoryId]="selectedSubCategoryId()"
+            [placeholder]="categoryPlaceholder()"
+            [addLabel]="categoryAddLabel()"
+            (categorySelected)="selectCategory($event.mainId, $event.subId)">
+          </app-category-dropdown>
+        </div>
+      </div>
+
+      <ng-template #transferFields>
+        <div class="summary-grid">
+          <label class="field">
+            <span>{{ i18n.translate('accounts.transferFrom') }}</span>
+            <select class="form-input-rounded" formControlName="fromAccountId">
+              <option value="" disabled hidden>{{ i18n.translate('transactions.selectAccount') }}</option>
+              <option *ngFor="let account of transferSourceOptions(); trackBy: trackByAccountId" [value]="account.id">
                 {{ account.name }} · {{ getTransferAccountDetails(account) }}
               </option>
-            </ng-container>
-          </select>
-        </label>
-      </div>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>{{ i18n.translate('accounts.transferTo') }}</span>
+            <select class="form-input-rounded" formControlName="toAccountId">
+              <option value="" disabled hidden>{{ i18n.translate('transactions.selectAccount') }}</option>
+              <ng-container *ngFor="let user of transferTargetUsers(); trackBy: trackByTransferTargetUser">
+                <option *ngIf="!user.isCurrentUser" [value]="user.id">
+                  {{ user.username }}
+                </option>
+                <option *ngFor="let account of user.accounts" [value]="account.id">
+                  {{ account.name }} · {{ getTransferAccountDetails(account) }}
+                </option>
+              </ng-container>
+            </select>
+          </label>
+        </div>
+      </ng-template>
 
       <label class="field">
         <span>{{ i18n.translate('transactions.columnComment') }}</span>

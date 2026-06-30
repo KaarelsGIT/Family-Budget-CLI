@@ -78,6 +78,7 @@ export class EditTransactionModalComponent {
 
   readonly form = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
+    accountId: [''],
     categoryId: [''],
     fromAccountId: [''],
     toAccountId: [''],
@@ -192,6 +193,7 @@ export class EditTransactionModalComponent {
       const transaction = this.transaction();
       this.form.patchValue({
         amount: transaction.amount,
+        accountId: this.resolvePrimaryAccountId(transaction) === null ? '' : String(this.resolvePrimaryAccountId(transaction)),
         categoryId: transaction.categoryId === null ? '' : String(transaction.categoryId),
         fromAccountId: transaction.type === 'TRANSFER' ? String(transaction.fromAccountId ?? '') : '',
         toAccountId: transaction.type === 'TRANSFER' ? String(transaction.toAccountId ?? '') : '',
@@ -289,7 +291,7 @@ export class EditTransactionModalComponent {
       return;
     }
 
-    const { amount, categoryId, fromAccountId, toAccountId, transactionDate, comment } = this.form.getRawValue();
+    const { amount, accountId, categoryId, fromAccountId, toAccountId, transactionDate, comment } = this.form.getRawValue();
     const parsedAmount = parseMoneyInput(amount);
     const trimmedComment = (comment || '').trim();
     const parsedCategoryId = this.parseNumber(categoryId);
@@ -334,6 +336,18 @@ export class EditTransactionModalComponent {
       const selectedOwnAccount = this.isOwnTransferTarget(parsedToAccountId);
       payload.targetUserId = selectedOwnAccount ? null : parsedToAccountId;
       payload.toAccountId = selectedOwnAccount ? parsedToAccountId : null;
+    } else {
+      const parsedAccountId = this.parseNumber(accountId);
+      if (parsedAccountId === null) {
+        this.errorMessage.set(this.i18n.translate('transactions.fillRequiredFields'));
+        return;
+      }
+
+      if (this.transaction().type === 'INCOME') {
+        payload.toAccountId = parsedAccountId;
+      } else {
+        payload.fromAccountId = parsedAccountId;
+      }
     }
 
     this.errorMessage.set('');
@@ -372,6 +386,16 @@ export class EditTransactionModalComponent {
       return `${transaction.fromAccountName ?? '—'} -> ${transaction.toAccountName ?? '—'}`;
     }
     return transaction.fromAccountName ?? '—';
+  }
+
+  getEditableAccountLabel(): string {
+    const accountId = this.parseNumber(this.form.controls.accountId.getRawValue()) ?? this.resolvePrimaryAccountId(this.transaction());
+    if (accountId === null) {
+      return '—';
+    }
+
+    return this.accounts().find((account) => account.id === accountId)?.name
+      ?? this.getAccountLabel();
   }
 
   getCurrentTransferSourceLabel(): string {
@@ -591,6 +615,18 @@ export class EditTransactionModalComponent {
 
   private resolveSelectedCategoryId(): number | null {
     return this.parseNumber(this.form.controls.categoryId.getRawValue()) ?? this.transaction().categoryId;
+  }
+
+  private resolvePrimaryAccountId(transaction: TransactionItem): number | null {
+    if (transaction.type === 'INCOME') {
+      return transaction.toAccountId;
+    }
+
+    if (transaction.type === 'TRANSFER') {
+      return transaction.fromAccountId;
+    }
+
+    return transaction.fromAccountId;
   }
 
   private resolveSelectedMainCategoryId(): number | null {
