@@ -98,6 +98,13 @@ export class AdjustBalanceModalComponent {
     this.isCalculatorVisible.set(false);
   }
 
+  applyCalculatorValue(value: string): void {
+    const amount = Number(value);
+    if (Number.isFinite(amount)) {
+      this.form.patchValue({ amount });
+    }
+  }
+
   formatBalance(value: number): string {
     return formatMoney(value);
   }
@@ -112,6 +119,10 @@ export class AdjustBalanceModalComponent {
   }
 
   handleKeydown(event: KeyboardEvent): void {
+    if (this.isCalculatorVisible()) {
+      return;
+    }
+
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();

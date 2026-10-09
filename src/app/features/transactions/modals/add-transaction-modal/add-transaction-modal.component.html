@@ -129,7 +129,7 @@
                   <button
                     type="button"
                     class="calculator-button"
-                    (click)="openCalculator()"
+                    (click)="openCalculator('amount')"
                     [attr.aria-label]="i18n.translate('header.calculator')"
                     [attr.title]="i18n.translate('header.calculator')">
                     <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
@@ -274,7 +274,7 @@
                   <button
                     type="button"
                     class="calculator-button"
-                    (click)="openCalculator()"
+                    (click)="openCalculator('amount')"
                     [attr.aria-label]="i18n.translate('header.calculator')"
                     [attr.title]="i18n.translate('header.calculator')">
                     <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
@@ -376,7 +376,7 @@
                   <button
                     type="button"
                     class="calculator-button"
-                    (click)="openCalculator()"
+                    (click)="openCalculator('amount')"
                     [attr.aria-label]="i18n.translate('header.calculator')"
                     [attr.title]="i18n.translate('header.calculator')">
                     <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
@@ -469,6 +469,7 @@
 
 <app-calculator
   [isVisible]="isCalculatorVisible()"
+  (closedWithValue)="applyCalculatorValue($event)"
   (closeCalculator)="closeCalculator()">
 </app-calculator>
 

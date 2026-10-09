@@ -170,6 +170,7 @@ export class AddTransactionModalComponent {
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
   readonly isCalculatorVisible = signal(false);
+  private calculatorAmountField: 'amount' | null = null;
   readonly activeDatePicker = signal<DatePickerField | null>(null);
   readonly calendarMode = signal<CalendarMode>('month');
   readonly calendarMonthAnchor = signal(new Date());
@@ -447,11 +448,19 @@ export class AddTransactionModalComponent {
     this.dragging = false;
   }
 
-  openCalculator(): void {
+  openCalculator(field: 'amount' = 'amount'): void {
+    this.calculatorAmountField = field;
     this.isCalculatorVisible.set(true);
   }
   closeCalculator(): void {
     this.isCalculatorVisible.set(false);
+  }
+
+  applyCalculatorValue(value: string): void {
+    if (this.calculatorAmountField) {
+      this.transactionForm.patchValue({ [this.calculatorAmountField]: value });
+    }
+    this.calculatorAmountField = null;
   }
 
   openDatePicker(): void {

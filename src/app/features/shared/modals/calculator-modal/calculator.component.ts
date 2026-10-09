@@ -12,6 +12,7 @@ import { NgIf, NgStyle } from '@angular/common';
 export class CalculatorComponent {
   @Input() isVisible = false;
   @Output() closeCalculator = new EventEmitter<void>();
+  @Output() closedWithValue = new EventEmitter<string>();
 
   display: string = '0';
   expression: string = '';
@@ -217,6 +218,7 @@ export class CalculatorComponent {
   }
 
   close(): void {
+    this.closedWithValue.emit(this.display);
     this.closeCalculator.emit();
   }
 
