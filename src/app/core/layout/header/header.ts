@@ -1,4 +1,4 @@
-import { Component, HostListener, effect, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -19,12 +19,15 @@ import { HelpGuideModalComponent } from '../../../features/help/help-guide-modal
   templateUrl: './header.html',
   styleUrl: './header.css'
 })
-export class Header {
+export class Header implements OnDestroy {
   readonly authService = inject(AuthService);
   readonly i18n = inject(TranslationService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
   private readonly transactionDraftService = inject(TransactionDraftService);
+  private clockTimer: ReturnType<typeof setInterval> | null = null;
+  currentTime = this.formatCurrentTime();
+  currentDate = this.formatCurrentDate();
   isLoginModalOpen = false;
   isToolsOpen = false;
   isUserMenuOpen = false;
@@ -41,6 +44,11 @@ export class Header {
   notifications: NotificationItem[] = [];
 
   constructor() {
+    this.clockTimer = setInterval(() => {
+      this.currentTime = this.formatCurrentTime();
+      this.currentDate = this.formatCurrentDate();
+    }, 1000);
+
     effect(() => {
       if (this.authService.isLoggedIn()) {
         this.isLoginModalOpen = false;
@@ -53,6 +61,13 @@ export class Header {
       this.isNotificationsOpen = false;
       this.isHelpOpen = false;
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.clockTimer !== null) {
+      clearInterval(this.clockTimer);
+      this.clockTimer = null;
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -237,6 +252,23 @@ export class Header {
       hour: '2-digit',
       minute: '2-digit'
     }).format(new Date(value));
+  }
+
+  private formatCurrentTime(): string {
+    return new Intl.DateTimeFormat(this.i18n.language(), {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date());
+  }
+
+  private formatCurrentDate(): string {
+    return new Intl.DateTimeFormat(this.i18n.language(), {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date());
   }
 
   handleNotificationAction(notification: NotificationItem): void {

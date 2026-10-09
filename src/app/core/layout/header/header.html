@@ -4,6 +4,11 @@
       <a routerLink="/">{{ i18n.translate('app.name') }}</a>
     </div>
 
+    <div class="header-clock" aria-live="polite" aria-atomic="true">
+      <span class="header-clock__time">{{ currentTime }}</span>
+      <span class="header-clock__date">{{ currentDate }}</span>
+    </div>
+
     <ul class="nav-links">
       <ng-container *ngIf="authService.isLoggedIn()">
         <li>

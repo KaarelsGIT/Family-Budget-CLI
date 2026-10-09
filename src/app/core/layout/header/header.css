@@ -18,6 +18,21 @@ header {
   gap: 24px;
 }
 
+.logo,
+.header-clock,
+.nav-links {
+  flex: 1 1 0;
+}
+
+.logo {
+  flex: 0 0 auto;
+}
+
+.nav-links {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
 .logo a {
   color: ghostwhite;
   font-size: 22px;
@@ -26,14 +41,48 @@ header {
   letter-spacing: 0.02em;
 }
 
+.header-clock {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  padding: 0 18px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+  min-width: 240px;
+  text-align: center;
+}
+
+.header-clock__time {
+  font-size: 18px;
+  letter-spacing: 0.01em;
+}
+
+.header-clock__date {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.01em;
+}
+
 .nav-links {
   list-style: none;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
   align-items: center;
   margin: 0;
   padding: 0;
-  gap: 14px;
+  gap: 10px;
+}
+
+.nav-links > li {
+  flex: 0 0 auto;
 }
 
 .nav-links li {
@@ -46,16 +95,17 @@ header {
   justify-content: center;
   gap: 10px;
   min-height: 42px;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: ghostwhite;
   text-decoration: none;
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
 .mobile-icon {
@@ -163,15 +213,16 @@ header {
   justify-content: center;
   gap: 10px;
   min-height: 42px;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: ghostwhite;
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
 .tools-trigger:hover,
@@ -394,13 +445,14 @@ header {
 
 .action-button {
   min-height: 42px;
-  padding: 0 18px;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1px solid transparent;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  white-space: nowrap;
 }
 
 .action-button:hover {
@@ -427,9 +479,17 @@ header {
     padding: 16px;
   }
 
+  .header-clock {
+    width: 100%;
+    align-items: flex-start;
+    padding: 2px 0 4px;
+    order: 2;
+  }
+
   .nav-links {
     width: 100%;
     gap: 10px;
+    order: 3;
   }
 
   .nav-links li,
@@ -486,6 +546,10 @@ header {
     flex-direction: row !important;
     justify-content: space-around !important;
     gap: 0 !important;
+  }
+
+  .header-clock {
+    display: none;
   }
 
   /* Peidame logo ja tekstid, et ainult ikoonid jääksid */
