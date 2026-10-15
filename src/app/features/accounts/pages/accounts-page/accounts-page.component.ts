@@ -604,30 +604,44 @@ export class AccountsPageComponent {
 
   buildFamilyDashboardSlices(): AccountChartSlice[] {
     const selected = this.familyDashboardSelectedUsers();
-    const total = selected.reduce((sum, user) => sum + user.total, 0);
     const hoveredUserId = this.hoveredFamilyUserId();
+    const positiveUsers = selected.filter((user) => user.total > 0);
+    const total = positiveUsers.reduce((sum, user) => sum + user.total, 0);
 
-    if (total <= 0) {
+    if (selected.length === 0) {
       return [];
     }
 
-    let currentAngle = -90;
-    return selected.flatMap((user) => {
-      if (user.total <= 0) {
-        return [];
-      }
+    if (total <= 0) {
+      return selected.map((user, index) => ({
+        accountId: user.userId,
+        color: hoveredUserId === null || hoveredUserId === user.userId ? user.color : 'rgba(183, 228, 199, 0.26)',
+        path: this.describePieSlice(70, 70, 42, -90 + (index / selected.length) * 360, -90 + ((index + 1) / selected.length) * 360)
+      }));
+    }
 
-      const sweep = (user.total / total) * 360;
+    const zeroShareUsers = selected.filter((user) => user.total <= 0);
+    const zeroShareSweep = zeroShareUsers.length > 0 ? 5 : 0;
+    const contributionSweep = 360 - (zeroShareSweep * zeroShareUsers.length);
+    let currentAngle = -90;
+    const slices: AccountChartSlice[] = [];
+
+    for (const user of selected) {
+      const sweep = user.total > 0
+        ? (user.total / total) * contributionSweep
+        : zeroShareSweep;
       const startAngle = currentAngle;
       const endAngle = currentAngle + sweep;
       currentAngle = endAngle;
 
-      return [{
+      slices.push({
         accountId: user.userId,
         color: hoveredUserId === null || hoveredUserId === user.userId ? user.color : 'rgba(183, 228, 199, 0.26)',
         path: this.describePieSlice(70, 70, 42, startAngle, endAngle)
-      }];
-    });
+      });
+    }
+
+    return slices;
   }
 
   getFamilyUserProgress(user: FamilyDashboardUser): number {
