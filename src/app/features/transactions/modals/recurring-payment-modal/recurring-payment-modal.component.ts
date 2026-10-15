@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { TranslationService } from '../../../../core/services/i18n/translation.service';
@@ -7,18 +7,13 @@ import { RecurringPaymentItem, RecurringPaymentPayload, RecurringPaymentService 
 import { TransactionCategory } from '../../models/transaction.model';
 import { parseMoneyInput } from '../../../shared/utils/money-format';
 import { CalculatorComponent } from '../../../shared/modals/calculator-modal/calculator.component';
-
-interface CategoryOption {
-  id: number;
-  label: string;
-  type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
-  parentCategoryId: number | null;
-}
+import { CategoryDropdownComponent } from '../../../categories/components/category-dropdown/category-dropdown.component';
+import { CategoryEditorModalComponent } from '../../../categories/modals/category-editor-modal/category-editor-modal.component';
 
 @Component({
   selector: 'app-recurring-payment-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent],
+  imports: [CommonModule, ReactiveFormsModule, CalculatorComponent, CategoryDropdownComponent, CategoryEditorModalComponent],
   templateUrl: './recurring-payment-modal.component.html',
   styleUrl: './recurring-payment-modal.component.css'
 })
@@ -32,12 +27,17 @@ export class RecurringPaymentModalComponent {
   readonly categories = input<TransactionCategory[]>([]);
   readonly closed = output<void>();
   readonly saved = output<void>();
+  readonly categoryCreated = output<TransactionCategory>();
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
   readonly modalOffsetX = signal(0);
   readonly modalOffsetY = signal(0);
   readonly isCalculatorVisible = signal(false);
+  readonly isCategoryEditorOpen = signal(false);
+  readonly categoryEditorMode = signal<'create-main' | 'create-sub'>('create-main');
+  readonly categoryEditorParentCategory = signal<TransactionCategory | null>(null);
+  private readonly locallyCreatedCategories = signal<TransactionCategory[]>([]);
 
   private dragging = false;
   private dragStartX = 0;
@@ -45,59 +45,17 @@ export class RecurringPaymentModalComponent {
   private dragOriginX = 0;
   private dragOriginY = 0;
 
-  readonly categoryOptions = computed(() =>
-    this.categories()
-      .filter((category) => category.type === 'EXPENSE')
-      .map((category) => ({
-        id: category.id,
-        label: category.parentCategoryName
-          ? `${category.parentCategoryName} > ${category.name ?? ''}`
-          : (category.name ?? ''),
-        type: category.type,
-        parentCategoryId: category.parentCategoryId
-      }))
-  );
-
-  readonly mainCategoryOptions = computed(() =>
-    this.categories()
-      .filter((category) => category.type === 'EXPENSE' && category.parentCategoryId === null)
-      .sort((left, right) => left.name.localeCompare(right.name))
-  );
-
-  readonly selectedMainCategory = computed(() =>
-    this.categories().find((category) => category.id === this.selectedMainCategoryId() && category.type === 'EXPENSE') ?? null
-  );
-
-  readonly subCategoryOptions = computed(() =>
-    this.buildSubCategoryOptions(this.selectedMainCategory())
-  );
+  readonly categoryOptions = computed(() => {
+    const categoriesById = new Map<number, TransactionCategory>();
+    for (const category of [...this.categories(), ...this.locallyCreatedCategories()]) {
+      categoriesById.set(category.id, category);
+    }
+    return [...categoriesById.values()].filter((category) => category.type === 'EXPENSE');
+  });
+  readonly categoryAddLabel = computed(() => this.i18n.translate('transactions.addCategoryOption'));
 
   readonly selectedMainCategoryId = signal<number | null>(null);
   readonly selectedCategoryId = signal<number | null>(null);
-
-  readonly displayedCategoryOptions = computed(() => {
-    const options = [...this.categoryOptions()];
-    const payment = this.payment();
-    if (!payment) {
-      return options.sort((left, right) => (left.label ?? '').localeCompare(right.label ?? '', 'et'));
-    }
-
-    if (options.some((option) => option.id === payment.categoryId)) {
-      return options.sort((left, right) => (left.label ?? '').localeCompare(right.label ?? '', 'et'));
-    }
-
-    const category = this.categories().find((item) => item.id === payment.categoryId);
-    if (!category) {
-      return options;
-    }
-
-    return [...options, {
-      id: category.id,
-      label: category.parentCategoryName
-        ? `${category.parentCategoryName} > ${category.name ?? ''}`
-        : (category.name ?? '')
-    }].sort((left, right) => (left.label ?? '').localeCompare(right.label ?? '', 'et'));
-  });
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
@@ -111,16 +69,35 @@ export class RecurringPaymentModalComponent {
   constructor() {
     effect(() => {
       this.payment();
-      this.categories();
 
       if (!this.isOpen()) {
         this.errorMessage.set('');
         this.modalOffsetX.set(0);
         this.modalOffsetY.set(0);
+        this.isCategoryEditorOpen.set(false);
         return;
       }
 
-      this.initializeForm();
+      untracked(() => this.initializeForm());
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      const payment = this.payment();
+      if (!this.isOpen() || !payment || this.selectedCategoryId() !== null) {
+        return;
+      }
+
+      const selectedCategory = this.categories().find((category) => category.id === payment.categoryId);
+      if (!selectedCategory) {
+        return;
+      }
+
+      this.selectedMainCategoryId.set(selectedCategory.parentCategoryId ?? selectedCategory.id);
+      this.selectedCategoryId.set(selectedCategory.id);
+      this.form.patchValue({
+        mainCategoryId: selectedCategory.parentCategoryId ?? selectedCategory.id,
+        categoryId: selectedCategory.id
+      }, { emitEvent: false });
     }, { allowSignalWrites: true });
   }
 
@@ -171,7 +148,7 @@ export class RecurringPaymentModalComponent {
 
   @HostListener('document:keydown.escape')
   handleEscape(): void {
-    if (this.isCalculatorVisible()) {
+    if (this.isCalculatorVisible() || this.isCategoryEditorOpen()) {
       return;
     }
 
@@ -180,7 +157,7 @@ export class RecurringPaymentModalComponent {
 
   @HostListener('document:keydown.enter', ['$event'])
   handleEnter(event: Event): void {
-    if (this.isSubmitting()) {
+    if (this.isSubmitting() || this.isCalculatorVisible() || this.isCategoryEditorOpen()) {
       return;
     }
 
@@ -193,33 +170,46 @@ export class RecurringPaymentModalComponent {
     this.submit();
   }
 
-  onMainCategoryChange(value: string): void {
-    const parsedValue = Number(value);
-    if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+  selectCategory(mainId: number | null, subId: number | null): void {
+    if (mainId === null) {
+      this.form.patchValue({ mainCategoryId: 0, categoryId: 0 });
       this.selectedMainCategoryId.set(null);
       this.selectedCategoryId.set(null);
-      this.form.patchValue({ mainCategoryId: 0, categoryId: 0 }, { emitEvent: false });
       return;
     }
 
-    this.selectedMainCategoryId.set(parsedValue);
-    this.form.patchValue({
-      mainCategoryId: parsedValue,
-      categoryId: 0
-    }, { emitEvent: false });
-    this.selectedCategoryId.set(null);
+    const categoryId = subId ?? mainId;
+    this.form.patchValue({ mainCategoryId: mainId, categoryId });
+    this.selectedMainCategoryId.set(mainId);
+    this.selectedCategoryId.set(categoryId);
+    this.form.controls.mainCategoryId.markAsTouched();
+    this.form.controls.categoryId.markAsTouched();
   }
 
-  onSubCategoryChange(value: string): void {
-    const parsedValue = Number(value);
-    if (!Number.isFinite(parsedValue) || parsedValue < 1) {
-      this.selectedCategoryId.set(null);
-      this.form.patchValue({ categoryId: 0 }, { emitEvent: false });
-      return;
-    }
+  openCategoryEditorFromMenu(mode: 'create-main' | 'create-sub', parent?: TransactionCategory): void {
+    this.categoryEditorMode.set(mode);
+    this.categoryEditorParentCategory.set(parent ?? null);
+    this.isCategoryEditorOpen.set(true);
+  }
 
-    this.selectedCategoryId.set(parsedValue);
-    this.form.patchValue({ categoryId: parsedValue }, { emitEvent: false });
+  closeCategoryEditor(): void {
+    this.isCategoryEditorOpen.set(false);
+  }
+
+  onCategoryEditorSaved(category: TransactionCategory): void {
+    this.locallyCreatedCategories.update((categories) =>
+      categories.some((item) => item.id === category.id) ? categories : [...categories, category]
+    );
+    this.categoryCreated.emit(category);
+    this.isCategoryEditorOpen.set(false);
+    this.selectCategory(category.parentCategoryId ?? category.id, category.parentCategoryId ? category.id : null);
+  }
+
+  applyCalculatorValue(value: string): void {
+    const amount = Number(value);
+    if (Number.isFinite(amount)) {
+      this.form.patchValue({ amount });
+    }
   }
 
   submit(): void {
@@ -306,10 +296,6 @@ export class RecurringPaymentModalComponent {
     return this.payment() !== null;
   }
 
-  trackByCategoryId(_index: number, option: { id: number }): number {
-    return option.id;
-  }
-
   getModalTransform(): string {
     return `translate3d(${this.modalOffsetX()}px, ${this.modalOffsetY()}px, 0)`;
   }
@@ -334,6 +320,10 @@ export class RecurringPaymentModalComponent {
       }, { emitEvent: false });
       this.selectedMainCategoryId.set(selectedMainCategory?.id ?? null);
       this.selectedCategoryId.set(selectedCategory?.id ?? null);
+      if (!selectedCategory) {
+        this.selectedMainCategoryId.set(null);
+        this.selectedCategoryId.set(null);
+      }
     } else {
       this.form.patchValue({
         name: '',
@@ -368,30 +358,4 @@ export class RecurringPaymentModalComponent {
     return message || (this.payment() ? this.i18n.translate('recurringPayments.saveFailed') : this.i18n.translate('recurringPayments.createFailed'));
   }
 
-  private buildSubCategoryOptions(mainCategory: TransactionCategory | null) {
-    if (!mainCategory) {
-      return [];
-    }
-
-    const children = this.categories()
-      .filter((category) => category.type === 'EXPENSE' && category.parentCategoryId === mainCategory.id)
-      .map((category) => ({
-        id: category.id,
-        label: category.name,
-        type: category.type,
-        parentCategoryId: category.parentCategoryId
-      }))
-      .sort((left, right) => left.label.localeCompare(right.label));
-
-    if (children.length === 0) {
-      return [{
-        id: mainCategory.id,
-        label: this.i18n.translate('transactions.noSubcategory'),
-        type: mainCategory.type,
-        parentCategoryId: mainCategory.id
-      }];
-    }
-
-    return children;
-  }
 }

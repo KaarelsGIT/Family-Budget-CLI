@@ -110,6 +110,13 @@ export class RecurringPaymentsPageComponent {
       });
   }
 
+  handleCategoryCreated(category: TransactionCategory): void {
+    this.categories.update((categories) =>
+      categories.some((item) => item.id === category.id) ? categories : [...categories, category]
+    );
+    this.loadCategories();
+  }
+
   formatAmount(amount: number): string {
     return formatMoney(amount);
   }

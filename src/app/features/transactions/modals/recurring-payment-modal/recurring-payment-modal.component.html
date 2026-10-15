@@ -15,26 +15,18 @@
         <input type="text" formControlName="name" />
       </label>
 
-      <div class="category-grid">
-        <label class="field">
-          <span>{{ i18n.translate('transactions.mainCategory') }}</span>
-          <select class="form-input-rounded" formControlName="mainCategoryId" (change)="onMainCategoryChange($any($event.target).value)">
-            <option value="0" disabled hidden>{{ i18n.translate('transactions.selectCategory') }}</option>
-            <option *ngFor="let option of mainCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + option.id">
-              {{ option.name }}
-            </option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>{{ i18n.translate('transactions.subCategory') }}</span>
-          <select class="form-input-rounded" formControlName="categoryId" [disabled]="!selectedMainCategory()" (change)="onSubCategoryChange($any($event.target).value)">
-            <option value="0" disabled hidden>{{ i18n.translate('transactions.selectSubCategory') }}</option>
-            <option *ngFor="let option of subCategoryOptions(); trackBy: trackByCategoryId" [value]="'' + option.id">
-              {{ option.label }}
-            </option>
-          </select>
-        </label>
+      <div class="field category-picker-container">
+        <span>{{ i18n.translate('transactions.columnCategory') }}</span>
+        <app-category-dropdown
+          [categories]="categoryOptions()"
+          [transactionType]="'EXPENSE'"
+          [selectedMainCategoryId]="selectedMainCategoryId()"
+          [selectedSubCategoryId]="selectedCategoryId()"
+          [placeholder]="i18n.translate('transactions.selectCategory')"
+          [addLabel]="categoryAddLabel()"
+          (categorySelected)="selectCategory($event.mainId, $event.subId)"
+          (addNewCategory)="openCategoryEditorFromMenu($event.mode, $event.parent)">
+        </app-category-dropdown>
       </div>
 
       <label class="field">
@@ -90,6 +82,17 @@
 
   <app-calculator
     [isVisible]="isCalculatorVisible()"
+    (closedWithValue)="applyCalculatorValue($event)"
     (closeCalculator)="closeCalculator()">
   </app-calculator>
 </div>
+
+<app-category-editor-modal
+  [isOpen]="isCategoryEditorOpen()"
+  [mode]="categoryEditorMode()"
+  [parentCategory]="categoryEditorParentCategory()"
+  [defaultType]="'EXPENSE'"
+  [defaultGroup]="'FAMILY'"
+  [allowGroupSelection]="true"
+  (closed)="closeCategoryEditor()"
+  (saved)="onCategoryEditorSaved($event)" />
