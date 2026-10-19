@@ -156,5 +156,7 @@
 
 <app-calculator
   [isVisible]="isCalculatorVisible()"
-  (closeCalculator)="closeCalculator()">
+  [initialValue]="form.controls.amount.value"
+  (closeCalculator)="closeCalculator()"
+  (closedWithValue)="applyCalculatorValue($event)">
 </app-calculator>

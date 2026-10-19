@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIf, NgStyle } from '@angular/common';
 
@@ -9,8 +9,9 @@ import { NgIf, NgStyle } from '@angular/common';
   templateUrl: './calculator.component.html',
   styleUrls: ['./calculator.component.css'],
 })
-export class CalculatorComponent {
+export class CalculatorComponent implements OnChanges {
   @Input() isVisible = false;
+  @Input() initialValue: string | number | null = null;
   @Output() closeCalculator = new EventEmitter<void>();
   @Output() closedWithValue = new EventEmitter<string>();
 
@@ -19,6 +20,18 @@ export class CalculatorComponent {
   private tokens: string[] = [];
   waitingForSecondOperand: boolean = false;
   private hasResult = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!this.isVisible || !changes['isVisible']?.currentValue || this.initialValue === null) {
+      return;
+    }
+
+    this.display = String(this.initialValue);
+    this.expression = '';
+    this.tokens = [];
+    this.waitingForSecondOperand = false;
+    this.hasResult = false;
+  }
 
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {

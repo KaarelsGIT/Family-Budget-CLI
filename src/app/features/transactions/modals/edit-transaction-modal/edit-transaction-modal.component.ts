@@ -253,6 +253,10 @@ export class EditTransactionModalComponent {
   }
 
   handleKeydown(event: KeyboardEvent): void {
+    if (this.isCalculatorVisible()) {
+      return;
+    }
+
     if (event.key === 'Escape') {
       if (this.isCalculatorVisible()) {
         this.closeCalculator();
@@ -517,6 +521,10 @@ export class EditTransactionModalComponent {
 
   closeCalculator(): void {
     this.isCalculatorVisible.set(false);
+  }
+
+  applyCalculatorValue(value: string): void {
+    this.form.controls.amount.setValue(parseMoneyInput(value));
   }
 
   getModalTransform(): string {
